@@ -1,0 +1,26 @@
+plugins {
+  id 'java-gradle-plugin'
+  id 'org.jetbrains.kotlin.jvm'
+}
+
+gradlePlugin {
+  plugins {
+    betterSettings {
+      id = 'com.fueledbycaffeine.better-settings'
+      implementationClass = 'com.fueledbycaffeine.betersettings.BetterSettingsPlugin'
+    }
+  }
+}
+
+dependencies {
+  gradleApi()
+
+  testImplementation libs.assertk
+  testImplementation platform(libs.junit.platform)
+  testImplementation libs.junit.jupiter
+  testRuntimeOnly libs.junit.launcher
+}
+
+tasks.withType(Test).configureEach {
+  useJUnitPlatform()
+}

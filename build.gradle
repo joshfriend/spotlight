@@ -1,0 +1,6 @@
+plugins {
+  id 'org.jetbrains.kotlin.jvm'
+}
+
+group = 'com.fueledbycaffeine'
+version = '1.0-SNAPSHOT'
