@@ -3,6 +3,9 @@ package com.fueledbycaffeine.bettersettings.graph
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEqualTo
+import com.fueledbycaffeine.bettersettings.utils.GradlePath
+import com.fueledbycaffeine.bettersettings.utils.expandChildProjects
+import com.fueledbycaffeine.bettersettings.utils.gradlePathRelativeTo
 import org.gradle.internal.scripts.ScriptingLanguages
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -22,7 +25,7 @@ class GradlePathTest {
   @Test fun `can convert gradle paths to filesystem paths`() {
     val gradlePath = GradlePath(buildRoot, ":foo:bar")
     val projectDir = buildRoot.resolve("foo/bar")
-    assertThat(gradlePath.filesystemPath).equals(projectDir)
+    assertThat(gradlePath.projectDir).equals(projectDir)
   }
 
   @ParameterizedTest
@@ -59,7 +62,7 @@ class GradlePathTest {
       }
     """.trimIndent())
 
-    assertThat(gradlePath.children).containsExactlyInAnyOrder(
+    assertThat(gradlePath.successors).containsExactlyInAnyOrder(
       GradlePath(buildRoot, ":bar"),
     )
   }

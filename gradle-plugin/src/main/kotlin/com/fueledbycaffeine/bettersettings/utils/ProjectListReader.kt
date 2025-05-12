@@ -1,6 +1,5 @@
 package com.fueledbycaffeine.bettersettings.utils
 
-import com.fueledbycaffeine.bettersettings.graph.GradlePath
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.readLines
@@ -17,8 +16,8 @@ internal object ProjectListReader {
   }
 }
 
-internal fun File.readProjectList(projectList: Path): List<GradlePath> {
-  return this.toPath().readProjectList(projectList)
+internal fun File.readProjectList(projectList: File): List<GradlePath> {
+  return this.toPath().readProjectList(projectList.toPath())
 }
 
 internal fun Path.readProjectList(projectList: Path): List<GradlePath> {

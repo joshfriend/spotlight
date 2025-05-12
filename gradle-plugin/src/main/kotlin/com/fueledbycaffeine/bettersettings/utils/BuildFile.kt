@@ -1,11 +1,10 @@
 package com.fueledbycaffeine.bettersettings.utils
 
-import com.fueledbycaffeine.bettersettings.graph.GradlePath
 import java.nio.file.Path
 import kotlin.io.path.readText
 import kotlin.text.RegexOption.MULTILINE
 
-data class BuildFile(val root: Path, val path: Path) {
+internal data class BuildFile(val root: Path, val path: Path) {
   val dependencies: Set<GradlePath> = parseBuildFile(root, path)
 }
 

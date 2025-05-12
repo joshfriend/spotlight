@@ -2,7 +2,6 @@ package com.fueledbycaffeine.bettersettings.utils
 
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
-import com.fueledbycaffeine.bettersettings.graph.GradlePath
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path

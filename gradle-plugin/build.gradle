@@ -1,24 +1,37 @@
 plugins {
-  id 'java-gradle-plugin'
-  id 'org.jetbrains.kotlin.jvm'
+  id("java-gradle-plugin")
+  id("com.autonomousapps.testkit")
+  id("org.jetbrains.kotlin.jvm")
 }
 
 gradlePlugin {
   plugins {
     betterSettings {
-      id = 'com.fueledbycaffeine.better-settings'
-      implementationClass = 'com.fueledbycaffeine.betersettings.BetterSettingsPlugin'
+      id = "com.fueledbycaffeine.better-settings"
+      implementationClass = "com.fueledbycaffeine.bettersettings.BetterSettingsPlugin"
     }
   }
 }
 
+gradleTestKitSupport {
+  withSupportLibrary()
+  withTruthLibrary()
+}
+
+def main = sourceSets["main"]
+
+// Add a source set for the functional test suite. This must come _above_ the `dependencies` block.
+def functionalTestSourceSet = sourceSets.maybeCreate("functionalTest")
+functionalTestSourceSet.compileClasspath += main.output + configurations["testRuntimeClasspath"]
+functionalTestSourceSet.runtimeClasspath += functionalTestSourceSet.output + functionalTestSourceSet.compileClasspath
+
 dependencies {
   gradleApi()
 
-  testImplementation libs.assertk
-  testImplementation platform(libs.junit.platform)
-  testImplementation libs.junit.jupiter
-  testRuntimeOnly libs.junit.launcher
+  testImplementation(libs.assertk)
+  testImplementation(platform(libs.junit.platform))
+  testImplementation(libs.junit.jupiter)
+  testRuntimeOnly(libs.junit.launcher)
 }
 
 tasks.withType(Test).configureEach {

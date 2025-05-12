@@ -1,59 +1,73 @@
 package com.fueledbycaffeine.bettersettings
 
+import com.fueledbycaffeine.bettersettings.dsl.BetterSettingsExtension
+import com.fueledbycaffeine.bettersettings.dsl.BetterSettingsExtension.Companion.getBetterSettings
 import com.fueledbycaffeine.bettersettings.graph.BreadthFirstSearch
-import com.fueledbycaffeine.bettersettings.graph.GradlePath
-import com.fueledbycaffeine.bettersettings.graph.expandChildProjects
-import com.fueledbycaffeine.bettersettings.graph.gradlePathRelativeTo
-import com.fueledbycaffeine.bettersettings.utils.readProjectList
-import org.gradle.TaskExecutionRequest
+import com.fueledbycaffeine.bettersettings.utils.*
 import org.gradle.api.Plugin
+import org.gradle.api.file.RegularFile
 import org.gradle.api.initialization.Settings
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import kotlin.collections.plus
-import kotlin.io.path.exists
+import org.gradle.api.provider.Property
+import java.io.FileNotFoundException
 
 private val logger: Logger = Logging.getLogger(BetterSettingsPlugin::class.java)
 
+/**
+ * A [Settings] plugin to ease management of projects included in large builds.
+ *
+ * plugins {
+ *   id 'com.fueledbycaffeine.better-settings'
+ * }
+ */
 class BetterSettingsPlugin: Plugin<Settings> {
-  override fun apply(target: Settings) = target.run {
-    val projectDir = gradle.startParameter.projectDir
+  private lateinit var options: BetterSettingsExtension
+  override fun apply(settings: Settings) = settings.run {
+    options = extensions.getBetterSettings()
 
     val projects = if (isIdeSync) {
       val targets = getTargetProjects()
       if (targets.isNotEmpty()) {
-        logger.lifecycle("{} contains {} targets", targetProjectListFile, targets.size)
+        logger.info("{} contains {} targets", options.targetProjects.get(), targets.size)
         implicitAndTransitiveDependenciesOf(targets)
       } else {
-        logger.lifecycle("{} was missing or empty, including all projects", targetProjectListFile)
+        logger.info("{} was missing or empty, including all projects", options.targetProjects.get())
         getAllProjects()
       }
-    } else if (startParameter.taskRequests.allProjectsSpecified) {
-      val taskProjects = startParameter.taskRequests
-        .mapNotNull { it.projectPath }
-        .map { GradlePath(rootDir, it) }
-      logger.lifecycle("Using transitives for projects of requested tasks")
-      implicitAndTransitiveDependenciesOf(taskProjects)
-    } else if (projectDir != null) {
-      val target = projectDir.gradlePathRelativeTo(rootDir)
-      val childProjects = target.expandChildProjects()
-      logger.lifecycle("Gradle project dir given, using child projects and transitives of {}", target.path)
-      implicitAndTransitiveDependenciesOf(listOf(target) + childProjects)
     } else {
-      getAllProjects()
+      // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
+      val taskPaths = try {
+        guessProjectsFromTaskRequests()
+      } catch (e: FileNotFoundException) {
+        logger.warn("Not sure how to map all tasks to projects: {}", e.message)
+        null
+      }
+      if (!taskPaths.isNullOrEmpty()) {
+        logger.info("Using transitives for projects of requested tasks")
+        implicitAndTransitiveDependenciesOf(taskPaths)
+      } else {
+        val projectDir = gradle.startParameter.projectDir
+        val target = projectDir?.gradlePathRelativeTo(rootDir)
+        if (target != null && !target.isRootProject) {
+          val target = projectDir.gradlePathRelativeTo(rootDir)
+          val childProjects = target.expandChildProjects()
+          logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
+          implicitAndTransitiveDependenciesOf(listOf(target) + childProjects)
+        } else {
+          getAllProjects()
+        }
+      }
     }
 
     logger.lifecycle("Including {} projects", projects.size)
     include(projects)
   }
 
-  private val Collection<TaskExecutionRequest>.allProjectsSpecified: Boolean
-    get() = all { it.projectPath != null }
-
   private fun Settings.implicitAndTransitiveDependenciesOf(targets: List<GradlePath>): List<GradlePath> {
     val combinedTargets = addImplicitTargetsTo(targets)
     val transitives = BreadthFirstSearch.run(combinedTargets)
-    logger.lifecycle("Requested targets include {} projects transitively", transitives.size)
+    logger.info("Requested targets include {} projects transitively", transitives.size)
     return combinedTargets + transitives
   }
 
@@ -62,24 +76,23 @@ class BetterSettingsPlugin: Plugin<Settings> {
     return when {
       implicitTargets.isEmpty() -> targets
       else -> {
-        logger.lifecycle("{} includes {} implicit targets", implicitProjectListFile, implicitTargets.size)
+        logger.info("{} includes {} implicit targets", options.implicitProjects.get(), implicitTargets.size)
         implicitTargets + targets
       }
     }
   }
 
-  private fun Settings.getAllProjects(): List<GradlePath> = when {
-    allProjectListFile.exists() -> rootDir.readProjectList(allProjectListFile)
-    else -> emptyList()
-  }
+  private fun Settings.getAllProjects() = readProjectList(options.allProjects)
 
-  private fun Settings.getTargetProjects(): List<GradlePath> = when {
-    targetProjectListFile.exists() -> rootDir.readProjectList(targetProjectListFile)
-    else -> emptyList()
-  }
+  private fun Settings.getTargetProjects() = readProjectList(options.targetProjects)
 
-  private fun Settings.getImplicitTargets(): List<GradlePath> = when {
-    implicitProjectListFile.exists() -> rootDir.readProjectList(implicitProjectListFile)
-    else -> emptyList()
+  private fun Settings.getImplicitTargets() = readProjectList(options.implicitProjects)
+
+  private fun Settings.readProjectList(property: Property<RegularFile>): List<GradlePath> {
+    val file = property.get().asFile
+    return when {
+      file.exists() -> rootDir.readProjectList(file)
+      else -> emptyList()
+    }
   }
 }

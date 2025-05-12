@@ -1,5 +1,6 @@
 plugins {
-  id 'org.jetbrains.kotlin.jvm'
+  id 'org.jetbrains.kotlin.jvm' apply false
+  id 'com.autonomousapps.testkit' apply false
 }
 
 group = 'com.fueledbycaffeine'

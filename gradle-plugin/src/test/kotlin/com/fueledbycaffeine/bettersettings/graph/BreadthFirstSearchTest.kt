@@ -4,7 +4,7 @@ import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
 import org.junit.jupiter.api.Test
 
-private class TestNode(override val children: Set<TestNode>): GraphNode<TestNode>
+private class TestNode(override val successors: Set<TestNode>): GraphNode<TestNode>
 
 class BreadthFirstSearchTest {
   @Test fun `returns all child nodes`() {
