@@ -50,15 +50,19 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
         if (target != null && !target.isRootProject) {
           val target = projectDir.gradlePathRelativeTo(rootDir)
           val childProjects = target.expandChildProjects()
+          val projectsFromWorkingDir = when (target.hasBuildFile) {
+            true -> childProjects + target
+            else -> childProjects
+          }
           logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
-          implicitAndTransitiveDependenciesOf(listOf(target) + childProjects)
+          implicitAndTransitiveDependenciesOf(projectsFromWorkingDir)
         } else {
           getAllProjects()
         }
       }
     }
 
-    logger.lifecycle("Including {} projects", projects.size)
+    logger.lifecycle("Spotlight included {} projects", projects.size)
     include(projects)
   }
 

@@ -24,6 +24,10 @@ internal data class GradlePath(val root: Path, val path: String): GraphNode<Grad
       .replace(GRADLE_PATH_SEP, File.separator)
   )
 
+  val hasBuildFile: Boolean
+    get() = projectDir.resolve(GRADLE_SCRIPT).exists() ||
+      projectDir.resolve(GRADLE_SCRIPT_KOTLIN).exists()
+
   val buildFilePath: Path get() = when {
     projectDir.resolve(GRADLE_SCRIPT).exists() -> projectDir.resolve(GRADLE_SCRIPT)
     projectDir.resolve(GRADLE_SCRIPT_KOTLIN).exists() -> projectDir.resolve(GRADLE_SCRIPT_KOTLIN)
