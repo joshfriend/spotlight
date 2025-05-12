@@ -9,6 +9,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import java.io.FileNotFoundException
+import kotlin.time.measureTimedValue
 
 private val logger: Logger = Logging.getLogger(SpotlightSettingsPlugin::class.java)
 
@@ -68,7 +69,9 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
 
   private fun Settings.implicitAndTransitiveDependenciesOf(targets: List<GradlePath>): List<GradlePath> {
     val combinedTargets = addImplicitTargetsTo(targets)
-    val transitives = BreadthFirstSearch.run(combinedTargets)
+    val bfsResults = measureTimedValue { BreadthFirstSearch.run(combinedTargets) }
+    logger.info("BFS search of project graph took {}ms", bfsResults.duration.inWholeMilliseconds)
+    val transitives = bfsResults.value
     logger.info("Requested targets include {} projects transitively", transitives.size)
     return combinedTargets + transitives
   }
