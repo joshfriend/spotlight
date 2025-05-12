@@ -1,15 +1,20 @@
 plugins {
   id 'java-gradle-plugin'
+  id 'com.gradle.plugin-publish'
   id 'com.autonomousapps.testkit'
   id 'org.jetbrains.kotlin.jvm'
   id 'org.jetbrains.kotlinx.binary-compatibility-validator'
 }
 
 gradlePlugin {
+  vcsUrl = "https://github.com/joshfriend/better-settings-gradle-plugin"
+  website = "https://github.com/joshfriend/better-settings-gradle-plugin"
   plugins {
     betterSettings {
       id = "com.fueledbycaffeine.better-settings"
       implementationClass = "com.fueledbycaffeine.bettersettings.BetterSettingsPlugin"
+      displayName = "Better Settings"
+      description = "A plugin that and makes managing `settings.gradle(.kts)` for large projects easier"
     }
   }
 }

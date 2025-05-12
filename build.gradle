@@ -1,6 +1,9 @@
 plugins {
   id 'org.jetbrains.kotlin.jvm' apply false
   id 'com.autonomousapps.testkit' apply false
+  id 'com.gradle.plugin-publish' apply false
+  id 'com.autonomousapps.testkit' apply false
+  id 'org.jetbrains.kotlinx.binary-compatibility-validator' apply false
 }
 
 group = 'com.fueledbycaffeine'
