@@ -1,5 +1,8 @@
 package com.fueledbycaffeine.bettersettings.utils
 
+import org.gradle.api.file.RegularFile
+import org.gradle.api.initialization.Settings
+import org.gradle.api.provider.Property
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.readLines
@@ -22,4 +25,12 @@ internal fun File.readProjectList(projectList: File): List<GradlePath> {
 
 internal fun Path.readProjectList(projectList: Path): List<GradlePath> {
   return ProjectListReader.read(this, projectList)
+}
+
+internal fun Settings.readProjectList(property: Property<RegularFile>): List<GradlePath> {
+  val file = property.get().asFile
+  return when {
+    file.exists() -> rootDir.readProjectList(file)
+    else -> emptyList()
+  }
 }

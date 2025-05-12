@@ -2,7 +2,7 @@ package com.fueledbycaffeine.bettersettings.graph
 
 import java.util.LinkedList
 
-object BreadthFirstSearch {
+internal object BreadthFirstSearch {
   fun <T: GraphNode<T>> run(nodes: List<T>): List<T> {
     val dependenciesMap = mutableMapOf<T, Set<T>>()
     val queue = LinkedList<T>()

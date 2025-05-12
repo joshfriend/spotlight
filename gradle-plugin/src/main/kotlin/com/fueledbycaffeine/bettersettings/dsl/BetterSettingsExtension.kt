@@ -1,6 +1,7 @@
 package com.fueledbycaffeine.bettersettings.dsl
 
 import com.fueledbycaffeine.bettersettings.BetterSettingsPlugin
+import com.fueledbycaffeine.bettersettings.dsl.BetterSettingsExtension.Companion.NAME
 import com.fueledbycaffeine.bettersettings.utils.BuildFile
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.file.BuildLayout
@@ -22,21 +23,22 @@ import javax.inject.Inject
  * }
  */
 @Suppress("UnstableApiUsage")
-open class BetterSettingsExtension @Inject constructor(
+public open class BetterSettingsExtension @Inject constructor(
   layout: BuildLayout,
   objects: ObjectFactory,
 ) {
-  companion object {
-    const val EXTENSION_NAME = "betterSettings"
-    const val ALL_PROJECTS_FILE = "gradle/all-projects.txt"
-    const val TARGET_PROJECTS_FILE = "gradle/target-projects.txt"
-    const val IMPLICIT_PROJECTS_FILE = "gradle/implicit-projects.txt"
+  internal companion object {
+    const val NAME: String = "betterSettings"
+    const val ALL_PROJECTS_FILE: String = "gradle/all-projects.txt"
+    const val TARGET_PROJECTS_FILE: String = "gradle/target-projects.txt"
+    const val IMPLICIT_PROJECTS_FILE: String = "gradle/implicit-projects.txt"
 
+    @JvmStatic
     fun ExtensionContainer.getBetterSettings(): BetterSettingsExtension {
       return try {
         getByType(BetterSettingsExtension::class.java)
       } catch (_: UnknownDomainObjectException) {
-        create(EXTENSION_NAME, BetterSettingsExtension::class.java)
+        create(NAME, BetterSettingsExtension::class.java)
       }
     }
   }
@@ -48,7 +50,7 @@ open class BetterSettingsExtension @Inject constructor(
    * For build invocations that are not IDE sync, or when [targetProjects] file is missing or empty, all projects are
    * loaded in the build.
    */
-  val allProjects: Property<RegularFile> = objects.fileProperty()
+  public val allProjects: Property<RegularFile> = objects.fileProperty()
     .convention(layout.rootDirectory.file(ALL_PROJECTS_FILE))
 
   /**
@@ -56,7 +58,7 @@ open class BetterSettingsExtension @Inject constructor(
    * any of their transitives identified by [BuildFile.dependencies] will be used instead of the [allProjects] list
    * during IDE sync.
    */
-  val targetProjects: Property<RegularFile> = objects.fileProperty()
+  public val targetProjects: Property<RegularFile> = objects.fileProperty()
     .convention(layout.rootDirectory.file(TARGET_PROJECTS_FILE))
 
   /**
@@ -66,6 +68,6 @@ open class BetterSettingsExtension @Inject constructor(
    * This plugin parses your build graph statically without configuring projects, so it does not know about any
    * dependencies added by build logic!
    */
-  val implicitProjects: Property<RegularFile> = objects.fileProperty()
+  public val implicitProjects: Property<RegularFile> = objects.fileProperty()
     .convention(layout.rootDirectory.file(IMPLICIT_PROJECTS_FILE))
 }

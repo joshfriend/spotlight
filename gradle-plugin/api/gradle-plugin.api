@@ -1,0 +1,18 @@
+public final class com/fueledbycaffeine/bettersettings/BetterSettingsPlugin : org/gradle/api/Plugin {
+	public fun <init> ()V
+	public synthetic fun apply (Ljava/lang/Object;)V
+	public fun apply (Lorg/gradle/api/initialization/Settings;)V
+}
+
+public class com/fueledbycaffeine/bettersettings/dsl/BetterSettingsExtension {
+	public static final field ALL_PROJECTS_FILE Ljava/lang/String;
+	public static final field IMPLICIT_PROJECTS_FILE Ljava/lang/String;
+	public static final field NAME Ljava/lang/String;
+	public static final field TARGET_PROJECTS_FILE Ljava/lang/String;
+	public fun <init> (Lorg/gradle/api/file/BuildLayout;Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun getAllProjects ()Lorg/gradle/api/provider/Property;
+	public static final fun getBetterSettings (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/bettersettings/dsl/BetterSettingsExtension;
+	public final fun getImplicitProjects ()Lorg/gradle/api/provider/Property;
+	public final fun getTargetProjects ()Lorg/gradle/api/provider/Property;
+}
+

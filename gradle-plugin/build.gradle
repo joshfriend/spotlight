@@ -1,7 +1,8 @@
 plugins {
-  id("java-gradle-plugin")
-  id("com.autonomousapps.testkit")
-  id("org.jetbrains.kotlin.jvm")
+  id 'java-gradle-plugin'
+  id 'com.autonomousapps.testkit'
+  id 'org.jetbrains.kotlin.jvm'
+  id 'org.jetbrains.kotlinx.binary-compatibility-validator'
 }
 
 gradlePlugin {
@@ -11,6 +12,9 @@ gradlePlugin {
       implementationClass = "com.fueledbycaffeine.bettersettings.BetterSettingsPlugin"
     }
   }
+}
+kotlin {
+  explicitApi()
 }
 
 gradleTestKitSupport {

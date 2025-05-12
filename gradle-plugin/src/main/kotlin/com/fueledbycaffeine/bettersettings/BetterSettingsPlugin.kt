@@ -5,11 +5,9 @@ import com.fueledbycaffeine.bettersettings.dsl.BetterSettingsExtension.Companion
 import com.fueledbycaffeine.bettersettings.graph.BreadthFirstSearch
 import com.fueledbycaffeine.bettersettings.utils.*
 import org.gradle.api.Plugin
-import org.gradle.api.file.RegularFile
 import org.gradle.api.initialization.Settings
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.provider.Property
 import java.io.FileNotFoundException
 
 private val logger: Logger = Logging.getLogger(BetterSettingsPlugin::class.java)
@@ -21,9 +19,9 @@ private val logger: Logger = Logging.getLogger(BetterSettingsPlugin::class.java)
  *   id 'com.fueledbycaffeine.better-settings'
  * }
  */
-class BetterSettingsPlugin: Plugin<Settings> {
+public class BetterSettingsPlugin: Plugin<Settings> {
   private lateinit var options: BetterSettingsExtension
-  override fun apply(settings: Settings) = settings.run {
+  public override fun apply(settings: Settings): Unit = settings.run {
     options = extensions.getBetterSettings()
 
     val projects = if (isIdeSync) {
@@ -83,16 +81,6 @@ class BetterSettingsPlugin: Plugin<Settings> {
   }
 
   private fun Settings.getAllProjects() = readProjectList(options.allProjects)
-
   private fun Settings.getTargetProjects() = readProjectList(options.targetProjects)
-
   private fun Settings.getImplicitTargets() = readProjectList(options.implicitProjects)
-
-  private fun Settings.readProjectList(property: Property<RegularFile>): List<GradlePath> {
-    val file = property.get().asFile
-    return when {
-      file.exists() -> rootDir.readProjectList(file)
-      else -> emptyList()
-    }
-  }
 }
