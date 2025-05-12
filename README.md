@@ -9,7 +9,7 @@ A Gradle plugin that and makes managing `settings.gradle(.kts)` for large projec
 Apply the plugin in `settings.gradle(.kts)`:
 ```groovy
 plugins {
-  id 'com.fueledbycaffeine.better-settings'
+  id 'com.fueledbycaffeine.spotlight'
 }
 ```
 
