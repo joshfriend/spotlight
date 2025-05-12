@@ -1,4 +1,4 @@
-package com.fueledbycaffeine.bettersettings.fixtures
+package com.fueledbycaffeine.spotlight.fixtures
 
 import com.autonomousapps.kit.AbstractGradleProject
 import com.autonomousapps.kit.GradleProject
@@ -12,7 +12,7 @@ class SpiritboxProject : AbstractGradleProject() {
       .withRootProject {
         settingsScript.rootProjectName = "spiritbox"
         settingsScript.plugins = Plugins(
-          Plugin("com.fueledbycaffeine.better-settings", PLUGIN_UNDER_TEST_VERSION)
+          Plugin("com.fueledbycaffeine.spotlight", PLUGIN_UNDER_TEST_VERSION)
         )
       }
       .withSubproject("hysteria") {

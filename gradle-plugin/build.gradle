@@ -6,15 +6,17 @@ plugins {
   id 'org.jetbrains.kotlinx.binary-compatibility-validator'
 }
 
+version = '1.0-SNAPSHOT'
+
 gradlePlugin {
-  vcsUrl = "https://github.com/joshfriend/better-settings-gradle-plugin"
-  website = "https://github.com/joshfriend/better-settings-gradle-plugin"
+  vcsUrl = "https://github.com/joshfriend/spotlight"
+  website = "https://github.com/joshfriend/spotlight"
   plugins {
     betterSettings {
-      id = "com.fueledbycaffeine.better-settings"
-      implementationClass = "com.fueledbycaffeine.bettersettings.BetterSettingsPlugin"
-      displayName = "Better Settings"
-      description = "A plugin that and makes managing `settings.gradle(.kts)` for large projects easier"
+      id = "com.fueledbycaffeine.spotlight"
+      implementationClass = "com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin"
+      displayName = "Spotlight"
+      description = "A plugin that makes managing `settings.gradle(.kts)` for large projects easier"
     }
   }
 }

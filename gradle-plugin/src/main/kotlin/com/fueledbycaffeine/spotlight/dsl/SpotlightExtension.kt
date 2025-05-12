@@ -1,8 +1,7 @@
-package com.fueledbycaffeine.bettersettings.dsl
+package com.fueledbycaffeine.spotlight.dsl
 
-import com.fueledbycaffeine.bettersettings.BetterSettingsPlugin
-import com.fueledbycaffeine.bettersettings.dsl.BetterSettingsExtension.Companion.NAME
-import com.fueledbycaffeine.bettersettings.utils.BuildFile
+import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
+import com.fueledbycaffeine.spotlight.utils.BuildFile
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.file.BuildLayout
 import org.gradle.api.file.RegularFile
@@ -12,33 +11,33 @@ import org.gradle.api.provider.Property
 import javax.inject.Inject
 
 /**
- * Configuration options for [BetterSettingsPlugin].
+ * Configuration options for [SpotlightSettingsPlugin].
  *
  * Example values represent the defaults:
  *
- * betterSettings {
+ * spotlight {
  *   allProjects file("gradle/all-projects.txt")
  *   targetProjects file("gradle/target-projects.txt")
  *   implicitProjects file("gradle/implicit-projects.txt")
  * }
  */
 @Suppress("UnstableApiUsage")
-public open class BetterSettingsExtension @Inject constructor(
+public open class SpotlightExtension @Inject constructor(
   layout: BuildLayout,
   objects: ObjectFactory,
 ) {
   internal companion object {
-    const val NAME: String = "betterSettings"
+    const val NAME: String = "spotlight"
     const val ALL_PROJECTS_FILE: String = "gradle/all-projects.txt"
     const val TARGET_PROJECTS_FILE: String = "gradle/target-projects.txt"
     const val IMPLICIT_PROJECTS_FILE: String = "gradle/implicit-projects.txt"
 
     @JvmStatic
-    fun ExtensionContainer.getBetterSettings(): BetterSettingsExtension {
+    fun ExtensionContainer.getSpotlightExtension(): SpotlightExtension {
       return try {
-        getByType(BetterSettingsExtension::class.java)
+        getByType(SpotlightExtension::class.java)
       } catch (_: UnknownDomainObjectException) {
-        create(NAME, BetterSettingsExtension::class.java)
+        create(NAME, SpotlightExtension::class.java)
       }
     }
   }

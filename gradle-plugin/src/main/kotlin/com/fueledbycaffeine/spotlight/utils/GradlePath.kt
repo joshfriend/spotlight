@@ -1,7 +1,6 @@
-package com.fueledbycaffeine.bettersettings.utils
+package com.fueledbycaffeine.spotlight.utils
 
-import com.fueledbycaffeine.bettersettings.graph.GraphNode
-import org.gradle.TaskExecutionRequest
+import com.fueledbycaffeine.spotlight.graph.GraphNode
 import org.gradle.api.initialization.Settings
 import java.io.File
 import java.io.FileNotFoundException

@@ -1,4 +1,4 @@
-package com.fueledbycaffeine.bettersettings.graph
+package com.fueledbycaffeine.spotlight.graph
 
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder

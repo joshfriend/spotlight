@@ -1,4 +1,4 @@
-package com.fueledbycaffeine.bettersettings.utils
+package com.fueledbycaffeine.spotlight.utils
 
 import assertk.assertThat
 import assertk.assertions.containsExactly

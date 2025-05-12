@@ -1,4 +1,4 @@
-package com.fueledbycaffeine.bettersettings.utils
+package com.fueledbycaffeine.spotlight.utils
 
 import java.nio.file.Path
 import kotlin.io.path.readText

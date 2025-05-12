@@ -1,4 +1,4 @@
-package com.fueledbycaffeine.bettersettings
+package com.fueledbycaffeine.spotlight
 
 import org.gradle.api.initialization.Settings
 import org.gradle.api.provider.ProviderFactory

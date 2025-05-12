@@ -1,8 +1,8 @@
-package com.fueledbycaffeine.bettersettings
+package com.fueledbycaffeine.spotlight
 
 import com.autonomousapps.kit.truth.TestKitTruth.Companion.assertThat
-import com.fueledbycaffeine.bettersettings.fixtures.SpiritboxProject
-import com.fueledbycaffeine.bettersettings.fixtures.build
+import com.fueledbycaffeine.spotlight.fixtures.SpiritboxProject
+import com.fueledbycaffeine.spotlight.fixtures.build
 import org.junit.jupiter.api.Test
 
 class FunctionalTest {

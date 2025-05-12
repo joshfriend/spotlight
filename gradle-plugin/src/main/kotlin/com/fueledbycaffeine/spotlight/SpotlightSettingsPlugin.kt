@@ -1,28 +1,28 @@
-package com.fueledbycaffeine.bettersettings
+package com.fueledbycaffeine.spotlight
 
-import com.fueledbycaffeine.bettersettings.dsl.BetterSettingsExtension
-import com.fueledbycaffeine.bettersettings.dsl.BetterSettingsExtension.Companion.getBetterSettings
-import com.fueledbycaffeine.bettersettings.graph.BreadthFirstSearch
-import com.fueledbycaffeine.bettersettings.utils.*
+import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
+import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
+import com.fueledbycaffeine.spotlight.graph.BreadthFirstSearch
+import com.fueledbycaffeine.spotlight.utils.*
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import java.io.FileNotFoundException
 
-private val logger: Logger = Logging.getLogger(BetterSettingsPlugin::class.java)
+private val logger: Logger = Logging.getLogger(SpotlightSettingsPlugin::class.java)
 
 /**
  * A [Settings] plugin to ease management of projects included in large builds.
  *
  * plugins {
- *   id 'com.fueledbycaffeine.better-settings'
+ *   id 'com.fueledbycaffeine.spotlight'
  * }
  */
-public class BetterSettingsPlugin: Plugin<Settings> {
-  private lateinit var options: BetterSettingsExtension
+public class SpotlightSettingsPlugin: Plugin<Settings> {
+  private lateinit var options: SpotlightExtension
   public override fun apply(settings: Settings): Unit = settings.run {
-    options = extensions.getBetterSettings()
+    options = extensions.getSpotlightExtension()
 
     val projects = if (isIdeSync) {
       val targets = getTargetProjects()

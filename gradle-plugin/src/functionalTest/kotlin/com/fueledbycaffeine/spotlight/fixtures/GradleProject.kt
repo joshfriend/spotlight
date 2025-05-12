@@ -1,4 +1,4 @@
-package com.fueledbycaffeine.bettersettings.fixtures
+package com.fueledbycaffeine.spotlight.fixtures
 
 import com.autonomousapps.kit.GradleBuilder
 import com.autonomousapps.kit.GradleProject

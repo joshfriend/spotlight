@@ -1,11 +1,11 @@
-package com.fueledbycaffeine.bettersettings.graph
+package com.fueledbycaffeine.spotlight.graph
 
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEqualTo
-import com.fueledbycaffeine.bettersettings.utils.GradlePath
-import com.fueledbycaffeine.bettersettings.utils.expandChildProjects
-import com.fueledbycaffeine.bettersettings.utils.gradlePathRelativeTo
+import com.fueledbycaffeine.spotlight.utils.GradlePath
+import com.fueledbycaffeine.spotlight.utils.expandChildProjects
+import com.fueledbycaffeine.spotlight.utils.gradlePathRelativeTo
 import org.gradle.internal.scripts.ScriptingLanguages
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

@@ -19,11 +19,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = 'better-settings'
-
-println("startparameter projectdir ${gradle.startParameter.projectDir}")
-gradle.startParameter.taskRequests.forEach { req ->
-  println("project ${req.projectPath} args ${req.args}")
-}
+rootProject.name = 'spotlight'
 
 include ':gradle-plugin'
