@@ -44,6 +44,10 @@ dependencies {
   testRuntimeOnly(libs.junit.launcher)
 }
 
+tasks.withType(ValidatePlugins).configureEach {
+  enableStricterValidation = true
+}
+
 tasks.withType(Test).configureEach {
   useJUnitPlatform()
 }
