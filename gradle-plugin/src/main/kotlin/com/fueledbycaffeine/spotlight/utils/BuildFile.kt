@@ -7,7 +7,7 @@ import kotlin.io.path.readText
 import kotlin.text.RegexOption.MULTILINE
 
 internal data class BuildFile(val project: GradlePath) {
-  fun parseDependencies(rules: Set<ImplicitDependencyRule>): Set<GradlePath> = parseBuildFile(project, rules)
+  fun parseDependencies(rules: Set<ImplicitDependencyRule> = emptySet()): Set<GradlePath> = parseBuildFile(project, rules)
 }
 
 private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+project\\([\"'](.*)[\"']\\)", MULTILINE)

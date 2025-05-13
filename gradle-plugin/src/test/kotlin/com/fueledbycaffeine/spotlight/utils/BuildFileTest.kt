@@ -12,6 +12,7 @@ class BuildFileTest {
 
   @Test fun `reads dependencies`() {
     val buildFilePath = buildRoot.resolve("build.gradle")
+    val gradlePath = GradlePath(buildRoot, ":")
     buildFilePath.writeText("""
       dependencies {
         implementation  project(":multiple-spaces-double-quotes")
@@ -31,9 +32,9 @@ class BuildFileTest {
       }
     """.trimIndent())
 
-    val buildFile = BuildFile(buildRoot, buildFilePath)
+    val buildFile = BuildFile(gradlePath)
 
-    assertThat(buildFile.parseDependencies).containsExactlyInAnyOrder(
+    assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(
       GradlePath(buildRoot, ":multiple-spaces-double-quotes"),
       GradlePath(buildRoot, ":multiple-spaces-single-quotes"),
       GradlePath(buildRoot, ":one-space-double-quotes"),
@@ -47,6 +48,7 @@ class BuildFileTest {
 
   @Test fun `ignores duplicates`() {
     val buildFilePath = buildRoot.resolve("build.gradle")
+    val gradlePath = GradlePath(buildRoot, ":")
     buildFilePath.writeText(
       """
       dependencies {
@@ -56,9 +58,9 @@ class BuildFileTest {
     """.trimIndent()
     )
 
-    val buildFile = BuildFile(buildRoot, buildFilePath)
+    val buildFile = BuildFile(gradlePath)
 
-    assertThat(buildFile.parseDependencies).containsExactlyInAnyOrder(
+    assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(
       GradlePath(buildRoot, ":foo")
     )
   }

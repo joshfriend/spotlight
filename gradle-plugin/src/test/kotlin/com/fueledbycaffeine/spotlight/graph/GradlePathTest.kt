@@ -62,7 +62,7 @@ class GradlePathTest {
       }
     """.trimIndent())
 
-    assertThat(gradlePath.successors).containsExactlyInAnyOrder(
+    assertThat(gradlePath.findSuccessors(emptySet())).containsExactlyInAnyOrder(
       GradlePath(buildRoot, ":bar"),
     )
   }
