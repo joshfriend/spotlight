@@ -1,0 +1,31 @@
+package com.fueledbycaffeine.spotlight.dsl
+
+import com.fueledbycaffeine.spotlight.utils.GradlePath
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Named
+import org.gradle.api.file.BuildLayout
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.SetProperty
+import javax.inject.Inject
+
+@Suppress("UnstableApiUsage")
+public abstract class MatchRuleHandler @Inject constructor(
+  private val name: String,
+  objects: ObjectFactory,
+) : Named {
+  internal lateinit var layout: BuildLayout
+  internal val includes: SetProperty<GradlePath> = objects.setProperty(GradlePath::class.java).convention(emptySet())
+
+  public override fun getName(): String = name
+
+  public val pattern: Regex = name.toRegex()
+
+  public fun alsoInclude(path: String) {
+    val gradlePath = GradlePath(layout.settingsDirectory.asFile, path)
+    if (gradlePath.hasBuildFile) {
+      includes.add(gradlePath)
+    } else {
+      throw InvalidUserDataException("$path does not have a buildscript")
+    }
+  }
+}

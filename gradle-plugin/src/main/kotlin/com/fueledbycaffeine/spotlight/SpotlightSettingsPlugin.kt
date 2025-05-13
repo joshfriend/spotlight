@@ -25,51 +25,54 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
   public override fun apply(settings: Settings): Unit = settings.run {
     options = extensions.getSpotlightExtension()
 
-    val projects = if (isIdeSync) {
-      val targets = getTargetProjects()
-      if (targets.isNotEmpty()) {
-        logger.info("{} contains {} targets", options.targetProjects.get(), targets.size)
-        implicitAndTransitiveDependenciesOf(targets)
-      } else {
-        logger.info("{} was missing or empty, including all projects", options.targetProjects.get())
-        getAllProjects()
-      }
-    } else {
-      // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
-      val taskPaths = try {
-        guessProjectsFromTaskRequests()
-      } catch (e: FileNotFoundException) {
-        logger.warn("Not sure how to map all tasks to projects: {}", e.message)
-        null
-      }
-      if (!taskPaths.isNullOrEmpty()) {
-        logger.info("Using transitives for projects of requested tasks")
-        implicitAndTransitiveDependenciesOf(taskPaths)
-      } else {
-        val projectDir = gradle.startParameter.projectDir
-        val target = projectDir?.gradlePathRelativeTo(rootDir)
-        if (target != null && !target.isRootProject) {
-          val target = projectDir.gradlePathRelativeTo(rootDir)
-          val childProjects = target.expandChildProjects()
-          val projectsFromWorkingDir = when (target.hasBuildFile) {
-            true -> childProjects + target
-            else -> childProjects
-          }
-          logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
-          implicitAndTransitiveDependenciesOf(projectsFromWorkingDir)
+    // DSL is not available until after settings evaluation
+    gradle.settingsEvaluated {
+      val projects = if (isIdeSync) {
+        val targets = getIdeProjects()
+        if (targets.isNotEmpty()) {
+          logger.info("{} contains {} targets", options.ideProjects.get(), targets.size)
+          implicitAndTransitiveDependenciesOf(targets)
         } else {
+          logger.info("{} was missing or empty, including all projects", options.ideProjects.get())
           getAllProjects()
         }
+      } else {
+        // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
+        val taskPaths = try {
+          guessProjectsFromTaskRequests()
+        } catch (e: FileNotFoundException) {
+          logger.warn("Not sure how to map all tasks to projects: {}", e.message)
+          null
+        }
+        if (!taskPaths.isNullOrEmpty()) {
+          logger.info("Using transitives for projects of requested tasks")
+          implicitAndTransitiveDependenciesOf(taskPaths)
+        } else {
+          val projectDir = gradle.startParameter.projectDir
+          val target = projectDir?.gradlePathRelativeTo(rootDir)
+          if (target != null && !target.isRootProject) {
+            val target = projectDir.gradlePathRelativeTo(rootDir)
+            val childProjects = target.expandChildProjects()
+            val projectsFromWorkingDir = when (target.hasBuildFile) {
+              true -> childProjects + target
+              else -> childProjects
+            }
+            logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
+            implicitAndTransitiveDependenciesOf(projectsFromWorkingDir)
+          } else {
+            getAllProjects()
+          }
+        }
       }
-    }
 
-    logger.lifecycle("Spotlight included {} projects", projects.size)
-    include(projects)
+      logger.lifecycle("Spotlight included {} projects", projects.size)
+      include(projects)
+    }
   }
 
   private fun Settings.implicitAndTransitiveDependenciesOf(targets: List<GradlePath>): List<GradlePath> {
     val combinedTargets = addImplicitTargetsTo(targets)
-    val bfsResults = measureTimedValue { BreadthFirstSearch.run(combinedTargets) }
+    val bfsResults = measureTimedValue { BreadthFirstSearch.run(combinedTargets, options.rules) }
     logger.info("BFS search of project graph took {}ms", bfsResults.duration.inWholeMilliseconds)
     val transitives = bfsResults.value
     logger.info("Requested targets include {} projects transitively", transitives.size)
@@ -88,6 +91,6 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
   }
 
   private fun Settings.getAllProjects() = readProjectList(options.allProjects)
-  private fun Settings.getTargetProjects() = readProjectList(options.targetProjects)
+  private fun Settings.getIdeProjects() = readProjectList(options.ideProjects)
   private fun Settings.getImplicitTargets() = readProjectList(options.implicitProjects)
 }

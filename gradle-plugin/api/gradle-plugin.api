@@ -4,15 +4,29 @@ public final class com/fueledbycaffeine/spotlight/SpotlightSettingsPlugin : org/
 	public fun apply (Lorg/gradle/api/initialization/Settings;)V
 }
 
-public class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension {
+public abstract class com/fueledbycaffeine/spotlight/dsl/MatchRuleHandler : org/gradle/api/Named {
+	public fun <init> (Ljava/lang/String;Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun alsoInclude (Ljava/lang/String;)V
+	public fun getName ()Ljava/lang/String;
+	public final fun getPattern ()Lkotlin/text/Regex;
+}
+
+public abstract class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension {
 	public static final field ALL_PROJECTS_FILE Ljava/lang/String;
+	public static final field Companion Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension$Companion;
+	public static final field IDE_PROJECTS_FILE Ljava/lang/String;
 	public static final field IMPLICIT_PROJECTS_FILE Ljava/lang/String;
 	public static final field NAME Ljava/lang/String;
-	public static final field TARGET_PROJECTS_FILE Ljava/lang/String;
 	public fun <init> (Lorg/gradle/api/file/BuildLayout;Lorg/gradle/api/model/ObjectFactory;)V
 	public final fun getAllProjects ()Lorg/gradle/api/provider/Property;
+	public final fun getIdeProjects ()Lorg/gradle/api/provider/Property;
 	public final fun getImplicitProjects ()Lorg/gradle/api/provider/Property;
 	public static final fun getSpotlightExtension (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension;
-	public final fun getTargetProjects ()Lorg/gradle/api/provider/Property;
+	public final fun whenBuildscriptMatches (Ljava/lang/String;Lorg/gradle/api/Action;)V
+	public final fun whenProjectPathMatches (Ljava/lang/String;Lorg/gradle/api/Action;)V
+}
+
+public final class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension$Companion {
+	public final fun getSpotlightExtension (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension;
 }
 

@@ -1,9 +1,9 @@
 package com.fueledbycaffeine.spotlight.graph
 
-import java.util.LinkedList
+import java.util.*
 
 internal object BreadthFirstSearch {
-  fun <T: GraphNode<T>> run(nodes: List<T>): List<T> {
+  fun <T: GraphNode<T>> run(nodes: List<T>, rules: Set<ImplicitDependencyRule> = emptySet()): List<T> {
     val dependenciesMap = mutableMapOf<T, Set<T>>()
     val queue = LinkedList<T>()
     queue.addAll(nodes)
@@ -11,10 +11,9 @@ internal object BreadthFirstSearch {
     while (queue.isNotEmpty()) {
       val nextNode = queue.poll()
       if (nextNode !in dependenciesMap) {
-        nextNode.successors.apply {
-          dependenciesMap[nextNode] = this
-          queue.addAll(this)
-        }
+        val successors = nextNode.findSuccessors(rules)
+        dependenciesMap[nextNode] = successors
+        queue.addAll(successors)
       }
     }
 

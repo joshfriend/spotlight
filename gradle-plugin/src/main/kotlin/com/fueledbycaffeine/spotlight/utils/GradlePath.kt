@@ -1,6 +1,7 @@
 package com.fueledbycaffeine.spotlight.utils
 
 import com.fueledbycaffeine.spotlight.graph.GraphNode
+import com.fueledbycaffeine.spotlight.graph.ImplicitDependencyRule
 import org.gradle.api.initialization.Settings
 import java.io.File
 import java.io.FileNotFoundException
@@ -36,7 +37,9 @@ internal data class GradlePath(val root: Path, val path: String): GraphNode<Grad
 
   val isRootProject: Boolean get() = path == GRADLE_PATH_SEP
 
-  override val successors get() = BuildFile(root, buildFilePath).dependencies
+  override fun findSuccessors(rules: Set<ImplicitDependencyRule>): Set<GradlePath> {
+    return BuildFile(this).parseDependencies(rules)
+  }
 }
 
 internal fun File.gradlePathRelativeTo(buildRoot: File): GradlePath {

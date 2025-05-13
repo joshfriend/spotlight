@@ -33,7 +33,7 @@ class BuildFileTest {
 
     val buildFile = BuildFile(buildRoot, buildFilePath)
 
-    assertThat(buildFile.dependencies).containsExactlyInAnyOrder(
+    assertThat(buildFile.parseDependencies).containsExactlyInAnyOrder(
       GradlePath(buildRoot, ":multiple-spaces-double-quotes"),
       GradlePath(buildRoot, ":multiple-spaces-single-quotes"),
       GradlePath(buildRoot, ":one-space-double-quotes"),
@@ -58,7 +58,7 @@ class BuildFileTest {
 
     val buildFile = BuildFile(buildRoot, buildFilePath)
 
-    assertThat(buildFile.dependencies).containsExactlyInAnyOrder(
+    assertThat(buildFile.parseDependencies).containsExactlyInAnyOrder(
       GradlePath(buildRoot, ":foo")
     )
   }
