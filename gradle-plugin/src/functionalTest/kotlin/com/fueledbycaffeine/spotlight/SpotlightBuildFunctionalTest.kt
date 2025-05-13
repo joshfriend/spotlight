@@ -22,12 +22,15 @@ class SpotlightBuildFunctionalTest {
     assertThat(result).task(":rotoscope:hysteria:compileJava").noSource()
     assertThat(result).task(":rotoscope:sew-me-up:compileJava").noSource()
     assertThat(result).output().contains("Requested targets include 3 projects transitively")
-    assertThat(result).output().contains("Spotlight included 4 projects")
     val includedProjects = result.includedProjects()
-    assertThat(includedProjects).contains(":rotoscope")
-    assertThat(includedProjects).contains(":rotoscope:rotoscope")
-    assertThat(includedProjects).contains(":rotoscope:hysteria")
-    assertThat(includedProjects).contains(":rotoscope:sew-me-up")
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
   }
 
   @Test
@@ -50,13 +53,16 @@ class SpotlightBuildFunctionalTest {
     // Then
     assertThat(result).task(":rotoscope:assemble").succeeded()
     assertThat(result).output().contains("Requested targets include 4 projects transitively")
-    assertThat(result).output().contains("Spotlight included 5 projects")
     val includedProjects = result.includedProjects()
-    assertThat(includedProjects).contains(":rotoscope")
-    assertThat(includedProjects).contains(":rotoscope:rotoscope")
-    assertThat(includedProjects).contains(":rotoscope:hysteria")
-    assertThat(includedProjects).contains(":rotoscope:sew-me-up")
-    assertThat(includedProjects).contains(":tsunami-sea")
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+      ":tsunami-sea"
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
   }
 
   @Test
@@ -81,12 +87,30 @@ class SpotlightBuildFunctionalTest {
     // Then
     assertThat(result).task(":rotoscope:assemble").succeeded()
     assertThat(result).output().contains("Requested targets include 4 projects transitively")
-    assertThat(result).output().contains("Spotlight included 5 projects")
     val includedProjects = result.includedProjects()
-    assertThat(includedProjects).contains(":rotoscope")
-    assertThat(includedProjects).contains(":rotoscope:rotoscope")
-    assertThat(includedProjects).contains(":rotoscope:hysteria")
-    assertThat(includedProjects).contains(":rotoscope:sew-me-up")
-    assertThat(includedProjects).contains(":eternal-blue")
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+      ":eternal-blue"
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+  }
+
+  @Test
+  fun `can include only the root project`() {
+    // Given
+    val project = SpiritboxProject().build()
+
+    // When
+    val result = project.build(":help", "--info")
+
+    // Then
+    assertThat(result).task(":help").succeeded()
+    assertThat(result).output().contains("Requested targets include 0 projects transitively")
+    val includedProjects = result.includedProjects()
+    assertThat(includedProjects).containsExactly(project.rootProject.settingsScript.rootProjectName)
   }
 }

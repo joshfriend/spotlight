@@ -21,12 +21,10 @@ class SpotlightSyncFunctionalTest {
 
     // Then
     assertThat(result).output().contains("gradle/ide-projects.txt was missing or empty, including all projects")
-    assertThat(result).output().contains("Spotlight included 13 projects")
     val includedProjects = result.includedProjects()
-    val allProjects = project.allProjects.readLines()
-    allProjects.forEach { path ->
-      assertThat(includedProjects).contains(path)
-    }
+    val allProjects = project.allProjects.readLines() +
+      project.rootProject.settingsScript.rootProjectName
+    assertThat(includedProjects).containsExactlyElementsIn(allProjects)
   }
 
   @Test
@@ -40,9 +38,9 @@ class SpotlightSyncFunctionalTest {
 
     // Then
     assertThat(result).output().contains("gradle/ide-projects.txt was missing or empty, including all projects")
-    assertThat(result).output().contains("Spotlight included 13 projects")
     val includedProjects = result.includedProjects()
-    val allProjects = project.allProjects.readLines()
+    val allProjects = project.allProjects.readLines() +
+      project.rootProject.settingsScript.rootProjectName
     assertThat(includedProjects).containsExactlyElementsIn(allProjects)
   }
 
@@ -57,11 +55,14 @@ class SpotlightSyncFunctionalTest {
 
     // Then
     assertThat(result).output().contains("gradle/ide-projects.txt contains 1 targets")
-    assertThat(result).output().contains("Spotlight included 4 projects")
     val includedProjects = result.includedProjects()
-    assertThat(includedProjects).contains(":rotoscope")
-    assertThat(includedProjects).contains(":rotoscope:rotoscope")
-    assertThat(includedProjects).contains(":rotoscope:hysteria")
-    assertThat(includedProjects).contains(":rotoscope:sew-me-up")
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
   }
 }

@@ -33,7 +33,14 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
           logger.info("{} contains {} targets", options.ideProjects.get(), targets.size)
           implicitAndTransitiveDependenciesOf(targets)
         } else {
-          logger.info("{} was missing or empty, including all projects", options.ideProjects.get())
+          logger.info(
+            """
+            {} was missing or empty, including all projects.
+            This can result in slow sync times! Spotlight specific projects using the IDE context menu action,
+            or by running `spot <list of projects>`
+            """.trimIndent(),
+            options.ideProjects.get().asFile.toRelativeString(rootDir)
+          )
           getAllProjects()
         }
       } else {
