@@ -68,8 +68,62 @@ class SpiritboxProject : AbstractGradleProject() {
           )
         }
       }
-      .withSubproject("eternal-blue") { }
-      .withSubproject("tsunami-sea") { }
+      .withSubproject(":eternal-blue:sun-killer") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue:hurt-you") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue:yellowjacket") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue:the-summit") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue:secret-garden") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue:silk-in-the-strings") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue:holy-roller") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue:eternal-blue") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue:we-live-in-a-strange-world") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue:halcyon") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue:circle-with-me") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue:constance") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":eternal-blue") {
+        withBuildScript {
+          plugins(Plugin.javaLibrary)
+          dependencies(
+            implementation(":eternal-blue:sun-killer"),
+            implementation(":eternal-blue:hurt-you"),
+            implementation(":eternal-blue:yellowjacket"),
+            implementation(":eternal-blue:the-summit"),
+            implementation(":eternal-blue:secret-garden"),
+            implementation(":eternal-blue:silk-in-the-strings"),
+            implementation(":eternal-blue:holy-roller"),
+            implementation(":eternal-blue:eternal-blue"),
+            implementation(":eternal-blue:we-live-in-a-strange-world"),
+            implementation(":eternal-blue:halcyon"),
+            implementation(":eternal-blue:circle-with-me"),
+            implementation(":eternal-blue:constance"),
+          )
+        }
+      }
+      .withSubproject(":tsunami-sea") { }
       .write()
 
     val settings = project.rootDir.resolve("settings.gradle")

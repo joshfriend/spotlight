@@ -1,10 +1,14 @@
 package com.fueledbycaffeine.spotlight
 
+import com.autonomousapps.kit.GradleBuilder
+import com.autonomousapps.kit.GradleProject
 import com.autonomousapps.kit.truth.TestKitTruth.Companion.assertThat
 import com.fueledbycaffeine.spotlight.fixtures.SpiritboxProject
+import com.fueledbycaffeine.spotlight.fixtures.allProjects
 import com.fueledbycaffeine.spotlight.fixtures.build
 import com.fueledbycaffeine.spotlight.fixtures.includedProjects
 import com.google.common.truth.Truth.assertThat
+import org.gradle.api.tasks.GradleBuild
 import org.junit.jupiter.api.Test
 
 class SpotlightBuildFunctionalTest {
@@ -21,7 +25,6 @@ class SpotlightBuildFunctionalTest {
     assertThat(result).task(":rotoscope:rotoscope:compileJava").noSource()
     assertThat(result).task(":rotoscope:hysteria:compileJava").noSource()
     assertThat(result).task(":rotoscope:sew-me-up:compileJava").noSource()
-    assertThat(result).output().contains("Requested targets include 3 projects transitively")
     val includedProjects = result.includedProjects()
     val expectedProjects = listOf(
       project.rootProject.settingsScript.rootProjectName,
@@ -52,7 +55,6 @@ class SpotlightBuildFunctionalTest {
 
     // Then
     assertThat(result).task(":rotoscope:assemble").succeeded()
-    assertThat(result).output().contains("Requested targets include 4 projects transitively")
     val includedProjects = result.includedProjects()
     val expectedProjects = listOf(
       project.rootProject.settingsScript.rootProjectName,
@@ -71,10 +73,13 @@ class SpotlightBuildFunctionalTest {
     val project = SpiritboxProject().build()
 
     val settings = project.rootDir.resolve("settings.gradle")
+    val rotoscopeBuildscript = project.rootDir.resolve("rotoscope/build.gradle")
+    val contents = rotoscopeBuildscript.readText()
+    rotoscopeBuildscript.writeText("// some marker\n$contents")
     settings.appendText(
       """
       spotlight {
-        whenBuildscriptMatches("id 'java-library'") {
+        whenBuildscriptMatches("some marker") {
           alsoInclude ":eternal-blue"
         }
       }
@@ -86,7 +91,6 @@ class SpotlightBuildFunctionalTest {
 
     // Then
     assertThat(result).task(":rotoscope:assemble").succeeded()
-    assertThat(result).output().contains("Requested targets include 4 projects transitively")
     val includedProjects = result.includedProjects()
     val expectedProjects = listOf(
       project.rootProject.settingsScript.rootProjectName,
@@ -94,7 +98,19 @@ class SpotlightBuildFunctionalTest {
       ":rotoscope:rotoscope",
       ":rotoscope:hysteria",
       ":rotoscope:sew-me-up",
-      ":eternal-blue"
+      ":eternal-blue",
+      ":eternal-blue:circle-with-me",
+      ":eternal-blue:constance",
+      ":eternal-blue:eternal-blue",
+      ":eternal-blue:halcyon",
+      ":eternal-blue:holy-roller",
+      ":eternal-blue:hurt-you",
+      ":eternal-blue:secret-garden",
+      ":eternal-blue:silk-in-the-strings",
+      ":eternal-blue:sun-killer",
+      ":eternal-blue:the-summit",
+      ":eternal-blue:we-live-in-a-strange-world",
+      ":eternal-blue:yellowjacket",
     )
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
   }
@@ -112,5 +128,48 @@ class SpotlightBuildFunctionalTest {
     assertThat(result).output().contains("Requested targets include 0 projects transitively")
     val includedProjects = result.includedProjects()
     assertThat(includedProjects).containsExactly(project.rootProject.settingsScript.rootProjectName)
+  }
+
+  @Test
+  fun `can run a global task`() {
+    // Given
+    val project = SpiritboxProject().build()
+
+    // When
+    val result = project.build("assemble", "--info")
+
+    // Then
+    assertThat(result).task(":rotoscope:assemble").succeeded()
+    assertThat(result).task(":the-fear-of-fear:assemble").succeeded()
+    assertThat(result).task(":eternal-blue:assemble").succeeded()
+    val includedProjects = result.includedProjects()
+    val allProjects = project.allProjects.readLines() +
+      project.rootProject.settingsScript.rootProjectName
+    assertThat(includedProjects).containsExactlyElementsIn(allProjects)
+  }
+
+  @Test
+  fun `can run a task with specific working directory`() {
+    // Given
+    val project = SpiritboxProject().build()
+
+    // When
+    val result = GradleBuilder.build(
+      project.rootDir.resolve("rotoscope"),
+      "assemble",
+      "--info"
+    )
+
+    // Then
+    assertThat(result).task(":rotoscope:assemble").succeeded()
+    val includedProjects = result.includedProjects()
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
   }
 }
