@@ -6,7 +6,8 @@ plugins {
   id 'org.jetbrains.kotlinx.binary-compatibility-validator'
 }
 
-version = '1.0-SNAPSHOT'
+group = "com.fueledbycaffeine"
+version = '0.1'
 
 gradlePlugin {
   vcsUrl = "https://github.com/joshfriend/spotlight"
@@ -17,6 +18,7 @@ gradlePlugin {
       implementationClass = "com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin"
       displayName = "Spotlight"
       description = "A plugin that makes managing `settings.gradle(.kts)` for large projects easier"
+      tags = ["IDE", "dependencies"]
     }
   }
 }
