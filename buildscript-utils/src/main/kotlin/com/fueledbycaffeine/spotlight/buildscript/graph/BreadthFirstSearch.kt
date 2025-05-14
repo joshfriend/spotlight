@@ -1,9 +1,9 @@
-package com.fueledbycaffeine.spotlight.graph
+package com.fueledbycaffeine.spotlight.buildscript.graph
 
 import java.util.*
 
-internal object BreadthFirstSearch {
-  fun <T: GraphNode<T>> run(nodes: List<T>, rules: Set<ImplicitDependencyRule> = emptySet()): List<T> {
+public object BreadthFirstSearch {
+  public fun <T: GraphNode<T>> run(nodes: List<T>, rules: Set<ImplicitDependencyRule> = emptySet()): List<T> {
     val dependenciesMap = mutableMapOf<T, Set<T>>()
     val queue = LinkedList<T>()
     queue.addAll(nodes)

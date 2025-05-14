@@ -6,7 +6,7 @@ plugins {
   id 'org.jetbrains.kotlinx.binary-compatibility-validator'
 }
 
-group = "com.fueledbycaffeine"
+group = "com.fueledbycaffeine.spotlight"
 version = '0.1'
 
 gradlePlugin {
@@ -32,6 +32,14 @@ gradleTestKitSupport {
   withTruthLibrary()
 }
 
+dependencyAnalysis {
+  issues {
+    onIncorrectConfiguration {
+      exclude libs.autonomousapps.testkit.support
+    }
+  }
+}
+
 def main = sourceSets["main"]
 
 // Add a source set for the functional test suite. This must come _above_ the `dependencies` block.
@@ -40,10 +48,14 @@ functionalTestSourceSet.compileClasspath += main.output + configurations["testRu
 functionalTestSourceSet.runtimeClasspath += functionalTestSourceSet.output + functionalTestSourceSet.compileClasspath
 
 dependencies {
-  testImplementation(libs.assertk)
-  testImplementation(platform(libs.junit.platform))
-  testImplementation(libs.junit.jupiter)
-  testRuntimeOnly(libs.junit.launcher)
+  implementation project(':buildscript-utils')
+
+  functionalTestImplementation libs.truth
+
+  testImplementation libs.assertk
+  testImplementation platform(libs.junit.platform)
+  testImplementation libs.junit.jupiter
+  testRuntimeOnly libs.junit.launcher
 }
 
 tasks.withType(ValidatePlugins).configureEach {

@@ -1,11 +1,17 @@
 package com.fueledbycaffeine.spotlight.utils
 
+import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import org.gradle.api.file.RegularFile
 import org.gradle.api.initialization.Settings
 import org.gradle.api.provider.Property
 import java.io.File
 import java.nio.file.Path
+import kotlin.collections.distinct
+import kotlin.collections.filter
+import kotlin.collections.map
 import kotlin.io.path.readLines
+import kotlin.text.isBlank
+import kotlin.text.startsWith
 
 private const val COMMENT_CHAR = "#"
 

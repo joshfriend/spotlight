@@ -3,6 +3,28 @@ plugins {
   id 'com.autonomousapps.testkit' apply false
   id 'com.gradle.plugin-publish' apply false
   id 'org.jetbrains.kotlinx.binary-compatibility-validator' apply false
+  id 'com.vanniktech.maven.publish' apply false
 }
 
 group = 'com.fueledbycaffeine'
+
+dependencyAnalysis {
+  issues {
+    all {
+      onAny {
+        severity 'fail'
+      }
+    }
+  }
+  structure {
+    bundle('jupiter') {
+      primary libs.junit.jupiter
+      includeGroup 'org.junit.jupiter'
+    }
+    bundle('testkit') {
+      primary libs.autonomousapps.testkit.asProvider()
+      includeDependency libs.autonomousapps.testkit.support
+      includeDependency libs.truth
+    }
+  }
+}

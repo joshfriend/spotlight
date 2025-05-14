@@ -5,7 +5,7 @@ public final class com/fueledbycaffeine/spotlight/SpotlightSettingsPlugin : org/
 }
 
 public abstract class com/fueledbycaffeine/spotlight/dsl/MatchRuleHandler : org/gradle/api/Named {
-	public fun <init> (Ljava/lang/String;Lorg/gradle/api/model/ObjectFactory;)V
+	public fun <init> (Ljava/lang/String;Lorg/gradle/api/file/BuildLayout;Lorg/gradle/api/model/ObjectFactory;)V
 	public final fun alsoInclude (Ljava/lang/String;)V
 	public fun getName ()Ljava/lang/String;
 	public final fun getPattern ()Lkotlin/text/Regex;

@@ -2,6 +2,7 @@ package com.fueledbycaffeine.spotlight.utils
 
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path

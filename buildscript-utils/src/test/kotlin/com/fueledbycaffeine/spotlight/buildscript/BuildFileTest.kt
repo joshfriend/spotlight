@@ -1,4 +1,4 @@
-package com.fueledbycaffeine.spotlight.utils
+package com.fueledbycaffeine.spotlight.buildscript
 
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder

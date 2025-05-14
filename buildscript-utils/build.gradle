@@ -1,0 +1,29 @@
+plugins {
+  id 'org.jetbrains.kotlin.jvm'
+  id 'com.vanniktech.maven.publish'
+  id 'com.autonomousapps.testkit'
+  id 'org.jetbrains.kotlinx.binary-compatibility-validator'
+}
+
+group = 'com.fueledbycaffeine.spotlight'
+version = '1.0-SNAPSHOT'
+
+mavenPublishing {
+
+}
+
+dependencies {
+  testImplementation gradleApi()
+  testImplementation libs.assertk
+  testImplementation platform(libs.junit.platform)
+  testImplementation libs.junit.jupiter
+  testRuntimeOnly libs.junit.launcher
+}
+
+kotlin {
+  explicitApi()
+}
+
+test {
+  useJUnitPlatform()
+}

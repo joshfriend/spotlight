@@ -1,4 +1,4 @@
-package com.fueledbycaffeine.spotlight
+package com.fueledbycaffeine.spotlight.utils
 
 import org.gradle.api.initialization.Settings
 import org.gradle.api.provider.ProviderFactory

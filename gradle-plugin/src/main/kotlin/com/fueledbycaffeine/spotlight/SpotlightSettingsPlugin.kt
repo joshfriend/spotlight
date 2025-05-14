@@ -2,7 +2,9 @@ package com.fueledbycaffeine.spotlight
 
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
-import com.fueledbycaffeine.spotlight.graph.BreadthFirstSearch
+import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
+import com.fueledbycaffeine.spotlight.buildscript.GradlePath
+import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import com.fueledbycaffeine.spotlight.utils.*
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings

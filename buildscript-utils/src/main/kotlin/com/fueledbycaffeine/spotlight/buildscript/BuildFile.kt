@@ -1,13 +1,13 @@
-package com.fueledbycaffeine.spotlight.utils
+package com.fueledbycaffeine.spotlight.buildscript
 
-import com.fueledbycaffeine.spotlight.graph.ImplicitDependencyRule
-import com.fueledbycaffeine.spotlight.graph.ImplicitDependencyRule.BuildscriptMatchRule
-import com.fueledbycaffeine.spotlight.graph.ImplicitDependencyRule.ProjectPathMatchRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
 import kotlin.io.path.readText
 import kotlin.text.RegexOption.MULTILINE
 
-internal data class BuildFile(val project: GradlePath) {
-  fun parseDependencies(rules: Set<ImplicitDependencyRule> = emptySet()): Set<GradlePath> = parseBuildFile(project, rules)
+public data class BuildFile(public val project: GradlePath) {
+  public fun parseDependencies(rules: Set<ImplicitDependencyRule> = emptySet()): Set<GradlePath> = parseBuildFile(project, rules)
 }
 
 private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+project\\([\"'](.*)[\"']\\)", MULTILINE)
