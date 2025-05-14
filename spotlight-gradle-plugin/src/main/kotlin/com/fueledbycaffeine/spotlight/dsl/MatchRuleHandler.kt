@@ -15,12 +15,16 @@ public abstract class MatchRuleHandler @Inject constructor(
   private val layout: BuildLayout,
   objects: ObjectFactory,
 ) : Named {
-  internal val includes: SetProperty<GradlePath> = objects.setProperty(GradlePath::class.java).convention(emptySet())
+  internal val includes: SetProperty<GradlePath> =
+    objects.setProperty(GradlePath::class.java).convention(emptySet())
 
   public override fun getName(): String = name
 
   public val pattern: Regex = name.toRegex()
 
+  /**
+   * A project path to include when the buildscript graph parsing matches the regex [pattern]
+   */
   public fun alsoInclude(path: String) {
     val gradlePath = GradlePath(layout.settingsDirectory.asFile, path)
     if (gradlePath.hasBuildFile) {
@@ -34,6 +38,7 @@ public abstract class MatchRuleHandler @Inject constructor(
     private val layout: BuildLayout,
     private val objects: ObjectFactory,
   ) : NamedDomainObjectFactory<MatchRuleHandler> {
-    override fun create(name: String): MatchRuleHandler = objects.newInstance(MatchRuleHandler::class.java, name, layout)
+    override fun create(name: String): MatchRuleHandler =
+      objects.newInstance(MatchRuleHandler::class.java, name, layout)
   }
 }

@@ -1,6 +1,7 @@
 package com.fueledbycaffeine.spotlight.dsl
 
 import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
+import com.fueledbycaffeine.spotlight.buildscript.BuildFile
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
@@ -27,7 +28,7 @@ import javax.inject.Inject
  */
 @Suppress("UnstableApiUsage")
 public abstract class SpotlightExtension @Inject constructor(
-  private val layout: BuildLayout,
+  layout: BuildLayout,
   objects: ObjectFactory,
 ) {
   public companion object {
@@ -58,8 +59,8 @@ public abstract class SpotlightExtension @Inject constructor(
 
   /**
    * A file containing the list of projects you would like loaded into the IDE. The projects listed here, as well as
-   * any of their transitives identified by [com.fueledbycaffeine.spotlight.buildscript.BuildFile.parseDependencies] will be used instead of the [allProjects] list
-   * during IDE sync.
+   * any of their transitives identified by [BuildFile.parseDependencies] will be used instead of the [allProjects]
+   * list during IDE sync.
    */
   public val ideProjects: Property<RegularFile> = objects.fileProperty()
     .convention(layout.rootDirectory.file(IDE_PROJECTS_FILE))
