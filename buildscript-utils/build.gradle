@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
   id 'org.jetbrains.kotlin.jvm'
   id 'com.vanniktech.maven.publish'
@@ -6,10 +8,37 @@ plugins {
 }
 
 group = 'com.fueledbycaffeine.spotlight'
-version = '1.0-SNAPSHOT'
+version = '0.1'
 
 mavenPublishing {
+  publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+  signAllPublications()
 
+  pom {
+    name = "Spotlight buildscript utils"
+    description = "Parse and build a DAG of your gradle projects"
+    inceptionYear = "2025"
+    url = "https://github.com/joshfriend/spotlight/"
+    licenses {
+      license {
+        name = "MIT License"
+        url = "https://choosealicense.com/licenses/mit/"
+        distribution = "https://choosealicense.com/licenses/mit/"
+      }
+    }
+    developers {
+      developer {
+        id = "joshfriend"
+        name = "Josh Friend"
+        url = "https://github.com/joshfriend/"
+      }
+    }
+    scm {
+      url = "https://github.com/joshfriend/spotlight/"
+      connection = "scm:git:git://github.com/joshfriend/spotlight.git"
+      developerConnection = "scm:git:ssh://git@github.com/joshfriend/spotlight.git"
+    }
+  }
 }
 
 dependencies {

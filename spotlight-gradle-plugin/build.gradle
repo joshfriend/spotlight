@@ -1,6 +1,9 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
   id 'java-gradle-plugin'
   id 'com.gradle.plugin-publish'
+  id 'com.vanniktech.maven.publish'
   id 'com.autonomousapps.testkit'
   id 'org.jetbrains.kotlin.jvm'
   id 'org.jetbrains.kotlinx.binary-compatibility-validator'
@@ -19,6 +22,37 @@ gradlePlugin {
       displayName = "Spotlight"
       description = "A plugin that makes managing `settings.gradle(.kts)` for large projects easier"
       tags = ["IDE", "dependencies"]
+    }
+  }
+}
+
+mavenPublishing {
+  publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+  signAllPublications()
+
+  pom {
+    name = "Spotlight Gradle plugin"
+    description = "A Gradle plugin that and makes managing `settings.gradle(.kts)` for large projects easier"
+    inceptionYear = "2025"
+    url = "https://github.com/joshfriend/spotlight/"
+    licenses {
+      license {
+        name = "MIT License"
+        url = "https://choosealicense.com/licenses/mit/"
+        distribution = "https://choosealicense.com/licenses/mit/"
+      }
+    }
+    developers {
+      developer {
+        id = "joshfriend"
+        name = "Josh Friend"
+        url = "https://github.com/joshfriend/"
+      }
+    }
+    scm {
+      url = "https://github.com/joshfriend/spotlight/"
+      connection = "scm:git:git://github.com/joshfriend/spotlight.git"
+      developerConnection = "scm:git:ssh://git@github.com/joshfriend/spotlight.git"
     }
   }
 }

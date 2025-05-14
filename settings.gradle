@@ -25,5 +25,5 @@ dependencyResolutionManagement {
 
 rootProject.name = 'spotlight'
 
-include ':gradle-plugin'
+include ':spotlight-gradle-plugin'
 include ':buildscript-utils'
