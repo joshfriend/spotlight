@@ -1,18 +1,55 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.*
+import java.io.FileNotFoundException
 import kotlin.io.path.readText
 import kotlin.text.RegexOption.MULTILINE
 
 public data class BuildFile(public val project: GradlePath) {
-  public fun parseDependencies(rules: Set<ImplicitDependencyRule> = emptySet()): Set<GradlePath> = parseBuildFile(project, rules)
+  public fun parseDependencies(
+    rules: Set<ImplicitDependencyRule> = emptySet(),
+  ): Set<GradlePath> = parseBuildFile(project, rules)
 }
 
 private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+project\\([\"'](.*)[\"']\\)", MULTILINE)
+private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+projects\\.(.*)\\b", MULTILINE)
+private val CAMELCASE_REPLACE_PATTERN = Regex("(?<=.)[A-Z]")
 
-internal fun parseBuildFile(project: GradlePath, rules: Set<ImplicitDependencyRule>): Set<GradlePath> {
+internal fun String.typeSafeAccessorAsDefaultGradlePath(rootProjectName: String): String {
+  return GRADLE_PATH_SEP + this.removePrefix("projects.").removePrefix("$rootProjectName.")
+    .replace(".", GRADLE_PATH_SEP)
+    .replace(CAMELCASE_REPLACE_PATTERN, "-$0")
+    .lowercase()
+}
+
+internal fun <L, R> List<L>.cartesianProduct(rhs: List<R>): List<List<Pair<L, R>>> {
+  if (this.isEmpty() || rhs.isEmpty()) return emptyList()
+
+  val choicesPerLhs = this.map { l -> rhs.map { r -> l to r } }
+
+  return choicesPerLhs
+    .fold(listOf(emptyList<Pair<L, R>>())) { acc, pairs ->
+      acc.flatMap { partial -> pairs.map { pair -> partial + pair } }
+    }
+}
+
+internal fun String.possibleGradlePathPermutations(): List<String> {
+  val dashes = this.mapIndexedNotNull { index, char -> if (char == '-') index else null }
+  return dashes
+    .cartesianProduct(listOf("_", "-"))
+    .map { replacements ->
+      replacements.fold(this) { acc, pair ->
+        val (index, chr) = pair
+        acc.substring(0, index) + chr + acc.substring(index + 1)
+      }
+    }
+}
+
+internal fun parseBuildFile(
+  project: GradlePath,
+  rules: Set<ImplicitDependencyRule>,
+): Set<GradlePath> {
   val buildscriptContents = project.buildFilePath.readText()
   val directDependencies = PROJECT_DEP_PATTERN.findAll(buildscriptContents)
     .map { matchResult ->
@@ -21,14 +58,43 @@ internal fun parseBuildFile(project: GradlePath, rules: Set<ImplicitDependencyRu
     }
     .toSet()
 
+  val typeSafeProjectAccessorsRule = rules.filterIsInstance<TypeSafeProjectAccessorRule>().firstOrNull()
+  val typeSafeProjectDependencies = if (typeSafeProjectAccessorsRule != null) {
+    TYPESAFE_PROJECT_DEP_PATTERN.findAll(buildscriptContents)
+      .map { matchResult ->
+        val (_, typeSafeAccessor) = matchResult.destructured
+        val defaultPath = typeSafeAccessor.typeSafeAccessorAsDefaultGradlePath(typeSafeProjectAccessorsRule.rootProjectName)
+        typeSafeAccessor to GradlePath(project.root, defaultPath)
+      }
+      .map { (typeSafeAccessor, defaultPath) ->
+        val actualPath = when (defaultPath.hasBuildFile) {
+          true -> defaultPath
+          else -> defaultPath.path.possibleGradlePathPermutations()
+            .map { pathOption -> GradlePath(project.root, pathOption) }
+            .firstOrNull { it != defaultPath && it.hasBuildFile }
+        }
+        if (actualPath == null) {
+          throw FileNotFoundException(
+            "Could not find project buildscript for type-safe project accessor \"$typeSafeAccessor\" " +
+              "referenced by ${project.path}"
+          )
+        }
+        actualPath
+      }
+      .toSet()
+  } else {
+    emptySet()
+  }
+
   val implicitDependencies = rules
     .filter { rule ->
       when (rule) {
         is BuildscriptMatchRule -> rule.pattern.find(buildscriptContents) != null
         is ProjectPathMatchRule -> rule.pattern.matches(project.path)
+        is TypeSafeProjectAccessorRule -> true
       }
     }
     .flatMap { rule -> rule.includedProjects }
 
-  return directDependencies + implicitDependencies
+  return directDependencies + typeSafeProjectDependencies + implicitDependencies
 }

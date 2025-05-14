@@ -2,18 +2,21 @@ package com.fueledbycaffeine.spotlight.buildscript
 
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
+import kotlin.io.path.createDirectories
+import kotlin.io.path.createFile
 import kotlin.io.path.writeText
 
 class BuildFileTest {
   @TempDir lateinit var buildRoot: Path
 
   @Test fun `reads dependencies`() {
-    val buildFilePath = buildRoot.resolve("build.gradle")
-    val gradlePath = GradlePath(buildRoot, ":")
-    buildFilePath.writeText("""
+    val project = buildRoot.createProject(":foo")
+    project.buildFilePath.writeText("""
       dependencies {
         implementation  project(":multiple-spaces-double-quotes")
         implementation  project(':multiple-spaces-single-quotes')
@@ -24,15 +27,18 @@ class BuildFileTest {
         implementation(project(":parentheses-double-quotes"))
         implementation(project(':parentheses-single-quotes'))
 
-        api(project(':other-configuration'))
+        api(project(':other-configuration')) {
+          because "reason"
+        }
        
           implementation project(':bad-indentation')
 
         // implementation(project(':commented'))
       }
-    """.trimIndent())
+      """.trimIndent()
+    )
 
-    val buildFile = BuildFile(gradlePath)
+    val buildFile = BuildFile(project)
 
     assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(
       GradlePath(buildRoot, ":multiple-spaces-double-quotes"),
@@ -46,22 +52,148 @@ class BuildFileTest {
     )
   }
 
+  @Test fun `reads type-safe project accessor dependencies dash case`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
+    typeSafeProject.projectDir.createDirectories()
+    typeSafeProject.projectDir.resolve("build.gradle").createFile()
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.typeSafe.project
+      }
+      """.trimIndent()
+    )
+
+    val buildFile = BuildFile(project)
+
+    assertThat(buildFile.parseDependencies(setOf(TypeSafeProjectAccessorRule("spotlight"))))
+      .containsExactlyInAnyOrder(typeSafeProject)
+  }
+
+  @Test fun `reads type-safe project accessor dependencies that use explicit root project`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
+    typeSafeProject.projectDir.createDirectories()
+    typeSafeProject.projectDir.resolve("build.gradle").createFile()
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.spotlight.typeSafe.project
+      }
+      """.trimIndent()
+    )
+
+    val buildFile = BuildFile(project)
+
+    assertThat(buildFile.parseDependencies(setOf(TypeSafeProjectAccessorRule("spotlight"))))
+      .containsExactlyInAnyOrder(typeSafeProject)
+  }
+
+  @Test fun `reads type-safe project accessor dependencies that are not dash-case`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject = GradlePath(buildRoot, ":type_safe:project")
+    typeSafeProject.projectDir.createDirectories()
+    typeSafeProject.projectDir.resolve("build.gradle").createFile()
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.typeSafe.project
+      }
+      """.trimIndent()
+    )
+
+    val buildFile = BuildFile(project)
+
+    assertThat(buildFile.parseDependencies(setOf(TypeSafeProjectAccessorRule("spotlight"))))
+      .containsExactlyInAnyOrder(typeSafeProject)
+  }
+
+  @Test fun `reads type-safe project accessor dependencies wtf even is this`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject = GradlePath(buildRoot, ":a-b_c-d_e:f-g-h_i_j")
+    typeSafeProject.projectDir.createDirectories()
+    typeSafeProject.projectDir.resolve("build.gradle").createFile()
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.aBCDE.fGHIJ
+      }
+      """.trimIndent()
+    )
+
+    val buildFile = BuildFile(project)
+
+    assertThat(buildFile.parseDependencies(setOf(TypeSafeProjectAccessorRule("spotlight"))))
+      .containsExactlyInAnyOrder(typeSafeProject)
+  }
+
+  @Test fun `parses implicit dependencies based on project path`() {
+    val project = buildRoot.createProject(":features:something")
+    project.buildFilePath.writeText(
+      """
+      dependencies {
+        debugImplementation project(":foo")
+      }
+      """.trimIndent()
+    )
+
+    val buildFile = BuildFile(project)
+
+    val rules = setOf<ImplicitDependencyRule>(
+      ProjectPathMatchRule(Regex(":features:.*"), setOf(GradlePath(buildRoot, ":bar"))),
+    )
+    assertThat(buildFile.parseDependencies(rules))
+      .containsExactlyInAnyOrder(
+        GradlePath(buildRoot, ":foo"),
+        GradlePath(buildRoot, ":bar"),
+      )
+  }
+
+  @Test fun `parses implicit dependencies based on buildscript contents`() {
+    val project = buildRoot.createProject(":features:something")
+    project.buildFilePath.writeText(
+      """
+      plugins {
+        id 'com.example.feature'
+      }
+
+      dependencies {
+        debugImplementation project(":foo")
+      }
+      """.trimIndent()
+    )
+
+    val buildFile = BuildFile(project)
+
+    val rules = setOf<ImplicitDependencyRule>(
+      BuildscriptMatchRule(Regex("id 'com.example.feature'"), setOf(GradlePath(buildRoot, ":bar"))),
+    )
+    assertThat(buildFile.parseDependencies(rules))
+      .containsExactlyInAnyOrder(
+        GradlePath(buildRoot, ":foo"),
+        GradlePath(buildRoot, ":bar"),
+      )
+  }
+
   @Test fun `ignores duplicates`() {
-    val buildFilePath = buildRoot.resolve("build.gradle")
-    val gradlePath = GradlePath(buildRoot, ":")
-    buildFilePath.writeText(
+    val project = buildRoot.createProject(":foo")
+    project.buildFilePath.writeText(
       """
       dependencies {
         debugImplementation project(":foo")
         debugImplementation project(":foo")
       }
-    """.trimIndent()
+      """.trimIndent()
     )
 
-    val buildFile = BuildFile(gradlePath)
+    val buildFile = BuildFile(project)
 
     assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(
       GradlePath(buildRoot, ":foo")
     )
+  }
+
+  private fun Path.createProject(path: String): GradlePath {
+    return GradlePath(this, path).apply {
+      projectDir.createDirectories()
+      projectDir.resolve("build.gradle").createFile()
+    }
   }
 }

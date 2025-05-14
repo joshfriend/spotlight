@@ -97,6 +97,8 @@ dependencies {
 
 The `projectDir` for projects listed in `all-projects.txt` cannot be relocated because the list of all your projects is now a flat text file and not a dynamic script.
 
+Project directories with capital letters are not supported when using [type-safe project accessors][typesafe-project-accessors]. Spotlight converts the accessor's camelCase naming to kebab-case and guesses the project directory combinations (starting with the default kebab-case option) by replacing the dashes with underscores and checking if any of the possible combinations of replacements exist. The various other permutations possible with different directory capitalization are not checked.
+
 You can still add `include`s to `settings.gradle(.kts)` in your build outside of this plugin.
 
 [focus]: https://github.com/dropbox/focus
@@ -107,3 +109,4 @@ You can still add `include`s to `settings.gradle(.kts)` in your build outside of
 [cross-project-configuration]: https://github.com/joshfriend/gradle-best-practices-plugin?tab=readme-ov-file#instances-of-cross-project-configuration
 [herding-elephants]: https://developer.squareup.com/blog/herding-elephants/
 [stampeding-elephants]: https://developer.squareup.com/blog/stampeding-elephants/
+[typesafe-project-accessors]: https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html#sec:type-safe-project-accessors
