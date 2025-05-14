@@ -11,7 +11,7 @@ group = 'com.fueledbycaffeine.spotlight'
 version = '0.1'
 
 mavenPublishing {
-  publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+  publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
   signAllPublications()
 
   pom {
