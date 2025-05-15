@@ -33,7 +33,7 @@ class BuildFileTest {
           because "reason"
         }
        
-          implementation project(':bad-indentation')
+          implementation project(':bad-indentation') // some comment
 
         // implementation(project(':commented'))
       }
@@ -79,6 +79,23 @@ class BuildFileTest {
     project.buildFilePath.writeText("""
       dependencies {
         implementation projects.spotlight.typeSafe.project
+      }
+      """.trimIndent()
+    )
+    val buildFile = BuildFile(project)
+    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    assertThat(buildFile.parseDependencies(setOf(rule)))
+      .containsExactlyInAnyOrder(typeSafeProject)
+  }
+
+  @Test fun `reads type-safe project accessor dependencies that have trailing text`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
+    typeSafeProject.projectDir.createDirectories()
+    typeSafeProject.projectDir.resolve("build.gradle").createFile()
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.typeSafe.project // because
       }
       """.trimIndent()
     )

@@ -13,7 +13,7 @@ public data class BuildFile(public val project: GradlePath) {
 }
 
 private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+project\\([\"'](.*)[\"']\\)", MULTILINE)
-private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+projects\\.(.*)\\b", MULTILINE)
+private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+projects\\.([\\w.]+)\\b", MULTILINE)
 
 internal fun parseBuildFile(
   project: GradlePath,
