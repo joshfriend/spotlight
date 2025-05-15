@@ -11,6 +11,19 @@ public final class com/fueledbycaffeine/spotlight/buildscript/BuildFile {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/fueledbycaffeine/spotlight/buildscript/BuildGraph : com/fueledbycaffeine/spotlight/buildscript/graph/Graph {
+	public synthetic fun <init> (Ljava/util/Set;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final fun create (Ljava/nio/file/Path;Ljava/nio/file/Path;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
+	public static final fun create (Ljava/util/Set;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
+	public static final fun createFromNode (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
+	public fun getDependencyMap ()Ljava/util/Map;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/BuildGraphKt {
+	public static final fun buildGraph (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
+	public static synthetic fun buildGraph$default (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
+}
+
 public final class com/fueledbycaffeine/spotlight/buildscript/GradlePath : com/fueledbycaffeine/spotlight/buildscript/graph/GraphNode {
 	public fun <init> (Ljava/io/File;Ljava/lang/String;)V
 	public fun <init> (Ljava/nio/file/Path;Ljava/lang/String;)V
@@ -63,6 +76,27 @@ public final class com/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirst
 	public static synthetic fun flatten$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/util/Set;Ljava/util/Set;ILjava/lang/Object;)Ljava/util/List;
 	public final fun run (Ljava/util/Set;Ljava/util/Set;)Ljava/util/Map;
 	public static synthetic fun run$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/util/Set;Ljava/util/Set;ILjava/lang/Object;)Ljava/util/Map;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/graph/Edge {
+	public fun <init> (Ljava/lang/Object;Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun component2 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;Ljava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/Edge;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/Edge;Ljava/lang/Object;Ljava/lang/Object;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/Edge;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAccessor ()Ljava/lang/Object;
+	public final fun getSuccessor ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class com/fueledbycaffeine/spotlight/buildscript/graph/Graph {
+	public fun <init> ()V
+	public final fun accessorsOf (Lcom/fueledbycaffeine/spotlight/buildscript/graph/GraphNode;)Ljava/util/Set;
+	public final fun edges ()Ljava/util/Set;
+	public abstract fun getDependencyMap ()Ljava/util/Map;
+	public final fun successorsOf (Lcom/fueledbycaffeine/spotlight/buildscript/graph/GraphNode;)Ljava/util/Set;
 }
 
 public abstract interface class com/fueledbycaffeine/spotlight/buildscript/graph/GraphNode {
