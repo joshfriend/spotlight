@@ -34,6 +34,7 @@ internal fun parseBuildFile(
         val (_, typeSafeAccessor) = matchResult.destructured
         val cleanTypeSafeAccessor = typeSafeAccessor.removePrefix("projects.")
           .removePrefix("${typeSafeProjectAccessorsRule.rootProjectName}.")
+          .removeSuffix(".dependencyProject")
         typeSafeProjectAccessorsRule.typeSafeAccessorMap[cleanTypeSafeAccessor]
           ?: throw FileNotFoundException(
             "Could not find project buildscript for type-safe project accessor \"$typeSafeAccessor\" " +

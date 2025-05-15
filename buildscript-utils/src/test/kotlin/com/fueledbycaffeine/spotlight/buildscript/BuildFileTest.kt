@@ -186,6 +186,27 @@ class BuildFileTest {
     )
   }
 
+  @Test fun `ignores type-safe project accessor's trailing dependencyProject API`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
+    typeSafeProject.projectDir.createDirectories()
+    typeSafeProject.projectDir.resolve("build.gradle").createFile()
+    project.buildFilePath.writeText("""
+      sqldelight {
+        databases {
+          create("ExampleDB") {
+            dependency projects.typeSafe.project.dependencyProject
+          }
+        }
+      }
+      """.trimIndent()
+    )
+    val buildFile = BuildFile(project)
+    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    assertThat(buildFile.parseDependencies(setOf(rule)))
+      .containsExactlyInAnyOrder(typeSafeProject)
+  }
+
   private fun Path.createProject(path: String): GradlePath {
     return GradlePath(this, path).apply {
       projectDir.createDirectories()
