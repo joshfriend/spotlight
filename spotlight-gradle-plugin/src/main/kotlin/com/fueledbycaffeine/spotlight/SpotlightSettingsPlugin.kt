@@ -1,3 +1,5 @@
+@file:Suppress("InternalGradleApiUsage")
+
 package com.fueledbycaffeine.spotlight
 
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
