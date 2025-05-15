@@ -1,14 +1,12 @@
-package com.fueledbycaffeine.spotlight
+package com.fueledbycaffeine.spotlight.functionaltest
 
 import com.autonomousapps.kit.GradleBuilder
-import com.autonomousapps.kit.GradleProject
 import com.autonomousapps.kit.truth.TestKitTruth.Companion.assertThat
-import com.fueledbycaffeine.spotlight.fixtures.SpiritboxProject
-import com.fueledbycaffeine.spotlight.fixtures.allProjects
-import com.fueledbycaffeine.spotlight.fixtures.build
-import com.fueledbycaffeine.spotlight.fixtures.includedProjects
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.SpiritboxProject
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.allProjects
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.build
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.includedProjects
 import com.google.common.truth.Truth.assertThat
-import org.gradle.api.tasks.GradleBuild
 import org.junit.jupiter.api.Test
 
 class SpotlightBuildFunctionalTest {
