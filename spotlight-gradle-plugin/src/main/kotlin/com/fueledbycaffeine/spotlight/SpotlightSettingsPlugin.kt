@@ -1,25 +1,22 @@
-@file:Suppress("InternalGradleApiUsage")
-
 package com.fueledbycaffeine.spotlight
 
-import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
-import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
-import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
+import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.TypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.readProjectList
-import com.fueledbycaffeine.spotlight.utils.*
+import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
+import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
+import com.fueledbycaffeine.spotlight.utils.guessProjectsFromTaskRequests
+import com.fueledbycaffeine.spotlight.utils.include
+import com.fueledbycaffeine.spotlight.utils.isIdeSync
 import org.gradle.api.Plugin
 import org.gradle.api.file.RegularFile
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
-import org.gradle.internal.buildoption.FeatureFlags
 import java.io.FileNotFoundException
-import javax.inject.Inject
 import kotlin.time.measureTimedValue
 
 private val logger: Logger = Logging.getLogger(SpotlightSettingsPlugin::class.java)
@@ -31,9 +28,7 @@ private val logger: Logger = Logging.getLogger(SpotlightSettingsPlugin::class.ja
  *   id 'com.fueledbycaffeine.spotlight'
  * }
  */
-public class SpotlightSettingsPlugin @Inject constructor(
-  private val features: FeatureFlags
-): Plugin<Settings> {
+public class SpotlightSettingsPlugin: Plugin<Settings> {
   private lateinit var options: SpotlightExtension
   private lateinit var allProjects: Set<GradlePath>
 
@@ -94,13 +89,8 @@ public class SpotlightSettingsPlugin @Inject constructor(
 
   private fun Settings.implicitAndTransitiveDependenciesOf(targets: Set<GradlePath>): Set<GradlePath> {
     val combinedTargets = addImplicitTargetsTo(targets)
-    val rules = when (features.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
-      true -> {
-        val typeSafeProjectAccessorMap = allProjects.associateBy { it.typeSafeAccessorName }
-        options.rules + TypeSafeProjectAccessorRule(settings.rootProject.name, typeSafeProjectAccessorMap)
-      }
-      else -> options.rules
-    }
+    val typeSafeProjectAccessorMap = allProjects.associateBy { it.typeSafeAccessorName }
+    val rules = options.rules + TypeSafeProjectAccessorRule(settings.rootProject.name, typeSafeProjectAccessorMap)
     val bfsResults = measureTimedValue { BreadthFirstSearch.flatten(combinedTargets, rules) }
     logger.info("BFS search of project graph took {}ms", bfsResults.duration.inWholeMilliseconds)
     val transitives = bfsResults.value

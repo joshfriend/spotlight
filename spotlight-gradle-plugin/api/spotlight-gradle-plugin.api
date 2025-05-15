@@ -1,5 +1,5 @@
 public final class com/fueledbycaffeine/spotlight/SpotlightSettingsPlugin : org/gradle/api/Plugin {
-	public fun <init> (Lorg/gradle/internal/buildoption/FeatureFlags;)V
+	public fun <init> ()V
 	public synthetic fun apply (Ljava/lang/Object;)V
 	public fun apply (Lorg/gradle/api/initialization/Settings;)V
 }
