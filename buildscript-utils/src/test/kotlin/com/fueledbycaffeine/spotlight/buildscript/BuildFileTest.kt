@@ -5,7 +5,9 @@ import assertk.assertions.containsExactlyInAnyOrder
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
+import java.io.FileNotFoundException
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
@@ -52,7 +54,7 @@ class BuildFileTest {
     )
   }
 
-  @Test fun `reads type-safe project accessor dependencies dash case`() {
+  @Test fun `reads known type-safe project accessor dependencies`() {
     val project = buildRoot.createProject(":foo")
     val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
     typeSafeProject.projectDir.createDirectories()
@@ -63,10 +65,9 @@ class BuildFileTest {
       }
       """.trimIndent()
     )
-
     val buildFile = BuildFile(project)
-
-    assertThat(buildFile.parseDependencies(setOf(TypeSafeProjectAccessorRule("spotlight"))))
+    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    assertThat(buildFile.parseDependencies(setOf(rule)))
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
@@ -81,47 +82,25 @@ class BuildFileTest {
       }
       """.trimIndent()
     )
-
     val buildFile = BuildFile(project)
-
-    assertThat(buildFile.parseDependencies(setOf(TypeSafeProjectAccessorRule("spotlight"))))
+    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    assertThat(buildFile.parseDependencies(setOf(rule)))
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
-  @Test fun `reads type-safe project accessor dependencies that are not dash-case`() {
+  @Test fun `throws error when type-safe accessor is unknown`() {
     val project = buildRoot.createProject(":foo")
-    val typeSafeProject = GradlePath(buildRoot, ":type_safe:project")
-    typeSafeProject.projectDir.createDirectories()
-    typeSafeProject.projectDir.resolve("build.gradle").createFile()
     project.buildFilePath.writeText("""
       dependencies {
         implementation projects.typeSafe.project
       }
       """.trimIndent()
     )
-
     val buildFile = BuildFile(project)
-
-    assertThat(buildFile.parseDependencies(setOf(TypeSafeProjectAccessorRule("spotlight"))))
-      .containsExactlyInAnyOrder(typeSafeProject)
-  }
-
-  @Test fun `reads type-safe project accessor dependencies wtf even is this`() {
-    val project = buildRoot.createProject(":foo")
-    val typeSafeProject = GradlePath(buildRoot, ":a-b_c-d_e:f-g-h_i_j")
-    typeSafeProject.projectDir.createDirectories()
-    typeSafeProject.projectDir.resolve("build.gradle").createFile()
-    project.buildFilePath.writeText("""
-      dependencies {
-        implementation projects.aBCDE.fGHIJ
-      }
-      """.trimIndent()
-    )
-
-    val buildFile = BuildFile(project)
-
-    assertThat(buildFile.parseDependencies(setOf(TypeSafeProjectAccessorRule("spotlight"))))
-      .containsExactlyInAnyOrder(typeSafeProject)
+    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf())
+    assertThrows<FileNotFoundException> {
+      buildFile.parseDependencies(setOf(rule))
+    }
   }
 
   @Test fun `parses implicit dependencies based on project path`() {

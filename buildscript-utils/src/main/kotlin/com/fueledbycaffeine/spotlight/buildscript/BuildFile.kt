@@ -63,23 +63,13 @@ internal fun parseBuildFile(
     TYPESAFE_PROJECT_DEP_PATTERN.findAll(buildscriptContents)
       .map { matchResult ->
         val (_, typeSafeAccessor) = matchResult.destructured
-        val defaultPath = typeSafeAccessor.typeSafeAccessorAsDefaultGradlePath(typeSafeProjectAccessorsRule.rootProjectName)
-        typeSafeAccessor to GradlePath(project.root, defaultPath)
-      }
-      .map { (typeSafeAccessor, defaultPath) ->
-        val actualPath = when (defaultPath.hasBuildFile) {
-          true -> defaultPath
-          else -> defaultPath.path.possibleGradlePathPermutations()
-            .map { pathOption -> GradlePath(project.root, pathOption) }
-            .firstOrNull { it != defaultPath && it.hasBuildFile }
-        }
-        if (actualPath == null) {
-          throw FileNotFoundException(
+        val cleanTypeSafeAccessor = typeSafeAccessor.removePrefix("projects.")
+          .removePrefix("${typeSafeProjectAccessorsRule.rootProjectName}.")
+        typeSafeProjectAccessorsRule.typeSafeAccessorMap[cleanTypeSafeAccessor]
+          ?: throw FileNotFoundException(
             "Could not find project buildscript for type-safe project accessor \"$typeSafeAccessor\" " +
               "referenced by ${project.path}"
           )
-        }
-        actualPath
       }
       .toSet()
   } else {

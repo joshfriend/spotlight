@@ -18,6 +18,7 @@ public sealed interface ImplicitDependencyRule {
 
   public data class TypeSafeProjectAccessorRule(
     val rootProjectName: String,
+    val typeSafeAccessorMap: Map<String, GradlePath>,
     override val includedProjects: Set<GradlePath> = emptySet(),
   ) : ImplicitDependencyRule
 }

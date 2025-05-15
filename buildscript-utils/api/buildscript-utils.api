@@ -25,6 +25,7 @@ public final class com/fueledbycaffeine/spotlight/buildscript/GradlePath : com/f
 	public final fun getPath ()Ljava/lang/String;
 	public final fun getProjectDir ()Ljava/nio/file/Path;
 	public final fun getRoot ()Ljava/nio/file/Path;
+	public final fun getTypeSafeAccessorName ()Ljava/lang/String;
 	public fun hashCode ()I
 	public final fun isRootProject ()Z
 	public fun toString ()Ljava/lang/String;
@@ -79,14 +80,17 @@ public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDepe
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$TypeSafeProjectAccessorRule : com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule {
-	public fun <init> ()V
-	public fun <init> (Ljava/util/Set;)V
-	public synthetic fun <init> (Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/util/Set;
-	public final fun copy (Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$TypeSafeProjectAccessorRule;
-	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$TypeSafeProjectAccessorRule;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$TypeSafeProjectAccessorRule;
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun component3 ()Ljava/util/Set;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$TypeSafeProjectAccessorRule;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$TypeSafeProjectAccessorRule;Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$TypeSafeProjectAccessorRule;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getIncludedProjects ()Ljava/util/Set;
+	public final fun getRootProjectName ()Ljava/lang/String;
+	public final fun getTypeSafeAccessorMap ()Ljava/util/Map;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }

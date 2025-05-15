@@ -30,8 +30,11 @@ public class SpotlightSettingsPlugin @Inject constructor(
   private val features: FeatureFlags
 ): Plugin<Settings> {
   private lateinit var options: SpotlightExtension
+  private lateinit var allProjects: List<GradlePath>
+
   public override fun apply(settings: Settings): Unit = settings.run {
     options = extensions.getSpotlightExtension()
+    allProjects = getAllProjects()
 
     // DSL is not available until after settings evaluation
     gradle.settingsEvaluated {
@@ -49,7 +52,7 @@ public class SpotlightSettingsPlugin @Inject constructor(
             """.trimIndent(),
             options.ideProjects.get().asFile.toRelativeString(rootDir)
           )
-          getAllProjects()
+          allProjects
         }
       } else {
         // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
@@ -75,7 +78,7 @@ public class SpotlightSettingsPlugin @Inject constructor(
             logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
             implicitAndTransitiveDependenciesOf(projectsFromWorkingDir)
           } else {
-            getAllProjects()
+            allProjects
           }
         }
       }
@@ -88,7 +91,10 @@ public class SpotlightSettingsPlugin @Inject constructor(
   private fun Settings.implicitAndTransitiveDependenciesOf(targets: List<GradlePath>): List<GradlePath> {
     val combinedTargets = addImplicitTargetsTo(targets)
     val rules = when (features.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
-      true -> options.rules + TypeSafeProjectAccessorRule(settings.rootProject.name)
+      true -> {
+        val typeSafeProjectAccessorMap = allProjects.associateBy { it.typeSafeAccessorName }
+        options.rules + TypeSafeProjectAccessorRule(settings.rootProject.name, typeSafeProjectAccessorMap)
+      }
       else -> options.rules
     }
     val bfsResults = measureTimedValue { BreadthFirstSearch.run(combinedTargets, rules) }

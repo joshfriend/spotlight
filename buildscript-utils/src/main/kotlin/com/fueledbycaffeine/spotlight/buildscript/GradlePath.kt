@@ -5,6 +5,8 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Path
+import java.util.Locale
+import java.util.Locale.getDefault
 import kotlin.io.path.exists
 import kotlin.io.path.relativeTo
 
@@ -14,7 +16,7 @@ public const val GRADLE_SCRIPT_KOTLIN: String = "build.gradle.kts"
 
 public data class GradlePath(
   public val root: Path,
-  public val path: String
+  public val path: String,
 ): GraphNode<GradlePath> {
   public constructor(root: File, path: String): this(root.toPath(), path)
 
@@ -33,6 +35,16 @@ public data class GradlePath(
     else -> throw FileNotFoundException("No build.gradle(.kts) for $path found")
   }
 
+  public val typeSafeAccessorName: String
+    get() = path.removePrefix(GRADLE_PATH_SEP)
+      .splitToSequence(GRADLE_PATH_SEP)
+      .joinToString(".") { child ->
+        child.splitToSequence(Regex("[.\\-_]"))
+          .mapIndexed { i, segment -> if (i != 0) segment.capitalize() else segment }
+          .joinToString("")
+      }
+
+
   public val isRootProject: Boolean get() = path == GRADLE_PATH_SEP
 
   public override fun findSuccessors(rules: Set<ImplicitDependencyRule>): Set<GradlePath> {
@@ -50,4 +62,8 @@ public fun Path.gradlePathRelativeTo(buildRoot: Path): GradlePath {
   val projectGradlePath = GRADLE_PATH_SEP + this.relativeTo(buildRoot).toString()
     .replace(File.separator, GRADLE_PATH_SEP)
   return GradlePath(buildRoot, projectGradlePath)
+}
+
+private fun String.capitalize(): String = replaceFirstChar {
+  if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString()
 }
