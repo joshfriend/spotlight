@@ -1,11 +1,11 @@
-package com.fueledbycaffeine.spotlight
+package com.fueledbycaffeine.spotlight.functionaltest
 
 import com.autonomousapps.kit.truth.TestKitTruth.Companion.assertThat
-import com.fueledbycaffeine.spotlight.fixtures.SpiritboxProject
-import com.fueledbycaffeine.spotlight.fixtures.allProjects
-import com.fueledbycaffeine.spotlight.fixtures.ideProjects
-import com.fueledbycaffeine.spotlight.fixtures.includedProjects
-import com.fueledbycaffeine.spotlight.fixtures.sync
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.SpiritboxProject
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.allProjects
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.ideProjects
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.includedProjects
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.sync
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 

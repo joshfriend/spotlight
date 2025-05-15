@@ -1,4 +1,4 @@
-package com.fueledbycaffeine.spotlight.fixtures
+package com.fueledbycaffeine.spotlight.functionaltest.fixtures
 
 import org.gradle.testkit.runner.BuildResult
 
