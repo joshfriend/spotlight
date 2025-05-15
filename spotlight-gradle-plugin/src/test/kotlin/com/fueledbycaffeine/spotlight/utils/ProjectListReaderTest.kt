@@ -2,6 +2,7 @@ package com.fueledbycaffeine.spotlight.utils
 
 import assertk.assertThat
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
+import com.fueledbycaffeine.spotlight.buildscript.readProjectList
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir

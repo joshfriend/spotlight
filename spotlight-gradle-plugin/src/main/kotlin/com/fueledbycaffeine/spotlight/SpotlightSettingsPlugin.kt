@@ -6,12 +6,15 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.TypeSafeProjectAccessorRule
+import com.fueledbycaffeine.spotlight.buildscript.readProjectList
 import com.fueledbycaffeine.spotlight.utils.*
 import org.gradle.api.Plugin
+import org.gradle.api.file.RegularFile
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import org.gradle.api.provider.Property
 import org.gradle.internal.buildoption.FeatureFlags
 import java.io.FileNotFoundException
 import javax.inject.Inject
@@ -30,7 +33,7 @@ public class SpotlightSettingsPlugin @Inject constructor(
   private val features: FeatureFlags
 ): Plugin<Settings> {
   private lateinit var options: SpotlightExtension
-  private lateinit var allProjects: List<GradlePath>
+  private lateinit var allProjects: Set<GradlePath>
 
   public override fun apply(settings: Settings): Unit = settings.run {
     options = extensions.getSpotlightExtension()
@@ -87,7 +90,7 @@ public class SpotlightSettingsPlugin @Inject constructor(
     }
   }
 
-  private fun Settings.implicitAndTransitiveDependenciesOf(targets: List<GradlePath>): List<GradlePath> {
+  private fun Settings.implicitAndTransitiveDependenciesOf(targets: Set<GradlePath>): Set<GradlePath> {
     val combinedTargets = addImplicitTargetsTo(targets)
     val rules = when (features.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
       true -> {
@@ -96,14 +99,14 @@ public class SpotlightSettingsPlugin @Inject constructor(
       }
       else -> options.rules
     }
-    val bfsResults = measureTimedValue { BreadthFirstSearch.run(combinedTargets, rules) }
+    val bfsResults = measureTimedValue { BreadthFirstSearch.flatten(combinedTargets, rules) }
     logger.info("BFS search of project graph took {}ms", bfsResults.duration.inWholeMilliseconds)
     val transitives = bfsResults.value
     logger.info("Requested targets include {} projects transitively", transitives.size)
     return combinedTargets + transitives
   }
 
-  private fun Settings.addImplicitTargetsTo(targets: List<GradlePath>): List<GradlePath> {
+  private fun Settings.addImplicitTargetsTo(targets: Set<GradlePath>): Set<GradlePath> {
     val implicitTargets = getImplicitTargets()
     return when {
       implicitTargets.isEmpty() -> targets
@@ -117,4 +120,12 @@ public class SpotlightSettingsPlugin @Inject constructor(
   private fun Settings.getAllProjects() = readProjectList(options.allProjects)
   private fun Settings.getIdeProjects() = readProjectList(options.ideProjects)
   private fun Settings.getImplicitTargets() = readProjectList(options.implicitProjects)
+
+  internal fun Settings.readProjectList(property: Property<RegularFile>): Set<GradlePath> {
+    val file = property.get().asFile
+    return when {
+      file.exists() -> rootDir.readProjectList(file)
+      else -> emptySet()
+    }
+  }
 }

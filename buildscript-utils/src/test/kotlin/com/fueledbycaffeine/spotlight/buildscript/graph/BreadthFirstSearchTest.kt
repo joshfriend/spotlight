@@ -15,7 +15,7 @@ class BreadthFirstSearchTest {
     val child1 = TestNode(setOf(grandchild1, grandchild2))
     val child2 = TestNode(setOf(grandchild2))
     val rootNode = TestNode(setOf(child1, child2))
-    val allChildren = BreadthFirstSearch.run(listOf(rootNode))
+    val allChildren = BreadthFirstSearch.flatten(setOf(rootNode))
 
     assertThat(allChildren).containsExactlyInAnyOrder(
       child1,
