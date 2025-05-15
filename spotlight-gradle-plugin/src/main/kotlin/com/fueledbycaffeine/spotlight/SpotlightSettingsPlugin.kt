@@ -69,7 +69,6 @@ public class SpotlightSettingsPlugin @Inject constructor(
           val projectDir = gradle.startParameter.projectDir
           val target = projectDir?.gradlePathRelativeTo(rootDir)
           if (target != null && !target.isRootProject) {
-            val target = projectDir.gradlePathRelativeTo(rootDir)
             val childProjects = target.expandChildProjects()
             val projectsFromWorkingDir = when (target.hasBuildFile) {
               true -> childProjects + target
