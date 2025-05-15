@@ -14,37 +14,6 @@ public data class BuildFile(public val project: GradlePath) {
 
 private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+project\\([\"'](.*)[\"']\\)", MULTILINE)
 private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+projects\\.(.*)\\b", MULTILINE)
-private val CAMELCASE_REPLACE_PATTERN = Regex("(?<=.)[A-Z]")
-
-internal fun String.typeSafeAccessorAsDefaultGradlePath(rootProjectName: String): String {
-  return GRADLE_PATH_SEP + this.removePrefix("projects.").removePrefix("$rootProjectName.")
-    .replace(".", GRADLE_PATH_SEP)
-    .replace(CAMELCASE_REPLACE_PATTERN, "-$0")
-    .lowercase()
-}
-
-internal fun <L, R> List<L>.cartesianProduct(rhs: List<R>): List<List<Pair<L, R>>> {
-  if (this.isEmpty() || rhs.isEmpty()) return emptyList()
-
-  val choicesPerLhs = this.map { l -> rhs.map { r -> l to r } }
-
-  return choicesPerLhs
-    .fold(listOf(emptyList<Pair<L, R>>())) { acc, pairs ->
-      acc.flatMap { partial -> pairs.map { pair -> partial + pair } }
-    }
-}
-
-internal fun String.possibleGradlePathPermutations(): List<String> {
-  val dashes = this.mapIndexedNotNull { index, char -> if (char == '-') index else null }
-  return dashes
-    .cartesianProduct(listOf("_", "-"))
-    .map { replacements ->
-      replacements.fold(this) { acc, pair ->
-        val (index, chr) = pair
-        acc.substring(0, index) + chr + acc.substring(index + 1)
-      }
-    }
-}
 
 internal fun parseBuildFile(
   project: GradlePath,
