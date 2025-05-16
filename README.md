@@ -1,5 +1,9 @@
 # Spotlight
 
+[![Maven Central Version](https://img.shields.io/maven-central/v/com.fueledbycaffeine.spotlight/spotlight-gradle-plugin)](https://central.sonatype.com/artifact/com.fueledbycaffeine.spotlight/spotlight-gradle-plugin)
+[![Gradle Plugin Portal Version](https://img.shields.io/gradle-plugin-portal/v/com.fueledbycaffeine.spotlight)](https://plugins.gradle.org/plugin/com.fueledbycaffeine.spotlight)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 A Gradle plugin that and makes managing `settings.gradle(.kts)` for large projects easier:
 
 * Moves your `include` directives out of `settings.gradle(.kts)` into a flat text file
