@@ -1,5 +1,6 @@
 pluginManagement {
   plugins {
+    id 'com.gradle.develocity' version '4.0.1'
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
     id 'org.jetbrains.kotlin.jvm' version '2.1.20'
     id 'com.autonomousapps.testkit' version '0.13'
@@ -18,6 +19,7 @@ pluginManagement {
 }
 
 plugins {
+  id 'com.gradle.develocity'
   id 'org.gradle.toolchains.foojay-resolver-convention'
   id 'org.jetbrains.kotlin.jvm' apply false
   id 'com.autonomousapps.build-health'
@@ -28,6 +30,20 @@ dependencyResolutionManagement {
   repositories {
     mavenCentral()
     google()
+  }
+}
+
+develocity {
+  buildScan {
+    publishing.onlyIf { true }
+    termsOfUseUrl = "https://gradle.com/terms-of-service"
+    termsOfUseAgree = "yes"
+
+    if (System.getenv("CI")) {
+      tag("CI")
+    } else {
+      tag("Local")
+    }
   }
 }
 
