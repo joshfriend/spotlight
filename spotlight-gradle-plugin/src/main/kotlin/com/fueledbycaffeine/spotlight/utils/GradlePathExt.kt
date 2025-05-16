@@ -25,4 +25,4 @@ private val String.looksLikeAGradlePath: Boolean
 private val String.projectPathGuess: String
   get() = GRADLE_PATH_SEP + substringBeforeLast(GRADLE_PATH_SEP).removePrefix(GRADLE_PATH_SEP)
 
-internal fun Settings.include(paths: Iterable<GradlePath>) = include(paths.map { it.path })
+public fun Settings.include(paths: Iterable<GradlePath>) = include(paths.map { it.path })

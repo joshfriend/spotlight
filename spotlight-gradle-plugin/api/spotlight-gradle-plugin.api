@@ -30,6 +30,10 @@ public final class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension$Compani
 	public final fun getSpotlightExtension (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension;
 }
 
+public final class com/fueledbycaffeine/spotlight/utils/GradlePathExtKt {
+	public static final fun include (Lorg/gradle/api/initialization/Settings;Ljava/lang/Iterable;)V
+}
+
 public final class com/fueledbycaffeine/spotlight/utils/SpotlightProperties {
 	public static final fun isSpotlightEnabled (Lorg/gradle/api/initialization/Settings;)Z
 }

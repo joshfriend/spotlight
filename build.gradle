@@ -11,6 +11,9 @@ plugins {
 group = 'com.fueledbycaffeine'
 
 dependencyAnalysis {
+  reporting {
+    printBuildHealth true
+  }
   issues {
     all {
       onAny {
