@@ -10,6 +10,7 @@ import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotli
 import com.fueledbycaffeine.spotlight.utils.guessProjectsFromTaskRequests
 import com.fueledbycaffeine.spotlight.utils.include
 import com.fueledbycaffeine.spotlight.utils.isIdeSync
+import com.fueledbycaffeine.spotlight.utils.isSpotlightEnabled
 import org.gradle.api.Plugin
 import org.gradle.api.file.RegularFile
 import org.gradle.api.initialization.Settings
@@ -17,6 +18,8 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 import java.io.FileNotFoundException
+import kotlin.collections.plus
+import kotlin.io.toRelativeString
 import kotlin.time.measureTimedValue
 
 private val logger: Logger = Logging.getLogger(SpotlightSettingsPlugin::class.java)
@@ -38,53 +41,65 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
     // DSL is not available until after settings evaluation
     gradle.settingsEvaluated {
       allProjects = getAllProjects()
-      val projects = if (isIdeSync) {
-        val targets = getIdeProjects()
-        if (targets.isNotEmpty()) {
-          logger.info("{} contains {} targets", options.ideProjects.get(), targets.size)
-          implicitAndTransitiveDependenciesOf(targets)
+      if (isSpotlightEnabled) {
+        setupSpotlight()
+      } else {
+        logger.lifecycle(
+          "Spotlight is disabled, all projects will be loaded from {}",
+          options.allProjects.get().asFile.toRelativeString(rootDir),
+        )
+        include(allProjects)
+      }
+    }
+  }
+
+  private fun Settings.setupSpotlight() {
+    val projects = if (isIdeSync) {
+      val targets = getIdeProjects()
+      if (targets.isNotEmpty()) {
+        logger.info("{} contains {} targets", options.ideProjects.get(), targets.size)
+        implicitAndTransitiveDependenciesOf(targets)
+      } else {
+        logger.warn(
+          """
+          {} was missing or empty, including all projects.
+          This can result in slow sync times! Spotlight specific projects using the IDE context menu action,
+          or by running `spot <list of projects>`
+          """.trimIndent(),
+          options.ideProjects.get().asFile.toRelativeString(rootDir),
+        )
+        allProjects
+      }
+    } else {
+      // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
+      val taskPaths = try {
+        guessProjectsFromTaskRequests()
+      } catch (e: FileNotFoundException) {
+        logger.warn("Not sure how to map all tasks to projects: {}", e.message)
+        null
+      }
+      if (!taskPaths.isNullOrEmpty()) {
+        logger.info("Using transitives for projects of requested tasks")
+        implicitAndTransitiveDependenciesOf(taskPaths)
+      } else {
+        val projectDir = gradle.startParameter.projectDir
+        val target = projectDir?.gradlePathRelativeTo(rootDir)
+        if (target != null && !target.isRootProject) {
+          val childProjects = target.expandChildProjects()
+          val projectsFromWorkingDir = when (target.hasBuildFile) {
+            true -> childProjects + target
+            else -> childProjects
+          }
+          logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
+          implicitAndTransitiveDependenciesOf(projectsFromWorkingDir)
         } else {
-          logger.info(
-            """
-            {} was missing or empty, including all projects.
-            This can result in slow sync times! Spotlight specific projects using the IDE context menu action,
-            or by running `spot <list of projects>`
-            """.trimIndent(),
-            options.ideProjects.get().asFile.toRelativeString(rootDir)
-          )
           allProjects
         }
-      } else {
-        // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
-        val taskPaths = try {
-          guessProjectsFromTaskRequests()
-        } catch (e: FileNotFoundException) {
-          logger.warn("Not sure how to map all tasks to projects: {}", e.message)
-          null
-        }
-        if (!taskPaths.isNullOrEmpty()) {
-          logger.info("Using transitives for projects of requested tasks")
-          implicitAndTransitiveDependenciesOf(taskPaths)
-        } else {
-          val projectDir = gradle.startParameter.projectDir
-          val target = projectDir?.gradlePathRelativeTo(rootDir)
-          if (target != null && !target.isRootProject) {
-            val childProjects = target.expandChildProjects()
-            val projectsFromWorkingDir = when (target.hasBuildFile) {
-              true -> childProjects + target
-              else -> childProjects
-            }
-            logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
-            implicitAndTransitiveDependenciesOf(projectsFromWorkingDir)
-          } else {
-            allProjects
-          }
-        }
       }
-
-      logger.lifecycle("Spotlight included {} projects", projects.size)
-      include(projects)
     }
+
+    logger.lifecycle("Spotlight included {} projects", projects.size)
+    include(projects)
   }
 
   private fun Settings.implicitAndTransitiveDependenciesOf(targets: Set<GradlePath>): Set<GradlePath> {
