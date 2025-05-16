@@ -7,9 +7,6 @@ on:
       - '*.md'
       - '*.asciidoc'
   pull_request:
-    paths-ignore:
-      - '*.md'
-      - '*.asciidoc'
 
 concurrency:
   group: build-${{ github.ref }}
