@@ -1,10 +1,10 @@
 package com.fueledbycaffeine.spotlight
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
+import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.readProjectList
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.TypeSafeProjectAccessorRule
-import com.fueledbycaffeine.spotlight.buildscript.readProjectList
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
 import com.fueledbycaffeine.spotlight.utils.guessProjectsFromTaskRequests
@@ -34,10 +34,10 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
 
   public override fun apply(settings: Settings): Unit = settings.run {
     options = extensions.getSpotlightExtension()
-    allProjects = getAllProjects()
 
     // DSL is not available until after settings evaluation
     gradle.settingsEvaluated {
+      allProjects = getAllProjects()
       val projects = if (isIdeSync) {
         val targets = getIdeProjects()
         if (targets.isNotEmpty()) {
