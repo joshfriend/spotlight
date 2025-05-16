@@ -170,4 +170,21 @@ class SpotlightBuildFunctionalTest {
     )
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
   }
+
+  @Test
+  fun `can be disabled with property`() {
+    // Given
+    val project = SpiritboxProject().build()
+
+    // When
+    val result = project.build(":help", "--info", "-Dspotlight.enabled=false")
+
+    // Then
+    val includedProjects = result.includedProjects()
+    val allProjects = project.allProjects.readLines() +
+      project.rootProject.settingsScript.rootProjectName
+    assertThat(includedProjects).containsExactlyElementsIn(allProjects)
+
+    assertThat(result.output).contains("Spotlight is disabled")
+  }
 }
