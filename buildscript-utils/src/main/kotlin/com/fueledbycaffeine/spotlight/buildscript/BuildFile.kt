@@ -13,7 +13,7 @@ public data class BuildFile(public val project: GradlePath) {
 }
 
 private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+project\\([\"'](.*)[\"']\\)", MULTILINE)
-private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+projects\\.([\\w.]+)\\b", MULTILINE)
+private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("^(?!\\s*//).*?\\b(\\w+)?(?:\\s+)?\\(?projects\\.([\\w.]+)\\s*\\)?\\b", MULTILINE)
 
 internal fun parseBuildFile(
   project: GradlePath,
@@ -32,9 +32,8 @@ internal fun parseBuildFile(
     TYPESAFE_PROJECT_DEP_PATTERN.findAll(buildscriptContents)
       .map { matchResult ->
         val (_, typeSafeAccessor) = matchResult.destructured
-        val cleanTypeSafeAccessor = typeSafeAccessor.removePrefix("projects.")
+        val cleanTypeSafeAccessor = typeSafeAccessor.removeTypeSafeAccessorJunk()
           .removePrefix("${typeSafeProjectAccessorsRule.rootProjectName}.")
-          .removeSuffix(".dependencyProject")
         typeSafeProjectAccessorsRule.typeSafeAccessorMap[cleanTypeSafeAccessor]
           ?: throw FileNotFoundException(
             "Could not find project buildscript for type-safe project accessor \"$typeSafeAccessor\" " +
@@ -58,3 +57,8 @@ internal fun parseBuildFile(
 
   return directDependencies + typeSafeProjectDependencies + implicitDependencies
 }
+
+private fun String.removeTypeSafeAccessorJunk(): String =
+  this.removePrefix("projects.")
+    .removeSuffix(".dependencyProject") // deprecated in gradle, to be removed in 9.0
+    .removeSuffix(".path") // GeneratedClassCompilationException if you try to name a project `:path` lol
