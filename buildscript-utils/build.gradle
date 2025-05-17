@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'com.fueledbycaffeine.spotlight'
-version = '0.4-SNAPSHOT'
+version = '0.5-SNAPSHOT'
 
 mavenPublishing {
   publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
