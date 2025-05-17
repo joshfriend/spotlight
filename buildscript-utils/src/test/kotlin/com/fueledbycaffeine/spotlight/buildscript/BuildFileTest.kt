@@ -207,10 +207,27 @@ class BuildFileTest {
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
-  private fun Path.createProject(path: String): GradlePath {
+  @Test fun `ignores type-safe project accessor's trailing path API`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
+    typeSafeProject.projectDir.createDirectories()
+    typeSafeProject.projectDir.resolve("build.gradle").createFile()
+    project.buildFilePath.writeText("""
+      baselineProfile {
+        from(project(projects.typeSafe.project.path))
+      }
+      """.trimIndent()
+    )
+    val buildFile = BuildFile(project)
+    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    assertThat(buildFile.parseDependencies(setOf(rule)))
+      .containsExactlyInAnyOrder(typeSafeProject)
+  }
+
+  private fun Path.createProject(path: String, extension: String = ".gradle"): GradlePath {
     return GradlePath(this, path).apply {
       projectDir.createDirectories()
-      projectDir.resolve("build.gradle").createFile()
+      projectDir.resolve("build$extension").createFile()
     }
   }
 }
