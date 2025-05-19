@@ -18,7 +18,7 @@ gradlePlugin {
   vcsUrl = "https://github.com/joshfriend/spotlight"
   website = "https://github.com/joshfriend/spotlight"
   plugins {
-    betterSettings {
+    spotlight {
       id = "com.fueledbycaffeine.spotlight"
       implementationClass = "com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin"
       displayName = "Spotlight"
