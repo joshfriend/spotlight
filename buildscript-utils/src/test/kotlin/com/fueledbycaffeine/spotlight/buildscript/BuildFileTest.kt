@@ -249,7 +249,7 @@ class BuildFileTest {
 
     val buildFile = BuildFile(project)
 
-    assertThat(buildFile.parseDependencies(setOf()))
+    assertThat(buildFile.parseDependencies(setOf(KotlinGradleScriptNestingRule)))
       .containsExactlyInAnyOrder(
         GradlePath(buildRoot, ":foo"),
         GradlePath(buildRoot, ":foo:bar"),
@@ -271,7 +271,7 @@ class BuildFileTest {
 
     val buildFile = BuildFile(project)
 
-    assertThat(buildFile.parseDependencies(setOf()))
+    assertThat(buildFile.parseDependencies(setOf(KotlinGradleScriptNestingRule)))
       .containsExactlyInAnyOrder(
         GradlePath(buildRoot, ":foo"),
       )
@@ -291,7 +291,7 @@ class BuildFileTest {
 
     val buildFile = BuildFile(project)
 
-    assertThat(buildFile.parseDependencies(setOf()))
+    assertThat(buildFile.parseDependencies(setOf(KotlinGradleScriptNestingRule)))
       .containsExactlyInAnyOrder(
         GradlePath(buildRoot, ":foo"),
       )
