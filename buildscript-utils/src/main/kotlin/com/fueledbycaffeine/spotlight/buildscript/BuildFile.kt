@@ -56,7 +56,7 @@ internal fun parseBuildFile(
     }
     .flatMap { rule -> rule.includedProjects }
 
-  val ktsImplicitDependencies = computeKtsImplicitDependencies(project)
+  val ktsImplicitDependencies = computeImplicitNestingDependencies(project)
 
   return directDependencies + typeSafeProjectDependencies + implicitDependencies + ktsImplicitDependencies
 }
@@ -73,20 +73,16 @@ internal fun parseBuildFile(
  * because Gradle eagerly compiles them during configuration. So, we must
  * treat them as implicit dependencies to work.
  */
-private fun computeKtsImplicitDependencies(project: GradlePath): Set<GradlePath> {
-  return if (project.buildFilePath.toString().endsWith(".kts")) {
-    // Start with the grandparent directory of the build file
-    // libs/foo/impl/build.gradle.kts -> libs/foo
-    // Then iterate up to the root directory
-    val currentDir = project.buildFilePath.parent.parent
-    val rootDir = project.root
-    generateSequence(currentDir) { it.parent.takeUnless { it == rootDir } }
-      .filter { it.resolve("build.gradle.kts").exists() }
-      .mapTo(mutableSetOf()) { it.gradlePathRelativeTo(rootDir) }
-  } else {
-    // Groovy gradle script
-    emptySet()
-  }
+private fun computeImplicitNestingDependencies(project: GradlePath): Set<GradlePath> {
+  // Start with the grandparent directory of the build file
+  // libs/foo/impl/build.gradle.kts -> libs/foo
+  // Then iterate up to the root directory
+  val parentProjectDir = project.buildFilePath.parent.parent
+
+  val rootDir = project.root
+  return generateSequence(parentProjectDir) { it.parent.takeUnless { it == rootDir } }
+    .filter { it.resolve("build.gradle.kts").exists() }
+    .mapTo(mutableSetOf()) { it.gradlePathRelativeTo(rootDir) }
 }
 
 private fun String.removeTypeSafeAccessorJunk(): String =

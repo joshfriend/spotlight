@@ -277,6 +277,26 @@ class BuildFileTest {
       )
   }
 
+  @Test fun `kts projects include all intermediate directories that also have kts build files in them - start is not kts`() {
+    // Similar to the above test but the original project is not kts while a parent project is
+    val project = buildRoot.createProject(":foo:bar:baz", ".gradle")
+    buildRoot.createProject(":foo", ".gradle.kts")
+    buildRoot.createProject(":foo:bar", ".gradle")
+    project.buildFilePath.writeText(
+      """
+      dependencies {
+      }
+      """.trimIndent()
+    )
+
+    val buildFile = BuildFile(project)
+
+    assertThat(buildFile.parseDependencies(setOf()))
+      .containsExactlyInAnyOrder(
+        GradlePath(buildRoot, ":foo"),
+      )
+  }
+
   private fun Path.createProject(path: String, extension: String = ".gradle"): GradlePath {
     return GradlePath(this, path).apply {
       projectDir.createDirectories()
