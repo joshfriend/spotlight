@@ -3,6 +3,7 @@ package com.fueledbycaffeine.spotlight.buildscript
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.*
 import java.io.FileNotFoundException
+import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.text.RegexOption.MULTILINE
 
@@ -46,14 +47,43 @@ internal fun parseBuildFile(
   }
 
   val implicitDependencies = rules
-    .filter { rule ->
+    .flatMap { rule ->
       when (rule) {
-        is BuildscriptMatchRule -> rule.pattern.find(buildscriptContents) != null
-        is ProjectPathMatchRule -> rule.pattern.matches(project.path)
-        is TypeSafeProjectAccessorRule -> true
+        is BuildscriptMatchRule -> {
+          if (rule.pattern.find(buildscriptContents) != null) {
+            rule.includedProjects
+          } else {
+            emptySet()
+          }
+        }
+        is ProjectPathMatchRule -> {
+          if (rule.pattern.matches(project.path)) {
+            rule.includedProjects
+          } else {
+            emptySet()
+          }
+        }
+        is TypeSafeProjectAccessorRule -> {
+          rule.includedProjects
+        }
+        is KotlinGradleScriptNestingRule -> {
+          // See docs for KotlinGradleScriptNestingRule for why this is necessary
+          if (project.buildFilePath.toString().endsWith(".kts")) {
+            // Start with the grandparent directory of the build file
+            // libs/foo/impl/build.gradle.kts -> libs/foo
+            // Then iterate up to the root directory
+            val currentDir = project.buildFilePath.parent.parent
+            val rootDir = project.root
+            generateSequence(currentDir) { it.parent.takeUnless { it == rootDir } }
+              .filter { it.resolve("build.gradle.kts").exists() }
+              .mapTo(mutableSetOf()) { it.gradlePathRelativeTo(rootDir) }
+          } else {
+            // Groovy gradle script
+            emptySet()
+          }
+        }
       }
     }
-    .flatMap { rule -> rule.includedProjects }
 
   return directDependencies + typeSafeProjectDependencies + implicitDependencies
 }
