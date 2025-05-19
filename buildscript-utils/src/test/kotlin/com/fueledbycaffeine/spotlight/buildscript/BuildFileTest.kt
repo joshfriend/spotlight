@@ -56,19 +56,29 @@ class BuildFileTest {
 
   @Test fun `reads known type-safe project accessor dependencies`() {
     val project = buildRoot.createProject(":foo")
-    val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
-    typeSafeProject.projectDir.createDirectories()
-    typeSafeProject.projectDir.resolve("build.gradle").createFile()
+    val typeSafeProjectA = buildRoot.createProject(":type-safe:project-a")
+    val typeSafeProjectB = buildRoot.createProject(":type-safe:project-b")
+    val typeSafeProjectC = buildRoot.createProject(":type-safe:project-c")
     project.buildFilePath.writeText("""
       dependencies {
-        implementation projects.typeSafe.project
+        implementation projects.typeSafe.projectA
+        implementation projects.typeSafe.projectB // reason
+        implementation(projects.typeSafe.projectC) {
+          exclude group: 'com.example'
+        }
+        // implementation projects.typeSafe.projectD
       }
       """.trimIndent()
     )
     val buildFile = BuildFile(project)
-    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    val accessorMap = mapOf(
+      "typeSafe.projectA" to typeSafeProjectA,
+      "typeSafe.projectB" to typeSafeProjectB,
+      "typeSafe.projectC" to typeSafeProjectC,
+    )
+    val rule = TypeSafeProjectAccessorRule("spotlight", accessorMap)
     assertThat(buildFile.parseDependencies(setOf(rule)))
-      .containsExactlyInAnyOrder(typeSafeProject)
+      .containsExactlyInAnyOrder(typeSafeProjectA, typeSafeProjectB, typeSafeProjectC)
   }
 
   @Test fun `reads type-safe project accessor dependencies that use explicit root project`() {
