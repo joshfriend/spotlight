@@ -75,6 +75,23 @@ public abstract class SpotlightExtension @Inject constructor(
   public val implicitProjects: Property<RegularFile> = objects.fileProperty()
     .convention(layout.rootDirectory.file(IMPLICIT_PROJECTS_FILE))
 
+  /**
+   * Gradle automatically includes intermediate parent projects of nested projects.
+   *
+   * ```
+   * :libs:foo:impl -> :libs:foo
+   * ```
+   *
+   * For Groovy, this is sort of fine because it doesn't try to compile them
+   * until they're executed. For Kotlin Gradle script, this is a problem
+   * because Gradle eagerly compiles them during configuration. So, we must
+   * treat them as implicit dependencies to work.
+   *
+   * Disabled by default, enable if you use Kotlin Gradle scripts.
+   */
+  public val enableKotlinGradleScriptNestingRule: Property<Boolean> = objects.property(Boolean::class.java)
+    .convention(false)
+
   public fun whenBuildscriptMatches(
     @Language("RegExp") pattern: String,
     action: Action<MatchRuleHandler>,
@@ -103,7 +120,11 @@ public abstract class SpotlightExtension @Inject constructor(
   )
 
   internal val rules: Set<ImplicitDependencyRule> get() =
-    (buildscriptMatchRules.map { BuildscriptMatchRule(it.pattern, it.includes.get()) } +
-      projectPathMatchRules.map { ProjectPathMatchRule(it.pattern, it.includes.get()) })
-      .toSet()
+    buildSet {
+      addAll(buildscriptMatchRules.map { BuildscriptMatchRule(it.pattern, it.includes.get()) })
+      addAll(projectPathMatchRules.map { ProjectPathMatchRule(it.pattern, it.includes.get()) })
+      if (enableKotlinGradleScriptNestingRule.get()) {
+        add(ImplicitDependencyRule.KotlinGradleScriptNestingRule)
+      }
+    }
 }
