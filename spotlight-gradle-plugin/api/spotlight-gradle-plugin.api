@@ -19,6 +19,7 @@ public abstract class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension {
 	public static final field NAME Ljava/lang/String;
 	public fun <init> (Lorg/gradle/api/file/BuildLayout;Lorg/gradle/api/model/ObjectFactory;)V
 	public final fun getAllProjects ()Lorg/gradle/api/provider/Property;
+	public final fun getEnableKotlinGradleScriptNestingRule ()Lorg/gradle/api/provider/Property;
 	public final fun getIdeProjects ()Lorg/gradle/api/provider/Property;
 	public final fun getImplicitProjects ()Lorg/gradle/api/provider/Property;
 	public static final fun getSpotlightExtension (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension;
