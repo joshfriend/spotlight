@@ -234,6 +234,28 @@ class BuildFileTest {
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
+  @Test fun `projects include all intermediate directories that also have build files in them`() {
+    // Create a nested :foo:bar:baz that explicitly depends on nothing but implicitly requires its
+    // parent dirs.
+    val project = buildRoot.createProject(":foo:bar:baz")
+    buildRoot.createProject(":foo")
+    buildRoot.createProject(":foo:bar")
+    project.buildFilePath.writeText(
+      """
+      dependencies {
+      }
+      """.trimIndent()
+    )
+
+    val buildFile = BuildFile(project)
+
+    assertThat(buildFile.parseDependencies())
+      .containsExactlyInAnyOrder(
+        GradlePath(buildRoot, ":foo"),
+        GradlePath(buildRoot, ":foo:bar"),
+      )
+  }
+
   private fun Path.createProject(path: String, extension: String = ".gradle"): GradlePath {
     return GradlePath(this, path).apply {
       projectDir.createDirectories()

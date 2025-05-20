@@ -103,7 +103,8 @@ public abstract class SpotlightExtension @Inject constructor(
   )
 
   internal val rules: Set<ImplicitDependencyRule> get() =
-    (buildscriptMatchRules.map { BuildscriptMatchRule(it.pattern, it.includes.get()) } +
-      projectPathMatchRules.map { ProjectPathMatchRule(it.pattern, it.includes.get()) })
-      .toSet()
+    buildSet {
+      addAll(buildscriptMatchRules.map { BuildscriptMatchRule(it.pattern, it.includes.get()) })
+      addAll(projectPathMatchRules.map { ProjectPathMatchRule(it.pattern, it.includes.get()) })
+    }
 }

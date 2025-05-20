@@ -20,15 +20,34 @@ internal fun parseBuildFile(
   rules: Set<ImplicitDependencyRule>,
 ): Set<GradlePath> {
   val buildscriptContents = project.buildFilePath.readText()
-  val directDependencies = PROJECT_DEP_PATTERN.findAll(buildscriptContents)
+  val directDependencies = computeDirectDependencies(project, buildscriptContents)
+  val typeSafeProjectDependencies = computeTypeSafeProjectDependencies(project, buildscriptContents, rules)
+
+  // A call to `Settings#include()` implicitly calls `include` on the parent directories, up to the root project.
+  // If one of those directories has a buildscript, it will be included in the build as well, and we need to parse it.
+  val parentProjects = computeImplicitParentProjects(project)
+
+  val implicitDependencies = computeImplicitDependencies(project, buildscriptContents, rules)
+
+  return directDependencies + typeSafeProjectDependencies + implicitDependencies + parentProjects
+}
+
+private fun computeDirectDependencies(project: GradlePath, buildscriptContents: String): Set<GradlePath> {
+  return PROJECT_DEP_PATTERN.findAll(buildscriptContents)
     .map { matchResult ->
       val (_, projectPath) = matchResult.destructured
       GradlePath(project.root, projectPath)
     }
     .toSet()
+}
 
+private fun computeTypeSafeProjectDependencies(
+  project: GradlePath,
+  buildscriptContents: String,
+  rules: Set<ImplicitDependencyRule>,
+): Set<GradlePath> {
   val typeSafeProjectAccessorsRule = rules.filterIsInstance<TypeSafeProjectAccessorRule>().firstOrNull()
-  val typeSafeProjectDependencies = if (typeSafeProjectAccessorsRule != null) {
+  return if (typeSafeProjectAccessorsRule != null) {
     TYPESAFE_PROJECT_DEP_PATTERN.findAll(buildscriptContents)
       .map { matchResult ->
         val (_, typeSafeAccessor) = matchResult.destructured
@@ -44,8 +63,14 @@ internal fun parseBuildFile(
   } else {
     emptySet()
   }
+}
 
-  val implicitDependencies = rules
+private fun computeImplicitDependencies(
+  project: GradlePath,
+  buildscriptContents: String,
+  rules: Set<ImplicitDependencyRule>,
+): Set<GradlePath> {
+  return rules
     .filter { rule ->
       when (rule) {
         is BuildscriptMatchRule -> rule.pattern.find(buildscriptContents) != null
@@ -53,9 +78,20 @@ internal fun parseBuildFile(
         is TypeSafeProjectAccessorRule -> true
       }
     }
-    .flatMap { rule -> rule.includedProjects }
+    .flatMapTo(mutableSetOf()) { rule -> rule.includedProjects }
+}
 
-  return directDependencies + typeSafeProjectDependencies + implicitDependencies
+private fun computeImplicitParentProjects(project: GradlePath): Set<GradlePath> {
+  // Start with the grandparent directory of the build file
+  // libs/foo/impl/build.gradle.kts -> libs/foo
+  // Then iterate up to the root directory
+  val sequence = generateSequence(project.path) { current ->
+    current.substringBeforeLast(GRADLE_PATH_SEP, missingDelimiterValue = "")
+      .takeIf { it.isNotBlank() }
+  }
+  return sequence
+    .map { parent -> GradlePath(project.root, parent) }
+    .filterTo(mutableSetOf()) { it != project && it.hasBuildFile }
 }
 
 private fun String.removeTypeSafeAccessorJunk(): String =
