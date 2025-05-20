@@ -234,6 +234,23 @@ class BuildFileTest {
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
+  @Test fun `handles case variations in type-safe accessors`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject = GradlePath(buildRoot, ":UpperCase")
+    typeSafeProject.projectDir.createDirectories()
+    typeSafeProject.projectDir.resolve("build.gradle").createFile()
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.upperCase
+      }
+      """.trimIndent()
+    )
+    val buildFile = BuildFile(project)
+    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("UpperCase" to typeSafeProject))
+    assertThat(buildFile.parseDependencies(setOf(rule)))
+      .containsExactlyInAnyOrder(typeSafeProject)
+  }
+
   private fun Path.createProject(path: String, extension: String = ".gradle"): GradlePath {
     return GradlePath(this, path).apply {
       projectDir.createDirectories()

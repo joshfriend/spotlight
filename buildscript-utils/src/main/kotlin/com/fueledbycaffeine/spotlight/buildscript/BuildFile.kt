@@ -35,6 +35,12 @@ internal fun parseBuildFile(
         val cleanTypeSafeAccessor = typeSafeAccessor.removeTypeSafeAccessorJunk()
           .removePrefix("${typeSafeProjectAccessorsRule.rootProjectName}.")
         typeSafeProjectAccessorsRule.typeSafeAccessorMap[cleanTypeSafeAccessor]
+          ?: typeSafeProjectAccessorsRule.typeSafeAccessorMap.firstNotNullOfOrNull { (accessor, project) ->
+            // Type-safe accessors somewhat preserve the case of the project path on disk, but are accessible via a
+            // couple variations in casing. We can safely compare them case insensitively if there's no match for the
+            // "canonical" version.
+            if (cleanTypeSafeAccessor.lowercase() == accessor.lowercase()) project else null
+          }
           ?: throw FileNotFoundException(
             "Could not find project buildscript for type-safe project accessor \"$typeSafeAccessor\" " +
               "referenced by ${project.path}"
