@@ -234,12 +234,12 @@ class BuildFileTest {
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
-  @Test fun `kts projects include all intermediate directories that also have kts build files in them`() {
+  @Test fun `projects include all intermediate directories that also have build files in them`() {
     // Create a nested :foo:bar:baz that explicitly depends on nothing but implicitly requires its
     // parent dirs.
-    val project = buildRoot.createProject(":foo:bar:baz", ".gradle.kts")
-    buildRoot.createProject(":foo", ".gradle.kts")
-    buildRoot.createProject(":foo:bar", ".gradle.kts")
+    val project = buildRoot.createProject(":foo:bar:baz")
+    buildRoot.createProject(":foo")
+    buildRoot.createProject(":foo:bar")
     project.buildFilePath.writeText(
       """
       dependencies {
@@ -249,51 +249,10 @@ class BuildFileTest {
 
     val buildFile = BuildFile(project)
 
-    assertThat(buildFile.parseDependencies(setOf(KotlinGradleScriptNestingRule)))
+    assertThat(buildFile.parseDependencies())
       .containsExactlyInAnyOrder(
         GradlePath(buildRoot, ":foo"),
         GradlePath(buildRoot, ":foo:bar"),
-      )
-  }
-
-  @Test fun `kts projects include all intermediate directories that also have kts build files in them - only kts dirs`() {
-    // Similar to the above test but one of the intermediates is not kotlin gradle script and can be
-    // omitted. The grandparent dir is still included though.
-    val project = buildRoot.createProject(":foo:bar:baz", ".gradle.kts")
-    buildRoot.createProject(":foo", ".gradle.kts")
-    buildRoot.createProject(":foo:bar", ".gradle")
-    project.buildFilePath.writeText(
-      """
-      dependencies {
-      }
-      """.trimIndent()
-    )
-
-    val buildFile = BuildFile(project)
-
-    assertThat(buildFile.parseDependencies(setOf(KotlinGradleScriptNestingRule)))
-      .containsExactlyInAnyOrder(
-        GradlePath(buildRoot, ":foo"),
-      )
-  }
-
-  @Test fun `kts projects include all intermediate directories that also have kts build files in them - start is not kts`() {
-    // Similar to the above test but the original project is not kts while a parent project is
-    val project = buildRoot.createProject(":foo:bar:baz", ".gradle")
-    buildRoot.createProject(":foo", ".gradle.kts")
-    buildRoot.createProject(":foo:bar", ".gradle")
-    project.buildFilePath.writeText(
-      """
-      dependencies {
-      }
-      """.trimIndent()
-    )
-
-    val buildFile = BuildFile(project)
-
-    assertThat(buildFile.parseDependencies(setOf(KotlinGradleScriptNestingRule)))
-      .containsExactlyInAnyOrder(
-        GradlePath(buildRoot, ":foo"),
       )
   }
 

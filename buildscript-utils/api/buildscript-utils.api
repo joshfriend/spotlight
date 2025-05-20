@@ -120,14 +120,6 @@ public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDepe
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$KotlinGradleScriptNestingRule : com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule {
-	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$KotlinGradleScriptNestingRule;
-	public fun equals (Ljava/lang/Object;)Z
-	public fun getIncludedProjects ()Ljava/util/Set;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$ProjectPathMatchRule : com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule {
 	public fun <init> (Lkotlin/text/Regex;Ljava/util/Set;)V
 	public final fun component1 ()Lkotlin/text/Regex;
