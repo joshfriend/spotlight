@@ -23,7 +23,6 @@ import javax.inject.Inject
  * spotlight {
  *   allProjects file("gradle/all-projects.txt")
  *   ideProjects file("gradle/ide-projects.txt")
- *   implicitProjects file("gradle/implicit-projects.txt")
  * }
  */
 @Suppress("UnstableApiUsage")
@@ -35,7 +34,6 @@ public abstract class SpotlightExtension @Inject constructor(
     public const val NAME: String = "spotlight"
     public const val ALL_PROJECTS_FILE: String = "gradle/all-projects.txt"
     public const val IDE_PROJECTS_FILE: String = "gradle/ide-projects.txt"
-    public const val IMPLICIT_PROJECTS_FILE: String = "gradle/implicit-projects.txt"
 
     @JvmStatic
     public fun ExtensionContainer.getSpotlightExtension(): SpotlightExtension {
@@ -64,16 +62,6 @@ public abstract class SpotlightExtension @Inject constructor(
    */
   public val ideProjects: Property<RegularFile> = objects.fileProperty()
     .convention(layout.rootDirectory.file(IDE_PROJECTS_FILE))
-
-  /**
-   * A file containing a list of projects that should always be included in the build. This is useful in cases where
-   * your conventions plugins or some other build logic adds project dependencies to your build dynamically (e.g.
-   * adding a testing utilities project automatically to every project).
-   * This plugin parses your build graph statically without configuring projects, so it does not know about any
-   * dependencies added by build logic!
-   */
-  public val implicitProjects: Property<RegularFile> = objects.fileProperty()
-    .convention(layout.rootDirectory.file(IMPLICIT_PROJECTS_FILE))
 
   public fun whenBuildscriptMatches(
     @Language("RegExp") pattern: String,
