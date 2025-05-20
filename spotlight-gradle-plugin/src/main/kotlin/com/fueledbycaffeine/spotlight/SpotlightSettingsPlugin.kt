@@ -18,8 +18,6 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Property
 import java.io.FileNotFoundException
-import kotlin.collections.plus
-import kotlin.io.toRelativeString
 import kotlin.time.measureTimedValue
 
 private val logger: Logger = Logging.getLogger(SpotlightSettingsPlugin::class.java)
@@ -103,30 +101,17 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
   }
 
   private fun Settings.implicitAndTransitiveDependenciesOf(targets: Set<GradlePath>): Set<GradlePath> {
-    val combinedTargets = addImplicitTargetsTo(targets)
     val typeSafeProjectAccessorMap = allProjects.associateBy { it.typeSafeAccessorName }
     val rules = options.rules + TypeSafeProjectAccessorRule(settings.rootProject.name, typeSafeProjectAccessorMap)
-    val bfsResults = measureTimedValue { BreadthFirstSearch.flatten(combinedTargets, rules) }
+    val bfsResults = measureTimedValue { BreadthFirstSearch.flatten(targets, rules) }
     logger.info("BFS search of project graph took {}ms", bfsResults.duration.inWholeMilliseconds)
     val transitives = bfsResults.value
     logger.info("Requested targets include {} projects transitively", transitives.size)
-    return combinedTargets + transitives
-  }
-
-  private fun Settings.addImplicitTargetsTo(targets: Set<GradlePath>): Set<GradlePath> {
-    val implicitTargets = getImplicitTargets()
-    return when {
-      implicitTargets.isEmpty() -> targets
-      else -> {
-        logger.info("{} includes {} implicit targets", options.implicitProjects.get(), implicitTargets.size)
-        implicitTargets + targets
-      }
-    }
+    return targets + transitives
   }
 
   private fun Settings.getAllProjects() = readProjectList(options.allProjects)
   private fun Settings.getIdeProjects() = readProjectList(options.ideProjects)
-  private fun Settings.getImplicitTargets() = readProjectList(options.implicitProjects)
 
   internal fun Settings.readProjectList(property: Property<RegularFile>): Set<GradlePath> {
     val file = property.get().asFile
