@@ -72,10 +72,10 @@ public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightProjectLi
 
 public final class com/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch {
 	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;
-	public final fun flatten (Ljava/util/Set;Ljava/util/Set;)Ljava/util/List;
-	public static synthetic fun flatten$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/util/Set;Ljava/util/Set;ILjava/lang/Object;)Ljava/util/List;
-	public final fun run (Ljava/util/Set;Ljava/util/Set;)Ljava/util/Map;
-	public static synthetic fun run$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/util/Set;Ljava/util/Set;ILjava/lang/Object;)Ljava/util/Map;
+	public final fun flatten (Ljava/lang/Iterable;Ljava/util/Set;)Ljava/util/Set;
+	public static synthetic fun flatten$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/lang/Iterable;Ljava/util/Set;ILjava/lang/Object;)Ljava/util/Set;
+	public final fun run (Ljava/lang/Iterable;Ljava/util/Set;)Ljava/util/Map;
+	public static synthetic fun run$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/lang/Iterable;Ljava/util/Set;ILjava/lang/Object;)Ljava/util/Map;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/graph/Edge {
