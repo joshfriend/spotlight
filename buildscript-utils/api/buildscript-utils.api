@@ -13,7 +13,6 @@ public final class com/fueledbycaffeine/spotlight/buildscript/BuildFile {
 
 public final class com/fueledbycaffeine/spotlight/buildscript/BuildGraph : com/fueledbycaffeine/spotlight/buildscript/graph/Graph {
 	public synthetic fun <init> (Ljava/util/Set;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public static final fun create (Ljava/nio/file/Path;Ljava/nio/file/Path;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
 	public static final fun create (Ljava/util/Set;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
 	public static final fun createFromNode (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
 	public fun getDependencyMap ()Ljava/util/Map;
@@ -56,18 +55,20 @@ public final class com/fueledbycaffeine/spotlight/buildscript/GradlePathKt {
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList {
+	public static final field ALL_PROJECTS_LOCATION Ljava/lang/String;
 	public static final field Companion Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList$Companion;
-	public fun <init> (Ljava/nio/file/Path;Ljava/nio/file/Path;)V
-	public final fun add ([Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)V
+	public static final field IDE_PROJECTS_LOCATION Ljava/lang/String;
+	public final fun add (Ljava/lang/Iterable;)V
+	public static final fun allProjects (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;
 	public final fun contains (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Z
+	public static final fun ideProjects (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;
 	public final fun read ()Ljava/util/Set;
-	public static final fun readProjectList (Ljava/io/File;Ljava/io/File;)Ljava/util/Set;
-	public static final fun readProjectList (Ljava/nio/file/Path;Ljava/nio/file/Path;)Ljava/util/Set;
+	public final fun remove (Ljava/lang/Iterable;)V
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList$Companion {
-	public final fun readProjectList (Ljava/io/File;Ljava/io/File;)Ljava/util/Set;
-	public final fun readProjectList (Ljava/nio/file/Path;Ljava/nio/file/Path;)Ljava/util/Set;
+	public final fun allProjects (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;
+	public final fun ideProjects (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch {

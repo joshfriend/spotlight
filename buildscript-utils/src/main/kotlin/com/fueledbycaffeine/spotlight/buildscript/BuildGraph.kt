@@ -1,26 +1,14 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
-import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.readProjectList
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.graph.Graph
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
-import java.nio.file.Path
-
 
 public class BuildGraph private constructor(
   private val allProjects: Set<GradlePath>,
   private val rules: Set<ImplicitDependencyRule> = emptySet(),
 ): Graph<GradlePath>() {
   internal companion object {
-    @JvmStatic
-    fun create(
-      rootPath: Path,
-      allProjectsPath: Path,
-      rules: Set<ImplicitDependencyRule> = emptySet(),
-    ): BuildGraph {
-      return BuildGraph(rootPath.readProjectList(allProjectsPath), rules)
-    }
-
     @JvmStatic
     fun create(
       allProjects: Set<GradlePath>,

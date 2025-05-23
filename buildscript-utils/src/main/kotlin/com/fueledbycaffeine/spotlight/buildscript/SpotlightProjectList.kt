@@ -3,22 +3,30 @@ package com.fueledbycaffeine.spotlight.buildscript
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Path
-import kotlin.io.path.name
+import kotlin.io.path.createFile
+import kotlin.io.path.notExists
 import kotlin.io.path.readLines
-import kotlin.io.path.readText
 import kotlin.io.path.writeText
-import kotlin.text.RegexOption.MULTILINE
 
-private const val COMMENT_CHAR = "#"
-private val SETTINGS_GRADLE_NAME = Regex("settings\\w*\\.gradle(?:\\.kts)?$", MULTILINE)
-private val SETTINGS_GRADLE_INCLUDE = Regex("^(?:\\s+)?include\\W+[\"']([:\\w]+)[\"']", MULTILINE)
+public class SpotlightProjectList internal constructor(private val buildRoot: Path, private val projectList: Path) {
+  public companion object {
+    private const val COMMENT_CHAR = "#"
+    public const val ALL_PROJECTS_LOCATION: String = "gradle/all-projects.txt"
+    public const val IDE_PROJECTS_LOCATION: String = "gradle/ide-projects.txt"
 
-public class SpotlightProjectList(private val buildRoot: Path, private val projectList: Path) {
+    @JvmStatic
+    public fun allProjects(buildRoot: Path): SpotlightProjectList =
+      SpotlightProjectList(buildRoot, buildRoot.resolve(ALL_PROJECTS_LOCATION))
+
+    @JvmStatic
+    public fun ideProjects(buildRoot: Path): SpotlightProjectList =
+      SpotlightProjectList(buildRoot, buildRoot.resolve(IDE_PROJECTS_LOCATION))
+  }
+
   public fun read(): Set<GradlePath> {
-    val projects = when {
-      projectList.isSettingsGradle -> readSettingsGradleFormat()
-      else -> readSpotlightFormat()
-    }
+    if (projectList.notExists()) return emptySet()
+
+    val projects = readSpotlightFormat()
 
     val missingProjects = projects.filter { !it.hasBuildFile }
     if (missingProjects.isNotEmpty()) {
@@ -38,36 +46,15 @@ public class SpotlightProjectList(private val buildRoot: Path, private val proje
       .toSet()
   }
 
-  private fun readSettingsGradleFormat(): Set<GradlePath> {
-    return SETTINGS_GRADLE_INCLUDE.findAll(projectList.readText())
-      .map { match -> match.destructured.component1() }
-      .map { GradlePath(buildRoot, it) }
-      .toSet()
-  }
-
   public infix fun contains(path: GradlePath): Boolean = read().contains(path)
 
-  public fun add(vararg paths: GradlePath) {
-    projectList.writeText(
-      """
-      ${projectList.readText().trim()}
-      ${paths.joinToString("\n") { it.path }}
-      
-      """.trimIndent()
-    )
+  public fun add(paths: Iterable<GradlePath>) {
+    if (projectList.notExists()) projectList.createFile()
+    projectList.writeText((read() + paths).joinToString("\n") { it.path })
   }
 
-  public companion object {
-    @JvmStatic
-    public fun File.readProjectList(projectList: File): Set<GradlePath> {
-      return this.toPath().readProjectList(projectList.toPath())
-    }
-
-    @JvmStatic
-    public fun Path.readProjectList(projectList: Path): Set<GradlePath> {
-      return SpotlightProjectList(this, projectList).read()
-    }
+  public fun remove(paths: Iterable<GradlePath>) {
+    if (projectList.notExists()) return
+    projectList.writeText((read().filter { it !in paths }).joinToString("\n") { it.path })
   }
 }
-
-private val Path.isSettingsGradle: Boolean get() = SETTINGS_GRADLE_NAME.matches(this.name)
