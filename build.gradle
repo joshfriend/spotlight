@@ -6,6 +6,7 @@ plugins {
   id 'org.jetbrains.kotlinx.binary-compatibility-validator' apply false
   id 'com.vanniktech.maven.publish' apply false
   id 'com.android.lint' apply false
+  id 'org.jetbrains.intellij.platform' apply false
 }
 
 group = 'com.fueledbycaffeine'
