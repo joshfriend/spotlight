@@ -1,10 +1,11 @@
 # Spotlight
 
 [![Maven Central Version](https://img.shields.io/maven-central/v/com.fueledbycaffeine.spotlight/spotlight-gradle-plugin)](https://central.sonatype.com/artifact/com.fueledbycaffeine.spotlight/spotlight-gradle-plugin)
-[![Gradle Plugin Portal Version](https://img.shields.io/gradle-plugin-portal/v/com.fueledbycaffeine.spotlight)](https://plugins.gradle.org/plugin/com.fueledbycaffeine.spotlight)
+[![Gradle Plugin Portal Version](https://img.shields.io/gradle-plugin-portal/v/com.fueledbycaffeine.spotlight)][plugin-portal-page]
+[![IDE Plugin Version](https://img.shields.io/jetbrains/plugin/v/27451)][jb-marketplace-page]
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-A Gradle plugin that and makes managing `settings.gradle(.kts)` for large projects easier:
+A [Gradle plugin][plugin-portal-page] and [IntelliJ plugin][jb-marketplace-page] that make managing `settings.gradle(.kts)` for large projects easier:
 
 * Moves your `include` directives out of `settings.gradle(.kts)` into a flat text file
 * Inspired by tools like [Focus][focus] and [dependency-explorer][dependency-explorer], this plugin lets you easily load subsets of your project into the IDE
@@ -103,6 +104,8 @@ The `projectDir` for projects listed in `all-projects.txt` cannot be relocated b
 
 You can still add `include`s to `settings.gradle(.kts)` in your build outside of this plugin.
 
+[plugin-portal-page]: https://plugins.gradle.org/plugin/com.fueledbycaffeine.spotlight
+[jb-marketplace-page]: https://plugins.jetbrains.com/plugin/27451-spotlight
 [focus]: https://github.com/dropbox/focus
 [dependency-explorer]: https://github.com/square/dependency-explorer
 [taskRequests]: https://docs.gradle.org/current/javadoc/org/gradle/StartParameter.html#getTaskRequests()

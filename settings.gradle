@@ -10,6 +10,7 @@ pluginManagement {
     id 'com.gradle.plugin-publish' version '1.3.1'
     id 'com.vanniktech.maven.publish' version '0.31.0'
     id 'com.android.lint' version '8.9.1'
+    id 'org.jetbrains.intellij.platform' version '2.5.0'
   }
   repositories {
     gradlePluginPortal()
@@ -26,7 +27,6 @@ plugins {
 }
 
 dependencyResolutionManagement {
-  repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
   repositories {
     mavenCentral()
     google()
@@ -50,4 +50,5 @@ develocity {
 rootProject.name = 'spotlight'
 
 include ':spotlight-gradle-plugin'
+include ':spotlight-idea-plugin'
 include ':buildscript-utils'
