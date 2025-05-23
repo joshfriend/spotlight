@@ -3,7 +3,6 @@ package com.fueledbycaffeine.spotlight.buildscript
 import assertk.all
 import assertk.assertThat
 import assertk.assertions.*
-import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.readProjectList
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
@@ -28,7 +27,7 @@ class SpotlightProjectListTest {
     )
     projectListFile.writeText(expectedProjects.joinToString("\n") { it.path })
 
-    val projects = buildRoot.readProjectList(projectListFile)
+    val projects = SpotlightProjectList(buildRoot, projectListFile).read()
     assertThat(projects).equals(expectedProjects)
   }
 
@@ -40,7 +39,7 @@ class SpotlightProjectListTest {
     """.trimIndent())
 
     assertThrows<FileNotFoundException> {
-      buildRoot.readProjectList(projectListFile)
+      SpotlightProjectList(buildRoot, projectListFile).read()
     }
   }
 
@@ -55,7 +54,7 @@ class SpotlightProjectListTest {
       :foo
     """.trimIndent())
 
-    val projects = buildRoot.readProjectList(projectListFile)
+    val projects = SpotlightProjectList(buildRoot, projectListFile).read()
     assertThat(projects).equals(expectedProjects)
   }
 
@@ -72,7 +71,7 @@ class SpotlightProjectListTest {
       :foo:bar
     """.trimIndent())
 
-    val projects = buildRoot.readProjectList(projectListFile)
+    val projects = SpotlightProjectList(buildRoot, projectListFile).read()
     assertThat(projects).equals(expectedProjects)
   }
 
@@ -87,7 +86,7 @@ class SpotlightProjectListTest {
       :foo
     """.trimIndent())
 
-    val projects = buildRoot.readProjectList(projectListFile)
+    val projects = SpotlightProjectList(buildRoot, projectListFile).read()
     assertThat(projects).equals(expectedProjects)
   }
 
@@ -121,7 +120,7 @@ class SpotlightProjectListTest {
 
     val missing = GradlePath(buildRoot, ":bar")
     val projects = SpotlightProjectList(buildRoot, projectListFile)
-    projects.add(missing)
+    projects.add(listOf(missing))
     val updatedFileContents = projectListFile.readText()
     assertThat(updatedFileContents).equals(":foo\n:bar\n")
   }
@@ -139,64 +138,12 @@ class SpotlightProjectListTest {
     """.trimIndent())
 
     val exception = assertThrows<FileNotFoundException> {
-      buildRoot.readProjectList(projectListFile)
+      SpotlightProjectList(buildRoot, projectListFile).read()
     }
     assertThat(exception.message).isNotNull().all {
       contains(":bar")
       contains(":baz")
     }
-  }
-
-  @Test
-  fun `can read settings dot gradle`() {
-    val settingsGradle = buildRoot.resolve("settings.gradle")
-    val expectedProjects = buildRoot.createProjectList(
-      ":foo",
-      ":bar",
-      ":this",
-      ":and:this",
-      ":also:this",
-    )
-    settingsGradle.writeText(
-      """
-      if (foo) {
-        include ':foo'
-        include  ":bar" // because
-      }
-      // include ':not:this'
-      include ':this'
-      include  ":and:this"
-      include(":also:this")
-      """.trimIndent()
-    )
-    val allProjects = buildRoot.readProjectList(settingsGradle)
-    assertThat(allProjects).equals(expectedProjects)
-  }
-
-  @Test
-  fun `can read non-standard settings dot gradle`() {
-    val settingsGradle = buildRoot.resolve("settings_modules_all.gradle")
-    val expectedProjects = buildRoot.createProjectList(
-      ":foo",
-      ":bar",
-      ":this",
-      ":and:this",
-      ":also:this",
-    )
-    settingsGradle.writeText(
-      """
-      if (foo) {
-        include ':foo'
-        include  ":bar" // because
-      }
-      // include ':not:this'
-      include ':this'
-      include  ":and:this"
-      include(":also:this")
-      """.trimIndent()
-    )
-    val allProjects = buildRoot.readProjectList(settingsGradle)
-    assertThat(allProjects).equals(expectedProjects)
   }
 
   private fun Path.createProjectList(vararg projects: String): List<GradlePath> {

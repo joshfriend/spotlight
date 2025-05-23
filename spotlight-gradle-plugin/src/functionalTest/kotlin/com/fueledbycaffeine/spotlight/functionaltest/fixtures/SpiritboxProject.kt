@@ -4,6 +4,7 @@ import com.autonomousapps.kit.AbstractGradleProject
 import com.autonomousapps.kit.GradleProject
 import com.autonomousapps.kit.gradle.Dependency.Companion.implementation
 import com.autonomousapps.kit.gradle.Plugin
+import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import java.io.File
 
@@ -146,5 +147,5 @@ class SpiritboxProject : AbstractGradleProject() {
 }
 
 val GradleProject.gradleDir: File get() = rootDir.resolve("gradle")
-val GradleProject.allProjects: File get() = rootDir.resolve(SpotlightExtension.ALL_PROJECTS_FILE)
-val GradleProject.ideProjects: File get() = rootDir.resolve(SpotlightExtension.IDE_PROJECTS_FILE)
+val GradleProject.allProjects: File get() = rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
+val GradleProject.ideProjects: File get() = rootDir.resolve(SpotlightProjectList.IDE_PROJECTS_LOCATION)

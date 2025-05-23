@@ -1,7 +1,7 @@
 package com.fueledbycaffeine.spotlight
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
-import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.readProjectList
+import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.TypeSafeProjectAccessorRule
@@ -12,11 +12,9 @@ import com.fueledbycaffeine.spotlight.utils.include
 import com.fueledbycaffeine.spotlight.utils.isIdeSync
 import com.fueledbycaffeine.spotlight.utils.isSpotlightEnabled
 import org.gradle.api.Plugin
-import org.gradle.api.file.RegularFile
 import org.gradle.api.initialization.Settings
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.provider.Property
 import java.io.FileNotFoundException
 import kotlin.time.measureTimedValue
 
@@ -44,7 +42,7 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
       } else {
         logger.lifecycle(
           "Spotlight is disabled, all projects will be loaded from {}",
-          options.allProjects.get().asFile.toRelativeString(rootDir),
+          SpotlightProjectList.ALL_PROJECTS_LOCATION,
         )
         include(allProjects)
       }
@@ -55,16 +53,15 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
     val projects = if (isIdeSync) {
       val targets = getIdeProjects()
       if (targets.isNotEmpty()) {
-        logger.info("{} contains {} targets", options.ideProjects.get(), targets.size)
+        logger.info("{} contains {} targets", SpotlightProjectList.IDE_PROJECTS_LOCATION, targets.size)
         implicitAndTransitiveDependenciesOf(targets)
       } else {
         logger.warn(
           """
           {} was missing or empty, including all projects.
-          This can result in slow sync times! Spotlight specific projects using the IDE context menu action,
-          or by running `spot <list of projects>`
+          This can result in slow sync times! Spotlight specific projects using the IDE context menu action.
           """.trimIndent(),
-          options.ideProjects.get().asFile.toRelativeString(rootDir),
+          SpotlightProjectList.IDE_PROJECTS_LOCATION,
         )
         allProjects
       }
@@ -110,14 +107,6 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
     return targets + transitives
   }
 
-  private fun Settings.getAllProjects() = readProjectList(options.allProjects)
-  private fun Settings.getIdeProjects() = readProjectList(options.ideProjects)
-
-  internal fun Settings.readProjectList(property: Property<RegularFile>): Set<GradlePath> {
-    val file = property.get().asFile
-    return when {
-      file.exists() -> rootDir.readProjectList(file)
-      else -> emptySet()
-    }
-  }
+  private fun Settings.getAllProjects() = SpotlightProjectList.allProjects(rootDir.toPath()).read()
+  private fun Settings.getIdeProjects() = SpotlightProjectList.ideProjects(rootDir.toPath()).read()
 }
