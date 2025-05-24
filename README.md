@@ -94,10 +94,10 @@ The mapping between type-safe accessors and the Gradle project path is computed 
 ## Differences from Focus
 Unlike [Focus][focus], which configures your gradle project to select which projects get synced using the `:createFocusSettings` task provided by the plugin, Spotlight relies on parsing of your buildscripts with regexes to compute the dependency graph, which is much faster.
 
-Spotlight does not included any Gradle tasks to manage your `all-projects.txt` or `ide-projects.txt` lists, and instead relies on external tooling (IDE plugin, shell command) to avoid invoking Gradle.
+Spotlight does not include any Gradle tasks to manage your `all-projects.txt` or `ide-projects.txt` lists, and instead relies on external tooling ([IDE plugin][jb-marketplace-page], shell command) to avoid invoking Gradle.
 
 ## Differences from dependency-explorer
-dependency-explorer runs completely outside of Gradle, and users must rerun the build graph query whenever their dependency graph changes to avoid errors during IDE sync. Both `dependency-explorer` and Spotlight use similar approaches for parsing the build graph, but Spotlight just does it automatically inside a settings plugin.
+dependency-explorer runs completely outside Gradle, and users must rerun the build graph query whenever their dependency graph changes to avoid errors during IDE sync. Both `dependency-explorer` and Spotlight use similar approaches for parsing the build graph, but Spotlight just does it automatically inside a settings plugin.
 
 ## Limitations
 This plugin assumes you have a "nice" Gradle build that doesn't do [cross-project configuration][cross-project-configuration]. Please read [_"Herding Elephants"_][herding-elephants] and [_"Stampeding Elephants"_][stampeding-elephants] for more thoughts on this topic.
