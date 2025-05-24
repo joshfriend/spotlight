@@ -36,12 +36,11 @@ dependencies {
 // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
   pluginConfiguration {
-    name = "Spotlight"
     version = pluginVersion
 
     ideaVersion {
-      sinceBuild = "242"
-      untilBuild = "252.*"
+      sinceBuild = "241"
+      untilBuild = provider { null }
     }
   }
 
@@ -62,27 +61,6 @@ intellijPlatform {
   pluginVerification {
     ides {
       recommended()
-    }
-  }
-}
-
-intellijPlatformTesting {
-  runIde {
-    register("runIdeForUiTests") {
-      task {
-        jvmArgumentProviders += CommandLineArgumentProvider {
-          listOf(
-            "-Drobot-server.port=8082",
-            "-Dide.mac.message.dialogs.as.sheets=false",
-            "-Djb.privacy.policy.text=<!--999.999-->",
-            "-Djb.consents.confirmation.enabled=false",
-          )
-        }
-      }
-
-      plugins {
-        robotServerPlugin()
-      }
     }
   }
 }
