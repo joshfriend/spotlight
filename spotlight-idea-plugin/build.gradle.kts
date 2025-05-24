@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.fueledbycaffene.spotlight"
-val pluginVersion = "0.1"
+val pluginVersion = "0.1.2"
 version = pluginVersion
 
 // Set the JVM language level used to build the project.
@@ -29,6 +29,8 @@ dependencies {
 
   intellijPlatform {
     intellijIdeaCommunity("2025.1.1.1")
+    // Declare gradle dep even though we don't directly use it
+    bundledPlugin("com.intellij.gradle")
     testFramework(TestFrameworkType.Platform)
   }
 }
@@ -51,7 +53,8 @@ intellijPlatform {
   }
 
   publishing {
-    token = providers.environmentVariable("PUBLISH_TOKEN")
+    token = providers.environmentVariable("JETBRAINS_MARKETPLACE_TOKEN")
+      .orElse(providers.gradleProperty("jetbrainsMarketplaceToken"))
     // The pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
     // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
     // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel

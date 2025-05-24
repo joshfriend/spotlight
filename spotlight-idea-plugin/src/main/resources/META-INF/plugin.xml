@@ -9,6 +9,7 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
 ]]></description>
 
   <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.gradle</depends>
 
   <resource-bundle>messages.SpotlightBundle</resource-bundle>
 
