@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.7
+* Remove DSL configuration for all-projects/ide-projects lists. They will just live inside `gradle/`.
+* Add DSL option to indicate if you use type-safe project accessors.
+* Avoid capturing all-projects.txt in configuration cache when possible. When type-safe accessors are enabled, all-projects.txt is always captured.
+
 ### 0.6
 * Implicitly include parent projects of the targets being included to match Gradle's behavior
 * BFS algorithm implementation optimizations

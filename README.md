@@ -77,6 +77,20 @@ spotlight {
 
 Implicit rules apply to all Gradle invocations (sync and task execution).
 
+### Type-safe Project Accessors
+Gradle does not provide a (public) api to determine if this feature is enabled, so if your project uses [type-safe project accessors][typesafe-project-accessors], you must enable this in Spotlight as well:
+
+```groovy
+// settings.gradle(.kts)
+spotlight {
+  isTypeSafeAccessorsEnabled true
+  // ...
+}
+```
+
+The mapping between type-safe accessors and the Gradle project path is computed using `all-projects.txt`, so when type-safe accessors are enabled, `all-projects.txt` will always be captured in configuration cache.
+
+
 ## Differences from Focus
 Unlike [Focus][focus], which configures your gradle project to select which projects get synced using the `:createFocusSettings` task provided by the plugin, Spotlight relies on parsing of your buildscripts with regexes to compute the dependency graph, which is much faster.
 
