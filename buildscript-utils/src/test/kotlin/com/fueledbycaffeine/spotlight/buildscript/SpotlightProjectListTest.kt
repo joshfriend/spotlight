@@ -32,18 +32,6 @@ class SpotlightProjectListTest {
   }
 
   @Test
-  fun `throws error if path is invalid`() {
-    val projectListFile = buildRoot.resolve("projects.txt")
-    projectListFile.writeText("""
-      :nothing
-    """.trimIndent())
-
-    assertThrows<FileNotFoundException> {
-      SpotlightProjectList(buildRoot, projectListFile).read()
-    }
-  }
-
-  @Test
   fun `ignores comments`() {
     val projectListFile = buildRoot.resolve("projects.txt")
     val expectedProjects = buildRoot.createProjectList(
@@ -123,27 +111,6 @@ class SpotlightProjectListTest {
     projects.add(listOf(missing))
     val updatedFileContents = projectListFile.readText()
     assertThat(updatedFileContents).equals(":foo\n:bar\n")
-  }
-
-  @Test
-  fun `throws error when paths are invalid`() {
-    val projectListFile = buildRoot.resolve("projects.txt")
-    buildRoot.createProjectList(
-      ":foo",
-    )
-    projectListFile.writeText("""
-      :foo
-      :bar
-      :baz
-    """.trimIndent())
-
-    val exception = assertThrows<FileNotFoundException> {
-      SpotlightProjectList(buildRoot, projectListFile).read()
-    }
-    assertThat(exception.message).isNotNull().all {
-      contains(":bar")
-      contains(":baz")
-    }
   }
 
   private fun Path.createProjectList(vararg projects: String): List<GradlePath> {

@@ -26,22 +26,8 @@ public class SpotlightProjectList internal constructor(private val buildRoot: Pa
   public fun read(): Set<GradlePath> {
     if (projectList.notExists()) return emptySet()
 
-    val projects = readSpotlightFormat()
-
-    val missingProjects = projects.filter { !it.hasBuildFile }
-    if (missingProjects.isNotEmpty()) {
-      throw FileNotFoundException(
-        "These project paths listed in ${buildRoot.relativize(projectList)} do not have a buildscript:\n" +
-          missingProjects.joinToString("\n") { it.path }
-      )
-    }
-
-    return projects
-  }
-
-  private fun readSpotlightFormat(): Set<GradlePath> {
     return projectList.readLines()
-      .filterNot { line -> line.startsWith(COMMENT_CHAR) || line.isBlank() }
+      .filterNot { line -> line.trim().startsWith(COMMENT_CHAR) || line.isBlank() }
       .map { GradlePath(buildRoot, it) }
       .toSet()
   }
