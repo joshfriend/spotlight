@@ -16,6 +16,7 @@ public abstract class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension {
 	public static final field NAME Ljava/lang/String;
 	public fun <init> (Lorg/gradle/api/file/BuildLayout;Lorg/gradle/api/model/ObjectFactory;)V
 	public static final fun getSpotlightExtension (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension;
+	public final fun isTypeSafeAccessorsEnabled ()Lorg/gradle/api/provider/Property;
 	public final fun whenBuildscriptMatches (Ljava/lang/String;Lorg/gradle/api/Action;)V
 	public final fun whenProjectPathMatches (Ljava/lang/String;Lorg/gradle/api/Action;)V
 }
