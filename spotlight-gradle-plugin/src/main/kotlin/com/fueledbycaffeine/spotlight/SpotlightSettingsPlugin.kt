@@ -29,23 +29,18 @@ private val logger: Logger = Logging.getLogger(SpotlightSettingsPlugin::class.ja
  */
 public class SpotlightSettingsPlugin: Plugin<Settings> {
   private lateinit var options: SpotlightExtension
-  private lateinit var allProjects: Set<GradlePath>
 
   public override fun apply(settings: Settings): Unit = settings.run {
     options = extensions.getSpotlightExtension()
 
-    // DSL is not available until after settings evaluation
-    gradle.settingsEvaluated {
-      allProjects = getAllProjects()
-      if (isSpotlightEnabled) {
-        setupSpotlight()
-      } else {
-        logger.lifecycle(
-          "Spotlight is disabled, all projects will be loaded from {}",
-          SpotlightProjectList.ALL_PROJECTS_LOCATION,
-        )
-        include(allProjects)
-      }
+    if (isSpotlightEnabled) {
+      gradle.settingsEvaluated { setupSpotlight() }
+    } else {
+      logger.lifecycle(
+        "Spotlight is disabled, all projects will be loaded from {}",
+        SpotlightProjectList.ALL_PROJECTS_LOCATION,
+      )
+      include(getAllProjects())
     }
   }
 
@@ -63,7 +58,7 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
           """.trimIndent(),
           SpotlightProjectList.IDE_PROJECTS_LOCATION,
         )
-        allProjects
+        getAllProjects()
       }
     } else {
       // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
@@ -88,7 +83,7 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
           logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
           implicitAndTransitiveDependenciesOf(projectsFromWorkingDir)
         } else {
-          allProjects
+          getAllProjects()
         }
       }
     }
@@ -98,8 +93,14 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
   }
 
   private fun Settings.implicitAndTransitiveDependenciesOf(targets: Set<GradlePath>): Set<GradlePath> {
-    val typeSafeProjectAccessorMap = allProjects.associateBy { it.typeSafeAccessorName }
-    val rules = options.rules + TypeSafeProjectAccessorRule(settings.rootProject.name, typeSafeProjectAccessorMap)
+    val rules = if (options.isTypeSafeAccessorsEnabled.get()) {
+      val typeSafeProjectAccessorMap = getAllProjects().associateBy { it.typeSafeAccessorName }
+      val typeSafeAccessorRule = TypeSafeProjectAccessorRule(settings.rootProject.name, typeSafeProjectAccessorMap)
+      options.rules + typeSafeAccessorRule
+    } else {
+      options.rules
+    }
+
     val bfsResults = measureTimedValue { BreadthFirstSearch.flatten(targets, rules) }
     logger.info("BFS search of project graph took {}ms", bfsResults.duration.inWholeMilliseconds)
     val transitives = bfsResults.value

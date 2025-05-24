@@ -1,6 +1,7 @@
 package com.fueledbycaffeine.spotlight.dsl
 
 import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
+import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.ALL_PROJECTS_LOCATION
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
@@ -9,6 +10,7 @@ import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.file.BuildLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.provider.Property
 import org.intellij.lang.annotations.Language
 import javax.inject.Inject
 
@@ -32,6 +34,16 @@ public abstract class SpotlightExtension @Inject constructor(
       }
     }
   }
+
+  /**
+   * Enable if your project uses type-safe project accessors.
+   *
+   * https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html#sec:type-safe-project-accessors
+   *
+   * This reads the [ALL_PROJECTS_LOCATION] file to compute the project accessor mapping, and thus makes your builds
+   * configuration caching sensitive to the list of all projects instead of the target projects.
+   */
+  public val isTypeSafeAccessorsEnabled: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
 
   public fun whenBuildscriptMatches(
     @Language("RegExp") pattern: String,
