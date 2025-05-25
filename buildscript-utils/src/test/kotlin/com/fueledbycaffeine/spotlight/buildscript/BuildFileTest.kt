@@ -2,6 +2,7 @@ package com.fueledbycaffeine.spotlight.buildscript
 
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
+import assertk.assertions.isEmpty
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.*
 import org.junit.jupiter.api.Test
@@ -115,7 +116,7 @@ class BuildFileTest {
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
-  @Test fun `throws error when type-safe accessor is unknown`() {
+  @Test fun `throws error when type-safe accessor is unknown if full inference enabled`() {
     val project = buildRoot.createProject(":foo")
     project.buildFilePath.writeText("""
       dependencies {
@@ -128,6 +129,33 @@ class BuildFileTest {
     assertThrows<FileNotFoundException> {
       buildFile.parseDependencies(setOf(rule))
     }
+  }
+
+  @Test fun `assumes default path for type-safe accessor if strict inference enabled`() {
+    val project = buildRoot.createProject(":foo")
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.typeSafe.project
+      }
+      """.trimIndent()
+    )
+    val buildFile = BuildFile(project)
+    val rule = TypeSafeProjectAccessorRule("spotlight", null)
+    val dependencies = buildFile.parseDependencies(setOf(rule))
+    assertThat(dependencies).containsExactlyInAnyOrder(GradlePath(buildRoot, ":type-safe:project"))
+  }
+
+  @Test fun `ignores type-safe accessor if inference disabled`() {
+    val project = buildRoot.createProject(":foo")
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.typeSafe.project
+      }
+      """.trimIndent()
+    )
+    val buildFile = BuildFile(project)
+    val dependencies = buildFile.parseDependencies(setOf())
+    assertThat(dependencies).isEmpty()
   }
 
   @Test fun `parses implicit dependencies based on project path`() {

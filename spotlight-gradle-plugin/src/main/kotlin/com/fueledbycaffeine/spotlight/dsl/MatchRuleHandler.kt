@@ -25,13 +25,12 @@ public abstract class MatchRuleHandler @Inject constructor(
   /**
    * A project path to include when the buildscript graph parsing matches the regex [pattern]
    */
-  public fun alsoInclude(path: String) {
-    val gradlePath = GradlePath(layout.settingsDirectory.asFile, path)
-    if (gradlePath.hasBuildFile) {
-      includes.add(gradlePath)
-    } else {
-      throw InvalidUserDataException("$path does not have a buildscript")
-    }
+  public fun alsoInclude(vararg paths: String) {
+    includes.addAll(paths.map { path ->
+      val gradlePath = GradlePath(layout.settingsDirectory.asFile, path)
+      if (!gradlePath.hasBuildFile) throw InvalidUserDataException("$path does not have a buildscript")
+      gradlePath
+    })
   }
 
   internal class Factory(

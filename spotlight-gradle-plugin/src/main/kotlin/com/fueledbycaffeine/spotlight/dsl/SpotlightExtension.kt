@@ -36,15 +36,18 @@ public abstract class SpotlightExtension @Inject constructor(
   }
 
   /**
-   * Enable if your project uses type-safe project accessors.
+   * Sets the level of processing to be done to support type-safe project accessors.
    *
-   * https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html#sec:type-safe-project-accessors
+   * Defaults to [TypeSafeAccessorInference.STRICT]
    *
-   * This reads the [ALL_PROJECTS_LOCATION] file to compute the project accessor mapping, and thus makes your builds
-   * configuration caching sensitive to the list of all projects instead of the target projects.
+   * @see <a href="https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html#sec:type-safe-project-accessors">Gradle type-safe project accessors docs</a>
    */
-  public val isTypeSafeAccessorsEnabled: Property<Boolean> = objects.property(Boolean::class.java).convention(false)
+  public val typeSafeAccessorInference: Property<TypeSafeAccessorInference> =
+    objects.property(TypeSafeAccessorInference::class.java).convention(TypeSafeAccessorInference.STRICT)
 
+  /**
+   * Add an implicit dependencies rule to include certain projects when the contents of the buildscript matches [pattern]
+   */
   public fun whenBuildscriptMatches(
     @Language("RegExp") pattern: String,
     action: Action<MatchRuleHandler>,
@@ -54,6 +57,9 @@ public abstract class SpotlightExtension @Inject constructor(
     }
   }
 
+  /**
+   * Add an implicit dependencies rule to include certain projects when the project path matches [pattern]
+   */
   public fun whenProjectPathMatches(
     @Language("RegExp") pattern: String,
     action: Action<MatchRuleHandler>,
