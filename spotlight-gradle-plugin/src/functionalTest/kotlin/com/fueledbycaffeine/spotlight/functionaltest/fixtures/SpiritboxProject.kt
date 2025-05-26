@@ -2,17 +2,18 @@ package com.fueledbycaffeine.spotlight.functionaltest.fixtures
 
 import com.autonomousapps.kit.AbstractGradleProject
 import com.autonomousapps.kit.GradleProject
+import com.autonomousapps.kit.Source
+import com.autonomousapps.kit.SourceType
 import com.autonomousapps.kit.gradle.Dependency.Companion.implementation
 import com.autonomousapps.kit.gradle.Plugin
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
-import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import java.io.File
 
-private val INCLUDE_PATTERN = Regex("include\\(?\\s+?[\"'](\\S+)[\"']")
+private val INCLUDE_PATTERN = Regex("include[\\(\\s]+?[\"'](\\S+)[\"']")
 
 class SpiritboxProject : AbstractGradleProject() {
-  fun build(): GradleProject {
-    val project = newGradleProjectBuilder()
+  fun build(dslKind: GradleProject.DslKind = GradleProject.DslKind.GROOVY): GradleProject {
+    val project = newGradleProjectBuilder(dslKind)
       .withRootProject {
         withSettingsScript {
           rootProjectName = "spiritbox"
@@ -24,6 +25,15 @@ class SpiritboxProject : AbstractGradleProject() {
       }
       .withSubproject(":rotoscope:rotoscope") {
         withBuildScript { plugins(Plugin.javaLibrary) }
+        sources = mutableListOf(
+          Source(SourceType.JAVA, "Rotoscope", "com/rotoscope",
+            """
+            package com.rotoscope;
+            
+            public class Rotoscope { }
+            """.trimIndent()
+          )
+        )
       }
       .withSubproject(":rotoscope:sew-me-up") {
         withBuildScript { plugins(Plugin.javaLibrary) }
@@ -127,7 +137,18 @@ class SpiritboxProject : AbstractGradleProject() {
       .withSubproject(":tsunami-sea") { }
       .write()
 
-    val settings = project.rootDir.resolve("settings.gradle")
+    project.rootDir.resolve("gradle.properties")
+      .appendText(
+        """
+
+        org.gradle.parallel=true
+        org.gradle.configureondemand=true
+        org.gradle.configuration-cache=true
+        org.gradle.configuration-cache.parallel=true
+        """.trimIndent()
+      )
+
+    val settings = project.rootDir.resolve(dslKind.settingsFile)
     val settingsContents = settings.readText()
     val projectPaths = INCLUDE_PATTERN.findAll(settingsContents)
       .map { it ->

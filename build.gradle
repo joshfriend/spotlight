@@ -32,5 +32,9 @@ dependencyAnalysis {
       includeDependency libs.autonomousapps.testkit.support
       includeDependency libs.truth
     }
+    bundle('moshi') {
+      primary libs.moshi
+      includeDependency 'com.squareup.moshi:moshi'
+    }
   }
 }

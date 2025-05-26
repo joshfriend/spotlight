@@ -6,6 +6,7 @@ import assertk.assertions.contains
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.each
 import assertk.assertions.isEqualTo
+import assertk.assertions.isNotNull
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import org.gradle.internal.scripts.ScriptingLanguages
