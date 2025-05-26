@@ -11,6 +11,7 @@ intelliJPlatform = "2.5.0"
 kotlin = "2.1.20"
 kover = "0.9.1"
 qodana = "2024.3.4"
+moshi = "1.15.2"
 
 [libraries]
 junit-platform = { module = "org.junit:junit-bom", version.ref = "junit" }
@@ -23,6 +24,7 @@ autonomousapps-testkit-support = { module = "com.autonomousapps:gradle-testkit-s
 picocli = { module = "info.picocli:picocli", version.ref = "picocli" }
 lint-gradle = { module = "androidx.lint:lint-gradle", version.ref = "lint-gradle" }
 opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "opentest4j" }
+moshi = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }

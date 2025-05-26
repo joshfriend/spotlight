@@ -1,26 +1,28 @@
 package com.fueledbycaffeine.spotlight.functionaltest
 
 import com.autonomousapps.kit.GradleBuilder
+import com.autonomousapps.kit.GradleProject
 import com.autonomousapps.kit.truth.TestKitTruth.Companion.assertThat
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.SpiritboxProject
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.allProjects
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.build
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.includedProjects
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
+import kotlin.io.path.appendText
 
 class SpotlightBuildFunctionalTest {
-  @Test
-  fun `computes explicit dependencies correctly`() {
+  @ParameterizedTest
+  @EnumSource(GradleProject.DslKind::class)
+  fun `computes explicit dependencies correctly`(dslKind: GradleProject.DslKind) {
     // Given
-    val project = SpiritboxProject().build()
+    val project = SpiritboxProject().build(dslKind = dslKind)
 
     // When
-    val result = project.build(":rotoscope:assemble", "--info")
+    val result = project.build(":rotoscope:assemble")
 
     // Then
     assertThat(result).task(":rotoscope:assemble").succeeded()
-    assertThat(result).task(":rotoscope:rotoscope:compileJava").noSource()
+    assertThat(result).task(":rotoscope:rotoscope:compileJava").succeeded()
     assertThat(result).task(":rotoscope:hysteria:compileJava").noSource()
     assertThat(result).task(":rotoscope:sew-me-up:compileJava").noSource()
     val includedProjects = result.includedProjects()
@@ -32,24 +34,86 @@ class SpotlightBuildFunctionalTest {
       ":rotoscope:sew-me-up",
     )
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="rotoscope"),
+    ))
   }
 
   @Test
-  fun `can include implicit dependencies by project path`() {
+  fun `configuration cache can be reused`() {
     // Given
     val project = SpiritboxProject().build()
 
-    val settings = project.rootDir.resolve("settings.gradle")
+    // When
+    val result = project.build(":rotoscope:assemble", "--dry-run")
+    val rotoscopeJava = project.projectDir(":rotoscope:rotoscope")
+      .resolve("src/main/java/com/rotoscope/Rotoscope.java")
+    rotoscopeJava.appendText("\n// some source change")
+    val result2 = project.build(":rotoscope:assemble", "--dry-run")
+
+    // Then
+    assertThat(result.configurationCacheStored).isTrue()
+    assertThat(result2.configurationCacheReused).isTrue()
+  }
+
+  @Test
+  fun `supports isolated projects`() {
+    // Given
+    val project = SpiritboxProject().build()
+    project.rootDir.resolve("gradle.properties")
+      .appendText("\norg.gradle.unsafe.isolated-projects=true")
+
+    // When
+    val result = project.build(":rotoscope:assemble", "--dry-run")
+    val rotoscopeJava = project.projectDir(":rotoscope:rotoscope")
+      .resolve("src/main/java/com/rotoscope/Rotoscope.java")
+    rotoscopeJava.appendText("\n// some source change")
+    val result2 = project.build(":rotoscope:assemble", "--dry-run")
+
+    // Then
+    assertThat(result.configurationCacheStored).isTrue()
+    assertThat(result2.configurationCacheReused).isTrue()
+  }
+
+  @Test
+  fun `does not break configuration cache invalidation on build file changes`() {
+    // Given
+    val project = SpiritboxProject().build()
+
+    // When
+    val result = project.build(":rotoscope:assemble", "--dry-run")
+    val buildscript = project.projectDir(":rotoscope").resolve("build.gradle")
+    buildscript.appendText("\n// some buildscript modification")
+    val result2 = project.build(":rotoscope:assemble", "--dry-run")
+
+    // Then
+    assertThat(result.configurationCacheStored).isTrue()
+    assertThat(result2.configurationCacheStored).isTrue()
+    assertThat(result2.configurationCacheReused).isFalse()
+    assertThat(result2.configurationCacheInvalidationReason)
+      .isEqualTo("file 'rotoscope/build.gradle' has changed.")
+  }
+
+  @ParameterizedTest
+  @EnumSource(GradleProject.DslKind::class)
+  fun `can include implicit dependencies by project path`(dslKind: GradleProject.DslKind) {
+    // Given
+    val project = SpiritboxProject().build(dslKind = dslKind)
+
+    val settings = project.rootDir.resolve(dslKind.settingsFile)
     settings.appendText("""
       spotlight {
         whenProjectPathMatches(":rotoscope:.*") {
-          alsoInclude ":tsunami-sea"
+          alsoInclude(":tsunami-sea")
         }
       }
     """.trimIndent())
 
     // When
-    val result = project.build(":rotoscope:assemble", "--info")
+    val result = project.build(":rotoscope:assemble")
 
     // Then
     assertThat(result).task(":rotoscope:assemble").succeeded()
@@ -63,29 +127,36 @@ class SpotlightBuildFunctionalTest {
       ":tsunami-sea"
     )
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="rotoscope"),
+    ))
   }
 
-  @Test
-  fun `can include implicit dependencies by buildscript contents`() {
+  @ParameterizedTest
+  @EnumSource(GradleProject.DslKind::class)
+  fun `can include implicit dependencies by buildscript contents`(dslKind: GradleProject.DslKind) {
     // Given
-    val project = SpiritboxProject().build()
+    val project = SpiritboxProject().build(dslKind = dslKind)
 
-    val settings = project.rootDir.resolve("settings.gradle")
-    val rotoscopeBuildscript = project.rootDir.resolve("rotoscope/build.gradle")
+    val settings = project.rootDir.resolve(dslKind.settingsFile)
+    val rotoscopeBuildscript = project.rootDir.resolve("rotoscope/${dslKind.buildFile}")
     val contents = rotoscopeBuildscript.readText()
     rotoscopeBuildscript.writeText("// some marker\n$contents")
     settings.appendText(
       """
       spotlight {
         whenBuildscriptMatches("some marker") {
-          alsoInclude ":eternal-blue"
+          alsoInclude(":eternal-blue")
         }
       }
     """.trimIndent()
     )
 
     // When
-    val result = project.build(":rotoscope:assemble", "--info")
+    val result = project.build(":rotoscope:assemble")
 
     // Then
     assertThat(result).task(":rotoscope:assemble").succeeded()
@@ -111,6 +182,12 @@ class SpotlightBuildFunctionalTest {
       ":eternal-blue:yellowjacket",
     )
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="rotoscope"),
+    ))
   }
 
   @Test
@@ -119,13 +196,19 @@ class SpotlightBuildFunctionalTest {
     val project = SpiritboxProject().build()
 
     // When
-    val result = project.build(":help", "--info")
+    val result = project.build(":help")
 
     // Then
     assertThat(result).task(":help").succeeded()
     assertThat(result).output().contains("Requested targets include 0 projects transitively")
     val includedProjects = result.includedProjects()
     assertThat(includedProjects).containsExactly(project.rootProject.settingsScript.rootProjectName)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="."),
+    ))
   }
 
   @Test
@@ -134,7 +217,7 @@ class SpotlightBuildFunctionalTest {
     val project = SpiritboxProject().build()
 
     // When
-    val result = project.build("assemble", "--info")
+    val result = project.build("assemble")
 
     // Then
     assertThat(result).task(":rotoscope:assemble").succeeded()
@@ -144,6 +227,13 @@ class SpotlightBuildFunctionalTest {
     val allProjects = project.allProjects.readLines() +
       project.rootProject.settingsScript.rootProjectName
     assertThat(includedProjects).containsExactlyElementsIn(allProjects)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/all-projects.txt"),
+      CCDiagnostic.Input(type="file", name="gradle/all-projects.txt"),
+    ))
   }
 
   @Test
@@ -155,7 +245,8 @@ class SpotlightBuildFunctionalTest {
     val result = GradleBuilder.build(
       project.rootDir.resolve("rotoscope"),
       "assemble",
-      "--info"
+      "--info",
+      "--configuration-cache",
     )
 
     // Then
@@ -169,6 +260,11 @@ class SpotlightBuildFunctionalTest {
       ":rotoscope:sew-me-up",
     )
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+    ))
   }
 
   @Test
@@ -177,7 +273,7 @@ class SpotlightBuildFunctionalTest {
     val project = SpiritboxProject().build()
 
     // When
-    val result = project.build(":help", "--info", "-Dspotlight.enabled=false")
+    val result = project.build(":help", "-Dspotlight.enabled=false")
 
     // Then
     val includedProjects = result.includedProjects()
@@ -186,5 +282,11 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(allProjects)
 
     assertThat(result.output).contains("Spotlight is disabled")
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/all-projects.txt"),
+      CCDiagnostic.Input(type="file", name="gradle/all-projects.txt"),
+    ))
   }
 }
