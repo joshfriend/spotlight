@@ -6,7 +6,7 @@ public final class com/fueledbycaffeine/spotlight/SpotlightSettingsPlugin : org/
 
 public abstract class com/fueledbycaffeine/spotlight/dsl/MatchRuleHandler : org/gradle/api/Named {
 	public fun <init> (Ljava/lang/String;Lorg/gradle/api/file/BuildLayout;Lorg/gradle/api/model/ObjectFactory;)V
-	public final fun alsoInclude (Ljava/lang/String;)V
+	public final fun alsoInclude ([Ljava/lang/String;)V
 	public fun getName ()Ljava/lang/String;
 	public final fun getPattern ()Lkotlin/text/Regex;
 }
@@ -16,13 +16,22 @@ public abstract class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension {
 	public static final field NAME Ljava/lang/String;
 	public fun <init> (Lorg/gradle/api/file/BuildLayout;Lorg/gradle/api/model/ObjectFactory;)V
 	public static final fun getSpotlightExtension (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension;
-	public final fun isTypeSafeAccessorsEnabled ()Lorg/gradle/api/provider/Property;
+	public final fun getTypeSafeAccessorInference ()Lorg/gradle/api/provider/Property;
 	public final fun whenBuildscriptMatches (Ljava/lang/String;Lorg/gradle/api/Action;)V
 	public final fun whenProjectPathMatches (Ljava/lang/String;Lorg/gradle/api/Action;)V
 }
 
 public final class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension$Companion {
 	public final fun getSpotlightExtension (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension;
+}
+
+public final class com/fueledbycaffeine/spotlight/dsl/TypeSafeAccessorInference : java/lang/Enum {
+	public static final field DISABLED Lcom/fueledbycaffeine/spotlight/dsl/TypeSafeAccessorInference;
+	public static final field FULL Lcom/fueledbycaffeine/spotlight/dsl/TypeSafeAccessorInference;
+	public static final field STRICT Lcom/fueledbycaffeine/spotlight/dsl/TypeSafeAccessorInference;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/fueledbycaffeine/spotlight/dsl/TypeSafeAccessorInference;
+	public static fun values ()[Lcom/fueledbycaffeine/spotlight/dsl/TypeSafeAccessorInference;
 }
 
 public final class com/fueledbycaffeine/spotlight/utils/GradlePathExtKt {

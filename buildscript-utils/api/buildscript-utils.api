@@ -144,7 +144,7 @@ public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDepe
 	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$TypeSafeProjectAccessorRule;Ljava/lang/String;Ljava/util/Map;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$TypeSafeProjectAccessorRule;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getIncludedProjects ()Ljava/util/Set;
-	public final fun getRootProjectName ()Ljava/lang/String;
+	public final fun getRootProjectAccessor ()Ljava/lang/String;
 	public final fun getTypeSafeAccessorMap ()Ljava/util/Map;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;

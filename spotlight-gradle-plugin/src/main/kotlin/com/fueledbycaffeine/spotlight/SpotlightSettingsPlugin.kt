@@ -7,6 +7,7 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.TypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
+import com.fueledbycaffeine.spotlight.dsl.TypeSafeAccessorInference
 import com.fueledbycaffeine.spotlight.utils.guessProjectsFromTaskRequests
 import com.fueledbycaffeine.spotlight.utils.include
 import com.fueledbycaffeine.spotlight.utils.isIdeSync
@@ -93,9 +94,17 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
   }
 
   private fun Settings.implicitAndTransitiveDependenciesOf(targets: Set<GradlePath>): Set<GradlePath> {
-    val rules = if (options.isTypeSafeAccessorsEnabled.get()) {
-      val typeSafeProjectAccessorMap = getAllProjects().associateBy { it.typeSafeAccessorName }
-      val typeSafeAccessorRule = TypeSafeProjectAccessorRule(settings.rootProject.name, typeSafeProjectAccessorMap)
+    val typeSafeInferenceLevel = options.typeSafeAccessorInference.get()
+    logger.info("Spotlight type-safe project accessor inference is {}", typeSafeInferenceLevel)
+
+    val rules = if (typeSafeInferenceLevel != TypeSafeAccessorInference.DISABLED) {
+      val typeSafeProjectAccessorMap = if (typeSafeInferenceLevel == TypeSafeAccessorInference.FULL) {
+        getAllProjects().associateBy { it.typeSafeAccessorName }
+      } else {
+        emptyMap()
+      }
+      val rootProjectTypeSafeAccessor = GradlePath(rootDir.toPath(), settings.rootProject.name).typeSafeAccessorName
+      val typeSafeAccessorRule = TypeSafeProjectAccessorRule(rootProjectTypeSafeAccessor, typeSafeProjectAccessorMap)
       options.rules + typeSafeAccessorRule
     } else {
       options.rules
