@@ -1,5 +1,9 @@
 # Changelog
 
+### 0.8
+* Add a "strict" inference mode for type-safe project accessors
+* Minimize the list of Configuration Cache inputs
+
 ### 0.7
 * Remove DSL configuration for all-projects/ide-projects lists. They will just live inside `gradle/`.
 * Add DSL option to indicate if you use type-safe project accessors.
