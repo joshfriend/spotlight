@@ -1,14 +1,11 @@
-import org.jetbrains.intellij.platform.gradle.TestFrameworkType
-
 plugins {
-  id("java") // Java support
-  alias(libs.plugins.kotlin) // Kotlin support
-  alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
-  alias(libs.plugins.qodana) // Gradle Qodana Plugin
+  id 'java'
+  id 'org.jetbrains.kotlin.jvm'
+  id 'org.jetbrains.intellij.platform'
 }
 
 group = "com.fueledbycaffene.spotlight"
-val pluginVersion = "0.1"
+def pluginVersion = "0.1"
 version = pluginVersion
 
 // Set the JVM language level used to build the project.
@@ -25,11 +22,10 @@ repositories {
 }
 
 dependencies {
-  implementation(project(":buildscript-utils"))
+  implementation project(":buildscript-utils")
 
   intellijPlatform {
     intellijIdeaCommunity("2025.1.1.1")
-    testFramework(TestFrameworkType.Platform)
   }
 }
 
@@ -56,7 +52,7 @@ intellijPlatform {
     // The pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
     // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
     // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
-    channels = listOf("EAP")
+    channels = ["EAP"]
   }
 
   pluginVerification {
@@ -66,23 +62,3 @@ intellijPlatform {
   }
 }
 
-intellijPlatformTesting {
-  runIde {
-    register("runIdeForUiTests") {
-      task {
-        jvmArgumentProviders += CommandLineArgumentProvider {
-          listOf(
-            "-Drobot-server.port=8082",
-            "-Dide.mac.message.dialogs.as.sheets=false",
-            "-Djb.privacy.policy.text=<!--999.999-->",
-            "-Djb.consents.confirmation.enabled=false",
-          )
-        }
-      }
-
-      plugins {
-        robotServerPlugin()
-      }
-    }
-  }
-}
