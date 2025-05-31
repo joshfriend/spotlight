@@ -11,6 +11,7 @@ pluginManagement {
     id 'com.vanniktech.maven.publish' version '0.31.0'
     id 'com.android.lint' version '8.9.1'
     id 'org.jetbrains.intellij.platform' version '2.6.0'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
   }
   repositories {
     gradlePluginPortal()
@@ -51,4 +52,5 @@ rootProject.name = 'spotlight'
 
 include ':spotlight-gradle-plugin'
 include ':spotlight-idea-plugin'
+include ':spotlight-cli'
 include ':buildscript-utils'
