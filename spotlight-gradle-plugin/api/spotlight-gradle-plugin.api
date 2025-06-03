@@ -1,3 +1,21 @@
+public abstract class com/fueledbycaffeine/spotlight/SpotlightBuildService : org/gradle/api/services/BuildService {
+	public static final field Companion Lcom/fueledbycaffeine/spotlight/SpotlightBuildService$Companion;
+	public static final field NAME Ljava/lang/String;
+	public fun <init> ()V
+	public static final fun of (Lorg/gradle/api/Project;)Lorg/gradle/api/provider/Provider;
+	public static final fun of (Lorg/gradle/api/initialization/Settings;)Lorg/gradle/api/provider/Provider;
+}
+
+public final class com/fueledbycaffeine/spotlight/SpotlightBuildService$Companion {
+	public final fun of (Lorg/gradle/api/Project;)Lorg/gradle/api/provider/Provider;
+	public final fun of (Lorg/gradle/api/initialization/Settings;)Lorg/gradle/api/provider/Provider;
+}
+
+public abstract interface class com/fueledbycaffeine/spotlight/SpotlightBuildService$Params : org/gradle/api/services/BuildServiceParameters {
+	public abstract fun getEnabled ()Lorg/gradle/api/provider/Property;
+	public abstract fun getIncludedProjects ()Lorg/gradle/api/provider/SetProperty;
+}
+
 public final class com/fueledbycaffeine/spotlight/SpotlightSettingsPlugin : org/gradle/api/Plugin {
 	public fun <init> ()V
 	public synthetic fun apply (Ljava/lang/Object;)V
@@ -32,10 +50,6 @@ public final class com/fueledbycaffeine/spotlight/dsl/TypeSafeAccessorInference 
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Lcom/fueledbycaffeine/spotlight/dsl/TypeSafeAccessorInference;
 	public static fun values ()[Lcom/fueledbycaffeine/spotlight/dsl/TypeSafeAccessorInference;
-}
-
-public final class com/fueledbycaffeine/spotlight/utils/GradlePathExtKt {
-	public static final fun include (Lorg/gradle/api/initialization/Settings;Ljava/lang/Iterable;)V
 }
 
 public final class com/fueledbycaffeine/spotlight/utils/SpotlightProperties {

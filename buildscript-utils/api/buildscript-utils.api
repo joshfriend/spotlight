@@ -23,7 +23,7 @@ public final class com/fueledbycaffeine/spotlight/buildscript/BuildGraphKt {
 	public static synthetic fun buildGraph$default (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
 }
 
-public final class com/fueledbycaffeine/spotlight/buildscript/GradlePath : com/fueledbycaffeine/spotlight/buildscript/graph/GraphNode {
+public final class com/fueledbycaffeine/spotlight/buildscript/GradlePath : com/fueledbycaffeine/spotlight/buildscript/graph/GraphNode, java/io/Serializable {
 	public fun <init> (Ljava/io/File;Ljava/lang/String;)V
 	public fun <init> (Ljava/nio/file/Path;Ljava/lang/String;)V
 	public final fun component1 ()Ljava/nio/file/Path;

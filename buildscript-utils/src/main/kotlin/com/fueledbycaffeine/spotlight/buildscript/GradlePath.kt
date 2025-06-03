@@ -5,6 +5,7 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.GradlePathInternal
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.Serializable
 import java.nio.file.Path
 import java.util.Locale.getDefault
 import kotlin.io.path.relativeTo
@@ -18,7 +19,7 @@ private val SRC_AND_BUILD_DIRS = listOf("build", "src", "src-gen")
 public data class GradlePath(
   public val root: Path,
   public val path: String,
-): GraphNode<GradlePath> {
+): GraphNode<GradlePath>, Serializable {
   public constructor(root: File, path: String): this(root.toPath(), path)
 
   /**
