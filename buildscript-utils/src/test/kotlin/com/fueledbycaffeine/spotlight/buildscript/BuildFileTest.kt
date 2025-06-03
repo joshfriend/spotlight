@@ -245,6 +245,22 @@ class BuildFileTest {
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
+  @Test fun `ignores other DSL that can look like a type-safe project accessor`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
+    typeSafeProject.projectDir.createDirectories()
+    typeSafeProject.projectDir.resolve("build.gradle").createFile()
+    project.buildFilePath.writeText("""
+      android {
+        namespace = "com.example.projects.foo.bar"
+      }
+      """.trimIndent()
+    )
+    val buildFile = BuildFile(project)
+    val rule = TypeSafeProjectAccessorRule("spotlight", null)
+    assertThat(buildFile.parseDependencies(setOf(rule))).isEmpty()
+  }
+
   @Test fun `ignores type-safe project accessor's trailing path API`() {
     val project = buildRoot.createProject(":foo")
     val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
