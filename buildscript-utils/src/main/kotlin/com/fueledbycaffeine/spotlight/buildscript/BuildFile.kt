@@ -3,6 +3,7 @@ package com.fueledbycaffeine.spotlight.buildscript
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.*
 import java.io.FileNotFoundException
+import kotlin.io.path.readLines
 import kotlin.io.path.readText
 import kotlin.text.RegexOption.MULTILINE
 
@@ -26,7 +27,12 @@ internal fun parseBuildFile(
   project: GradlePath,
   rules: Set<ImplicitDependencyRule>,
 ): Set<GradlePath> {
-  val buildscriptContents = project.buildFilePath.readText()
+  // To verify, run:
+  // ./gradlew :spotlight-gradle-plugin:functionalTest
+  // This is not captured by configuration cache
+//  val buildscriptContents = project.buildFilePath.readText()
+  // This functional equivalent is captured by configuration cache
+  val buildscriptContents = project.buildFilePath.readLines().joinToString("\n")
 
   return computeDirectDependencies(project, buildscriptContents) +
     computeTypeSafeProjectDependencies(project, buildscriptContents, rules) +
