@@ -89,7 +89,7 @@ dependencies {
   lintChecks(libs.lint.gradle)
 
   functionalTestImplementation libs.truth
-  functionalTestImplementation libs.moshi
+  functionalTestImplementation libs.moshi.kotlin
 
   testImplementation libs.assertk
   testImplementation platform(libs.junit.platform)

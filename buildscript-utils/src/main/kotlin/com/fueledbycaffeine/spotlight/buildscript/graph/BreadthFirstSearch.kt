@@ -6,7 +6,7 @@ public object BreadthFirstSearch {
   // Initialize with generously sized capacities to avoid resizing as we grow
   private const val INITIAL_CAPACITY = 4096
 
-  public fun <T : GraphNode<T>> flatten(nodes: Iterable<T>, rules: Set<ImplicitDependencyRule> = emptySet()): Set<T> {
+  public fun <T : GraphNode<T>> flatten(nodes: Iterable<T>, rules: Set<DependencyRule> = emptySet()): Set<T> {
     val deps = run(nodes, rules)
     // In lieu of a flattenTo() option, this creates an intermediate
     // set to avoid the intermediate list + distinct()
@@ -22,7 +22,7 @@ public object BreadthFirstSearch {
     }
   }
 
-  public fun <T : GraphNode<T>> run(nodes: Iterable<T>, rules: Set<ImplicitDependencyRule> = emptySet()): Map<T, Set<T>> {
+  public fun <T : GraphNode<T>> run(nodes: Iterable<T>, rules: Set<DependencyRule> = emptySet()): Map<T, Set<T>> {
     // one set for all the visited bookkeeping
     val seen = HashSet<T>(INITIAL_CAPACITY)
     val dependenciesMap = LinkedHashMap<T, Set<T>>(INITIAL_CAPACITY)

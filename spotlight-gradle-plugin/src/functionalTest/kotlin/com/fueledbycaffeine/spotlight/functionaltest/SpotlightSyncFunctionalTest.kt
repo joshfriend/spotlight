@@ -1,22 +1,9 @@
 package com.fueledbycaffeine.spotlight.functionaltest
 
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.SpiritboxProject
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.allProjects
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.ccReport
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheInvalidationReason
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheReused
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheStored
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheUpdated
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.ideProjects
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.setGradleProperties
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.sync
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
-import kotlin.io.appendText
 import kotlin.io.path.appendText
-import kotlin.io.path.readLines
-import kotlin.io.path.writeText
 
 class SpotlightSyncFunctionalTest {
   @Test
@@ -124,6 +111,7 @@ class SpotlightSyncFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type = "file system entry", name = "gradle/ide-projects.txt"),
       CCDiagnostic.Input(type = "file", name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input(type = "file system entry", name = "gradle/spotlight-rules.json"),
       CCDiagnostic.Input(type = "system property", name = "idea.sync.active"),
       CCDiagnostic.Input(type = "system property", name = "spotlight.enabled"),
     ))

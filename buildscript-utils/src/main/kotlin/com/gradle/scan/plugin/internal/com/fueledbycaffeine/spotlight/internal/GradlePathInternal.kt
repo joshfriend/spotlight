@@ -39,5 +39,5 @@ internal object GradlePathInternal {
     else -> throw NoBuildFileException()
   }
 
-  class NoBuildFileException(): Exception()
+  class NoBuildFileException : Exception()
 }

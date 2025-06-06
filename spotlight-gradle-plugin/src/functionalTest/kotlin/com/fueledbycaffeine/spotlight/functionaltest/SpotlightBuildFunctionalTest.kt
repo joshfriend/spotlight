@@ -10,14 +10,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import java.nio.file.Files.createDirectories
-import kotlin.io.appendText
-import kotlin.io.path.ExperimentalPathApi
-import kotlin.io.path.appendText
-import kotlin.io.path.createDirectories
-import kotlin.io.path.createFile
-import kotlin.io.path.deleteRecursively
-import kotlin.io.path.writeText
+import kotlin.io.path.*
 
 class SpotlightBuildFunctionalTest {
   @ParameterizedTest
@@ -47,6 +40,7 @@ class SpotlightBuildFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
     ))
   }
 
@@ -110,13 +104,15 @@ class SpotlightBuildFunctionalTest {
     // Given
     val project = SpiritboxProject().build(dslKind = dslKind)
 
-    val settings = project.rootDir.resolve(dslKind.settingsFile)
-    settings.appendText("""
-      spotlight {
-        whenProjectPathMatches(":rotoscope:.*") {
-          alsoInclude(":tsunami-sea")
-        }
+    val rules = project.rootDir.resolve("gradle/spotlight-rules.json")
+    rules.writeText("""
+    [
+      {
+        "type": "project-path-match-rule",
+        "pattern": ":rotoscope",
+        "includedProjects": [":tsunami-sea"]
       }
+    ]
     """.trimIndent())
 
     // When
@@ -138,6 +134,7 @@ class SpotlightBuildFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
     ))
   }
 
@@ -146,20 +143,19 @@ class SpotlightBuildFunctionalTest {
   fun `can include implicit dependencies by buildscript contents`(dslKind: GradleProject.DslKind) {
     // Given
     val project = SpiritboxProject().build(dslKind = dslKind)
-
-    val settings = project.rootDir.resolve(dslKind.settingsFile)
     val rotoscopeBuildscript = project.rootDir.resolve("rotoscope/${dslKind.buildFile}")
     val contents = rotoscopeBuildscript.readText()
     rotoscopeBuildscript.writeText("// some marker\n$contents")
-    settings.appendText(
-      """
-      spotlight {
-        whenBuildscriptMatches("some marker") {
-          alsoInclude(":eternal-blue")
-        }
+    val rules = project.rootDir.resolve("gradle/spotlight-rules.json")
+    rules.writeText("""
+    [
+      {
+        "type": "buildscript-match-rule",
+        "pattern": "some marker",
+        "includedProjects": [":eternal-blue"]
       }
-    """.trimIndent()
-    )
+    ]
+    """.trimIndent())
 
     // When
     val result = project.build(":rotoscope:assemble")
@@ -192,6 +188,7 @@ class SpotlightBuildFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
     ))
   }
 
@@ -212,6 +209,7 @@ class SpotlightBuildFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
     ))
   }
 
@@ -272,6 +270,7 @@ class SpotlightBuildFunctionalTest {
       CCDiagnostic.Input(type="directory content", name="rotoscope/sew-me-up"),
       CCDiagnostic.Input(type="directory content", name="rotoscope/hysteria"),
       CCDiagnostic.Input(type="directory content", name="rotoscope/rotoscope"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
     ))
   }
 
@@ -294,6 +293,7 @@ class SpotlightBuildFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
     ))
   }
 
@@ -326,6 +326,7 @@ class SpotlightBuildFunctionalTest {
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
     ))
   }
 
@@ -383,6 +384,7 @@ class SpotlightBuildFunctionalTest {
       CCDiagnostic.Input(type="directory content", name="rotoscope/a-new-project"),
       CCDiagnostic.Input(type="directory content", name="rotoscope/hysteria"),
       CCDiagnostic.Input(type="directory content", name="rotoscope/rotoscope"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
     ))
   }
 
@@ -440,6 +442,7 @@ class SpotlightBuildFunctionalTest {
       CCDiagnostic.Input(type="directory content", name="rotoscope/sew-me-up"),
       CCDiagnostic.Input(type="directory content", name="rotoscope/hysteria"),
       CCDiagnostic.Input(type="directory content", name="rotoscope/rotoscope"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
     ))
   }
 

@@ -5,7 +5,7 @@ import assertk.assertions.containsExactlyInAnyOrder
 import org.junit.jupiter.api.Test
 
 private class TestNode(val successors: Set<TestNode>): GraphNode<TestNode> {
-  override fun findSuccessors(rules: Set<ImplicitDependencyRule>): Set<TestNode> = successors
+  override fun findSuccessors(rules: Set<DependencyRule>): Set<TestNode> = successors
 }
 
 class BreadthFirstSearchTest {
