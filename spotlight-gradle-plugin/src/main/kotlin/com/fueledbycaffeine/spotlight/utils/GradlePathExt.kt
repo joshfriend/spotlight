@@ -13,7 +13,7 @@ internal fun Settings.guessProjectsFromTaskRequests(): Set<GradlePath> {
     .filter { it.looksLikeAGradlePath }
     .map {
       val path = GradlePath(rootDir, it.projectPathGuess)
-      if (!path.projectDir.exists()) {
+      if (!path.hasBuildFile) {
         throw FileNotFoundException("${it.projectPathGuess} is not a project dir")
       }
       path
