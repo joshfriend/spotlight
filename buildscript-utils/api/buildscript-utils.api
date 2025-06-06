@@ -12,10 +12,19 @@ public final class com/fueledbycaffeine/spotlight/buildscript/BuildFile {
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/BuildGraph : com/fueledbycaffeine/spotlight/buildscript/graph/Graph {
-	public synthetic fun <init> (Ljava/util/Set;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public static final field Companion Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph$Companion;
+	public fun <init> (Ljava/util/Set;Ljava/util/Set;)V
+	public synthetic fun <init> (Ljava/util/Set;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public static final fun create (Ljava/util/Set;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
 	public static final fun createFromNode (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
 	public fun getDependencyMap ()Ljava/util/Map;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/BuildGraph$Companion {
+	public final fun create (Ljava/util/Set;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
+	public static synthetic fun create$default (Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph$Companion;Ljava/util/Set;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
+	public final fun createFromNode (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
+	public static synthetic fun createFromNode$default (Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph$Companion;Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/BuildGraphKt {
@@ -96,6 +105,7 @@ public abstract class com/fueledbycaffeine/spotlight/buildscript/graph/Graph {
 	public fun <init> ()V
 	public final fun accessorsOf (Lcom/fueledbycaffeine/spotlight/buildscript/graph/GraphNode;)Ljava/util/Set;
 	public final fun edges ()Ljava/util/Set;
+	public final fun findShortestPath (Lcom/fueledbycaffeine/spotlight/buildscript/graph/GraphNode;Lcom/fueledbycaffeine/spotlight/buildscript/graph/GraphNode;)Ljava/util/List;
 	public abstract fun getDependencyMap ()Ljava/util/Map;
 	public final fun successorsOf (Lcom/fueledbycaffeine/spotlight/buildscript/graph/GraphNode;)Ljava/util/Set;
 }
