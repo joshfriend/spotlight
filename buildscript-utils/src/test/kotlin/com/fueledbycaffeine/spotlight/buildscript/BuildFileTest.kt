@@ -3,8 +3,10 @@ package com.fueledbycaffeine.spotlight.buildscript
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEmpty
+import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.*
+import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
@@ -171,7 +173,7 @@ class BuildFileTest {
     val buildFile = BuildFile(project)
 
     val rules = setOf<ImplicitDependencyRule>(
-      ProjectPathMatchRule(Regex(":features:.*"), setOf(GradlePath(buildRoot, ":bar"))),
+      ProjectPathMatchRule(":features:.*", setOf(GradlePath(buildRoot, ":bar"))),
     )
     assertThat(buildFile.parseDependencies(rules))
       .containsExactlyInAnyOrder(
@@ -196,8 +198,8 @@ class BuildFileTest {
 
     val buildFile = BuildFile(project)
 
-    val rules = setOf<ImplicitDependencyRule>(
-      BuildscriptMatchRule(Regex("id 'com.example.feature'"), setOf(GradlePath(buildRoot, ":bar"))),
+    val rules = setOf<DependencyRule>(
+      BuildscriptMatchRule("id 'com.example.feature'", setOf(GradlePath(buildRoot, ":bar"))),
     )
     assertThat(buildFile.parseDependencies(rules))
       .containsExactlyInAnyOrder(

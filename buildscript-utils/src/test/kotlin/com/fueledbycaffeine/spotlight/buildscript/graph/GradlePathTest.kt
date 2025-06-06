@@ -1,12 +1,8 @@
 package com.fueledbycaffeine.spotlight.buildscript.graph
 
-import assertk.assertAll
 import assertk.assertThat
-import assertk.assertions.contains
 import assertk.assertions.containsExactlyInAnyOrder
-import assertk.assertions.each
 import assertk.assertions.isEqualTo
-import assertk.assertions.isNotNull
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import org.gradle.internal.scripts.ScriptingLanguages
@@ -22,7 +18,6 @@ import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.writeText
-import kotlin.math.exp
 
 class GradlePathTest {
   @TempDir lateinit var buildRoot: Path

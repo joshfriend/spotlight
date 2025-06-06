@@ -57,25 +57,33 @@ When the `-p`/`--project-dir` flag is used, Spotlight will expand the list of ch
 ### Implicit rules
 It is not uncommon for a conventions plugin setup to add a default set of utilities/testing project dependencies to each project in a build. By default, Spotlight is not able to detect these implicit dependencies added to your projects by other build logic or plugins because those do not appear in your buildscripts.
 
-A settings DSL is provided to configure some pattern matching rules based on project paths or buildscript contents to implicitly add other projects:
+A config file option is provided to configure some pattern matching rules based on project paths or buildscript contents to implicitly add other projects:
 
-```groovy
-// settings.gradle(.kts)
-spotlight {
+```json
+// gradle/spotlight-rules.json
+[
   // Add :tsunami-sea as a dependency to all projects with a path matching ":rotoscope:.*"
   // The pattern strings are regexes
-  whenProjectPathMatches(":rotoscope:.*") {
-    alsoInclude ":tsunami-sea"
-  }
+  {
+    "type": "project-path-match-rule",
+    "pattern": ":rotoscope:.*",
+    "alsoInclude": [":tsunami-sea"]
+  },
   // Add :eternal-blue to any project applying the `com.example.android` convention plugin
-  whenBuildscriptMatches("id 'com.example.android'") {
-    alsoInclude ":eternal-blue"
-    alsoInclude ":singles-collection" // multiple includes can be given for a pattern
+  {
+    "type": "buildscript-match-rule",
+    "pattern": "id 'com.example.android'",
+    "alsoInclude": [
+      ":eternal-blue",
+      ":singles-collection" // multiple includes can be given for a pattern
+    ]
   }
-}
+]
 ```
 
 Implicit rules apply to all Gradle invocations (sync and task execution).
+
+If you are using the `buildscript-utils` package by itself, you can read this rules list using the `SpotlightRulesList` class.
 
 ### Type-safe Project Accessors
 By default, Spotlight attempts to do a basic "strict" mapping of any [type-safe project accessors][typesafe-project-accessors] used to project path. This assumes that your project paths are all lowercased and use kebab-case for naming convention.
@@ -88,7 +96,6 @@ import com.fueledbycaffeine.spotlight.dsl.TypeSafeAccessorInference
 
 spotlight {
   typeSafeAccessorInference TypeSafeAccessorInference.FULL
-  // ...
 }
 ```
 
