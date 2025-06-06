@@ -38,7 +38,6 @@ class SpotlightBuildFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
-      CCDiagnostic.Input(type="file system entry", name="rotoscope"),
     ))
   }
 
@@ -131,7 +130,6 @@ class SpotlightBuildFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
-      CCDiagnostic.Input(type="file system entry", name="rotoscope"),
     ))
   }
 
@@ -186,7 +184,6 @@ class SpotlightBuildFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
-      CCDiagnostic.Input(type="file system entry", name="rotoscope"),
     ))
   }
 
@@ -207,7 +204,6 @@ class SpotlightBuildFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
-      CCDiagnostic.Input(type="file system entry", name="."),
     ))
   }
 
