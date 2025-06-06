@@ -125,6 +125,7 @@ class SpotlightSyncFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type = "file system entry", name = "gradle/ide-projects.txt"),
       CCDiagnostic.Input(type = "file", name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input(type = "file system entry", name = "gradle/spotlight-rules.json"),
       CCDiagnostic.Input(type = "system property", name = "idea.sync.active"),
       CCDiagnostic.Input(type = "system property", name = "spotlight.enabled"),
     ))

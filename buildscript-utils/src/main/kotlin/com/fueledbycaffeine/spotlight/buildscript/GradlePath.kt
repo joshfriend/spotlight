@@ -1,7 +1,7 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
+import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.GraphNode
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.GradlePathInternal
 import java.io.File
 import java.io.FileNotFoundException
@@ -69,7 +69,7 @@ public data class GradlePath(
     return GradlePathInternal.expandChildProjects(this, excludeDirs)
   }
 
-  public override fun findSuccessors(rules: Set<ImplicitDependencyRule>): Set<GradlePath> {
+  public override fun findSuccessors(rules: Set<DependencyRule>): Set<GradlePath> {
     return BuildFile(this).parseDependencies(rules)
   }
 }

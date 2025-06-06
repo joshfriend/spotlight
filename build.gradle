@@ -28,13 +28,13 @@ dependencyAnalysis {
       includeGroup 'org.junit.jupiter'
     }
     bundle('testkit') {
-      primary libs.autonomousapps.testkit.asProvider()
+      primary libs.autonomousapps.testkit
       includeDependency libs.autonomousapps.testkit.support
       includeDependency libs.truth
     }
     bundle('moshi') {
-      primary libs.moshi
-      includeDependency 'com.squareup.moshi:moshi'
+      primary libs.moshi.kotlin
+      includeDependency libs.moshi
     }
   }
 }
