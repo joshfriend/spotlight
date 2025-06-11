@@ -15,7 +15,7 @@ import org.gradle.api.services.BuildServiceParameters
 public abstract class SpotlightBuildService : BuildService<SpotlightBuildService.Params> {
   public interface Params : BuildServiceParameters {
     public val enabled: Property<Boolean>
-    public val includedProjects: SetProperty<GradlePath>
+    public val spotlightProjects: SetProperty<GradlePath>
   }
 
   @Suppress("UNCHECKED_CAST")
@@ -33,5 +33,24 @@ public abstract class SpotlightBuildService : BuildService<SpotlightBuildService
       return project.gradle.sharedServices.registrations
         .named(NAME).get().service as Provider<SpotlightBuildService>
     }
+  }
+
+  /**
+   * Indicates if Spotlight is enabled for this build.
+   */
+  public val isEnabled: Boolean get() = parameters.enabled.get()
+
+  /**
+   * The set of all projects loaded in the current build, including empty intermediate projects.
+   */
+  public val allProjects: Set<GradlePath> get() = parameters.spotlightProjects.get()
+
+  /**
+   * The set of real projects loaded in the current build, which excludes empty intermediate projects.
+   *
+   * "Real" projects contain a buildscript
+   */
+  public val realProjects: Set<GradlePath> by lazy {
+    allProjects.filter { it.hasBuildFile }.toSet()
   }
 }

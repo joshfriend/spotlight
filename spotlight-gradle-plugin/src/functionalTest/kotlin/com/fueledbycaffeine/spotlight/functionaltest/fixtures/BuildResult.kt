@@ -72,7 +72,6 @@ data class CCDiagnostic(
   )
 }
 
-@OptIn(ExperimentalStdlibApi::class)
 fun BuildResult.ccReport(): CCReport = readConfigurationCacheReport(output.lines())
 
 fun SyncResult.ccReport(): CCReport = readConfigurationCacheReport(stdout.lines())
