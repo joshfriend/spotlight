@@ -1,5 +1,10 @@
 # Changelog
 
+### 0.9
+* Add `SpotlightBuildService` to provide info about included projects to other build logic
+* Fix strings in buildscripts containing "projects." were being parsed as type-safe project accessors
+* Fix directory from `-p` Gradle flag being captured in configuration cache
+
 ### 0.8
 * Add a "strict" inference mode for type-safe project accessors
 * Minimize the list of Configuration Cache inputs
