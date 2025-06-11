@@ -3,11 +3,15 @@ package com.fueledbycaffeine.spotlight.buildscript
 import com.fueledbycaffeine.spotlight.buildscript.graph.GraphNode
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.GradlePathInternal
+import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.ccHiddenIsDirectory
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.Serializable
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Locale.getDefault
+import kotlin.io.path.isDirectory
+import kotlin.io.path.name
 import kotlin.io.path.relativeTo
 
 public const val GRADLE_PATH_SEP: String = ":"
@@ -66,12 +70,39 @@ public data class GradlePath(
    * Recursively walk the directory for this project and find all the child projects.
    */
   public fun expandChildProjects(excludeDirs: List<String> = SRC_AND_BUILD_DIRS): Set<GradlePath> {
-    return GradlePathInternal.expandChildProjects(this, excludeDirs)
+    return projectDir.findGradleBuildFiles(excludeDirs)
+      .mapTo(mutableSetOf()) { it.parent.gradlePathRelativeTo(root) }
   }
 
   public override fun findSuccessors(rules: Set<ImplicitDependencyRule>): Set<GradlePath> {
     return BuildFile(this).parseDependencies(rules)
   }
+}
+
+/**
+ * [Files.walk] will recurse directories automatically, but the order of paths returned is not ordered in any way, so
+ * filtering the results can only be done after observing the filesystem entries, which ends up observing source/build
+ * files unless manually hidden from configuration cache by placing this code in the build scan plugin package.
+ * This manual recursion will avoid traversing directories we want to completely ignore.
+ *
+ * The [Files.newDirectoryStream] is intentionally captured in CC because the directory contents are structural to
+ * being able to invalidate CC in cases where builds are invoked with `-p`. The [Path.isDirectory] calls are hidden
+ * because the result may not be important for CC, and we won't know until afterwords.
+ */
+private fun Path.findGradleBuildFiles(excludeDirs: List<String>): Set<Path> {
+  return Files.newDirectoryStream(this)
+    .use { stream ->
+      stream.flatMap { path ->
+        if (path.ccHiddenIsDirectory() && path.name !in excludeDirs) {
+          path.findGradleBuildFiles(excludeDirs)
+        } else if (path.name in BUILDSCRIPTS) {
+          setOf(path)
+        } else {
+          emptySet()
+        }
+      }
+    }
+    .toCollection(mutableSetOf())
 }
 
 public fun File.gradlePathRelativeTo(buildRoot: File): GradlePath {

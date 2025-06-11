@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalPathApi::class)
+
 package com.fueledbycaffeine.spotlight.functionaltest
 
 import com.autonomousapps.kit.GradleBuilder
@@ -8,7 +10,13 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import java.nio.file.Files.createDirectories
+import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.appendText
+import kotlin.io.path.createDirectories
+import kotlin.io.path.createFile
+import kotlin.io.path.deleteRecursively
+import kotlin.io.path.writeText
 
 class SpotlightBuildFunctionalTest {
   @ParameterizedTest
@@ -259,6 +267,124 @@ class SpotlightBuildFunctionalTest {
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope/sew-me-up"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope/hysteria"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope/rotoscope"),
+    ))
+  }
+
+  @Test
+  fun `invalidates configuration cache when adding a project to directory`() {
+    // Given
+    val project = SpiritboxProject().build()
+
+    // When
+    val result1 = GradleBuilder.build(
+      project.rootDir.resolve("rotoscope"),
+      "assemble",
+      "--info",
+      "--configuration-cache",
+    )
+    project.rootDir.toPath().resolve("rotoscope/a-new-project/").apply {
+      createDirectories()
+      resolve("build.gradle").apply {
+        createFile()
+        writeText(
+          """
+          plugins {
+            id 'java'
+          }
+          """.trimIndent()
+        )
+      }
+    }
+    val result2 = GradleBuilder.build(
+      project.rootDir.resolve("rotoscope"),
+      "assemble",
+      "--info",
+      "--configuration-cache",
+    )
+
+    // Then
+    assertThat(result1.configurationCacheStored).isTrue()
+    assertThat(result2.configurationCacheReused).isFalse()
+    val includedProjects = result2.includedProjects()
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+      ":rotoscope:a-new-project",
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result2.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope/sew-me-up"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope/a-new-project"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope/hysteria"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope/rotoscope"),
+    ))
+  }
+
+  @Test
+  fun `invalidates configuration cache when removing a project from directory`() {
+    // Given
+    val project = SpiritboxProject().build()
+    val projectToRemove = project.rootDir.toPath().resolve("rotoscope/project-to-remove/")
+    projectToRemove.apply {
+      createDirectories()
+      resolve("build.gradle").apply {
+        createFile()
+        writeText(
+          """
+          plugins {
+            id 'java'
+          }
+          """.trimIndent()
+        )
+      }
+    }
+
+    // When
+    val result1 = GradleBuilder.build(
+      project.rootDir.resolve("rotoscope"),
+      "assemble",
+      "--info",
+      "--configuration-cache",
+    )
+    projectToRemove.deleteRecursively()
+    val result2 = GradleBuilder.build(
+      project.rootDir.resolve("rotoscope"),
+      "assemble",
+      "--info",
+      "--configuration-cache",
+    )
+
+    // Then
+    assertThat(result1.configurationCacheStored).isTrue()
+    assertThat(result2.configurationCacheReused).isFalse()
+    val includedProjects = result2.includedProjects()
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result2.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope/sew-me-up"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope/hysteria"),
+      CCDiagnostic.Input(type="directory content", name="rotoscope/rotoscope"),
     ))
   }
 
