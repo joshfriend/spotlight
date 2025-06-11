@@ -9,6 +9,14 @@ import org.gradle.tooling.model.gradle.BasicGradleProject
 fun GradleProject.build(vararg args: String): BuildResult =
   GradleBuilder.build(rootDir, *args, "--info")
 
+fun GradleProject.setGradleProperties(vararg props: Pair<String, String>) {
+  rootDir.resolve("gradle.properties")
+    .appendText(buildString {
+      appendLine()
+      props.map { (k, v) -> appendLine("$k=$v") }
+    })
+}
+
 data class SyncResult(
   val projects: List<BasicGradleProject>,
   val stdout: String,

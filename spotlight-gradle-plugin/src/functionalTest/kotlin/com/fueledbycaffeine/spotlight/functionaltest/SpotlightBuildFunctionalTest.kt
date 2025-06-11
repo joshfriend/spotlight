@@ -62,8 +62,7 @@ class SpotlightBuildFunctionalTest {
   fun `supports isolated projects`() {
     // Given
     val project = SpiritboxProject().build()
-    project.rootDir.resolve("gradle.properties")
-      .appendText("\norg.gradle.unsafe.isolated-projects=true")
+    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
 
     // When
     val result = project.build(":rotoscope:assemble", "--dry-run")

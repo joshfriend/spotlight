@@ -9,6 +9,7 @@ import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCache
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheStored
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheUpdated
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.ideProjects
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.setGradleProperties
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.sync
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
@@ -76,8 +77,7 @@ class SpotlightSyncFunctionalTest {
   fun `supports isolated projects when syncing all projects`() {
     // Given
     val project = SpiritboxProject().build()
-    project.rootDir.resolve("gradle.properties")
-      .appendText("\norg.gradle.unsafe.isolated-projects=true")
+    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
 
     // When
     val syncResult = project.sync()
@@ -103,8 +103,7 @@ class SpotlightSyncFunctionalTest {
     // Given
     val project = SpiritboxProject().build()
     project.ideProjects.writeText(":rotoscope")
-    project.rootDir.resolve("gradle.properties")
-      .appendText("\norg.gradle.unsafe.isolated-projects=true")
+    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
 
     // When
     val syncResult = project.sync()
@@ -135,8 +134,7 @@ class SpotlightSyncFunctionalTest {
     // Given
     val project = SpiritboxProject().build()
     project.ideProjects.writeText(":rotoscope")
-    project.rootDir.resolve("gradle.properties")
-      .appendText("\norg.gradle.unsafe.isolated-projects=true")
+    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
     1
     // When
     val syncResult1 = project.sync()
@@ -152,8 +150,7 @@ class SpotlightSyncFunctionalTest {
     // Given
     val project = SpiritboxProject().build()
     project.ideProjects.writeText(":rotoscope")
-    project.rootDir.resolve("gradle.properties")
-      .appendText("\norg.gradle.unsafe.isolated-projects=true")
+    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
     1
     // When
     val syncResult1 = project.sync()
@@ -173,8 +170,7 @@ class SpotlightSyncFunctionalTest {
     // Given
     val project = SpiritboxProject().build()
     project.ideProjects.writeText(":rotoscope")
-    project.rootDir.resolve("gradle.properties")
-      .appendText("\norg.gradle.unsafe.isolated-projects=true")
+    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
 
     // When
     val syncResult1 = project.sync()
@@ -196,8 +192,7 @@ class SpotlightSyncFunctionalTest {
     // Given
     val project = SpiritboxProject().build()
     project.ideProjects.writeText(":rotoscope")
-    project.rootDir.resolve("gradle.properties")
-      .appendText("\norg.gradle.unsafe.isolated-projects=true")
+    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
 
     // When
     val syncResult1 = project.sync()
