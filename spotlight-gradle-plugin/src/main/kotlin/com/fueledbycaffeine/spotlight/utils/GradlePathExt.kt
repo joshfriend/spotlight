@@ -6,7 +6,6 @@ import com.fueledbycaffeine.spotlight.buildscript.GRADLE_PATH_SEP
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import org.gradle.api.initialization.Settings
 import java.io.FileNotFoundException
-import kotlin.io.path.exists
 
 internal fun Settings.guessProjectsFromTaskRequests(): Set<GradlePath> {
   return startParameter.taskRequests.flatMap { it.args }
@@ -30,7 +29,7 @@ private val String.projectPathGuess: String
 internal fun Settings.include(paths: Iterable<GradlePath>) {
   gradle.sharedServices.registerIfAbsent(NAME, SpotlightBuildService::class.java) {
     it.parameters.enabled.set(isSpotlightEnabled)
-    it.parameters.includedProjects.set(paths)
+    it.parameters.spotlightProjects.set(paths)
   }
 
   include(paths.map { it.path })
