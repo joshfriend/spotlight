@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.nio.file.Files.createDirectories
+import kotlin.io.appendText
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.appendText
 import kotlin.io.path.createDirectories
@@ -271,6 +272,38 @@ class SpotlightBuildFunctionalTest {
       CCDiagnostic.Input(type="directory content", name="rotoscope/sew-me-up"),
       CCDiagnostic.Input(type="directory content", name="rotoscope/hysteria"),
       CCDiagnostic.Input(type="directory content", name="rotoscope/rotoscope"),
+    ))
+  }
+
+  @Test
+  fun `can run a task with set of target overrides`() {
+    // Given
+    val project = SpiritboxProject().build()
+    val settings = project.rootDir.resolve("settings.gradle")
+    settings.appendText("""
+      def targetProjects = providers.gradleProperty("target-projects")
+      spotlight {
+        targetsOverride = targetProjects
+      }
+    """.trimIndent())
+
+    // When
+    val result = project.build("assemble", "-Ptarget-projects=:rotoscope")
+
+    // Then
+    assertThat(result).task(":rotoscope:assemble").succeeded()
+    val includedProjects = result.includedProjects()
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
     ))
   }
 
