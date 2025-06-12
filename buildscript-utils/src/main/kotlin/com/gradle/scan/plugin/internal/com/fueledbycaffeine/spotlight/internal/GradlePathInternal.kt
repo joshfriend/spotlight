@@ -9,49 +9,20 @@
  *
  * That's what we're doing here because it just works (for now)
  *
- * So why do this? [GradlePathInternal.expandChildProjects] ends up observing filesystem entries besides
- * `build.gradle(.kts)` because it uses [Files.newDirectoryStream], which can only filter files *after* observing them.
- * All we want to do here is find `build.gradle(.kts)` which will be captured in CC elsewhere anyway.
+ * So why do this? All we want to do here is find `build.gradle(.kts)` which will be captured in CC elsewhere anyway.
  *
  * The extra file paths captured by CC don't seem to affect the reusability of the entry, but we want to keep that list
  * as small as possible.
  */
 package com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal
 
-import com.fueledbycaffeine.spotlight.buildscript.*
-import java.nio.file.Files
+import com.fueledbycaffeine.spotlight.buildscript.GRADLE_SCRIPT
+import com.fueledbycaffeine.spotlight.buildscript.GRADLE_SCRIPT_KOTLIN
+import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import java.nio.file.Path
 import kotlin.io.path.exists
-import kotlin.io.path.isDirectory
-import kotlin.io.path.name
-
-/**
- * [Files.walk] will recurse directories automatically, but the order of paths returned is not ordered in any way, so
- * filtering the results can only be done after observing the filesystem entries, which ends up observing source/build
- * files. This manual recursion will avoid traversing directories we want to completely ignore.
- */
-private fun Path.findGradleBuildFiles(excludeDirs: List<String>): Set<Path> {
-  return Files.newDirectoryStream(this)
-    .use { stream ->
-      stream.flatMap { path ->
-        if (path.isDirectory() && path.name !in excludeDirs) {
-          path.findGradleBuildFiles(excludeDirs)
-        } else if (path.name in BUILDSCRIPTS) {
-          setOf(path)
-        } else {
-          emptySet()
-        }
-      }
-    }
-    .toCollection(mutableSetOf())
-}
 
 internal object GradlePathInternal {
-  fun expandChildProjects(gradlePath: GradlePath, excludeDirs: List<String>): Set<GradlePath> {
-    return gradlePath.projectDir.findGradleBuildFiles(excludeDirs)
-      .mapTo(mutableSetOf()) { it.parent.gradlePathRelativeTo(gradlePath.root) }
-  }
-
   fun hasBuildFile(gradlePath: GradlePath): Boolean =
     gradlePath.projectDir.resolve(GRADLE_SCRIPT).exists() ||
     gradlePath.projectDir.resolve(GRADLE_SCRIPT_KOTLIN).exists()
