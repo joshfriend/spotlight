@@ -46,45 +46,51 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
   }
 
   private fun Settings.setupSpotlight() {
-    val projects = if (isIdeSync) {
-      val targets = getIdeProjects()
-      if (targets.isNotEmpty()) {
-        logger.info("{} contains {} targets", SpotlightProjectList.IDE_PROJECTS_LOCATION, targets.size)
-        implicitAndTransitiveDependenciesOf(targets)
-      } else {
-        logger.warn(
-          """
+    val projectsOverride = options.targetPathsOverride
+    val projects = if (projectsOverride != null) {
+      logger.info("spotlight.targetsOverride contains {} targets", projectsOverride.size)
+      implicitAndTransitiveDependenciesOf(projectsOverride)
+    } else {
+      if (isIdeSync) {
+        val targets = getIdeProjects()
+        if (targets.isNotEmpty()) {
+          logger.info("{} contains {} targets", SpotlightProjectList.IDE_PROJECTS_LOCATION, targets.size)
+          implicitAndTransitiveDependenciesOf(targets)
+        } else {
+          logger.warn(
+            """
           {} was missing or empty, including all projects.
           This can result in slow sync times! Spotlight specific projects using the IDE context menu action.
           """.trimIndent(),
-          SpotlightProjectList.IDE_PROJECTS_LOCATION,
-        )
-        getAllProjects()
-      }
-    } else {
-      // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
-      val taskPaths = try {
-        guessProjectsFromTaskRequests()
-      } catch (e: FileNotFoundException) {
-        logger.warn("Not sure how to map all tasks to projects: {}", e.message)
-        null
-      }
-      if (!taskPaths.isNullOrEmpty()) {
-        logger.info("Using transitives for projects of requested tasks")
-        implicitAndTransitiveDependenciesOf(taskPaths)
-      } else {
-        val projectDir = gradle.startParameter.projectDir
-        val target = projectDir?.gradlePathRelativeTo(rootDir)
-        if (target != null && !target.isRootProject) {
-          val childProjects = target.expandChildProjects()
-          val projectsFromWorkingDir = when (target.hasBuildFile) {
-            true -> childProjects + target
-            else -> childProjects
-          }
-          logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
-          implicitAndTransitiveDependenciesOf(projectsFromWorkingDir)
-        } else {
+            SpotlightProjectList.IDE_PROJECTS_LOCATION,
+          )
           getAllProjects()
+        }
+      } else {
+        // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
+        val taskPaths = try {
+          guessProjectsFromTaskRequests()
+        } catch (e: FileNotFoundException) {
+          logger.warn("Not sure how to map all tasks to projects: {}", e.message)
+          null
+        }
+        if (!taskPaths.isNullOrEmpty()) {
+          logger.info("Using transitives for projects of requested tasks")
+          implicitAndTransitiveDependenciesOf(taskPaths)
+        } else {
+          val projectDir = gradle.startParameter.projectDir
+          val target = projectDir?.gradlePathRelativeTo(rootDir)
+          if (target != null && !target.isRootProject) {
+            val childProjects = target.expandChildProjects()
+            val projectsFromWorkingDir = when (target.hasBuildFile) {
+              true -> childProjects + target
+              else -> childProjects
+            }
+            logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
+            implicitAndTransitiveDependenciesOf(projectsFromWorkingDir)
+          } else {
+            getAllProjects()
+          }
         }
       }
     }
