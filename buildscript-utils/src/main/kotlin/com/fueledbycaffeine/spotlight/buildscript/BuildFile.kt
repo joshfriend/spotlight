@@ -104,13 +104,8 @@ private fun computeImplicitParentProjects(project: GradlePath): Set<GradlePath> 
   // Start with the grandparent directory of the build file
   // libs/foo/impl/build.gradle.kts -> libs/foo
   // Then iterate up to the root directory
-  val sequence = generateSequence(project.path) { current ->
-    current.substringBeforeLast(GRADLE_PATH_SEP, missingDelimiterValue = "")
-      .takeIf { it.isNotBlank() }
-  }
-  return sequence
-    .map { parent -> GradlePath(project.root, parent) }
-    .filterTo(mutableSetOf()) { it != project && it.hasBuildFile }
+  val sequence = generateSequence(project) { it.parent }
+  return sequence.filterTo(mutableSetOf()) { it != project && it.hasBuildFile }
 }
 
 private fun String.removeTypeSafeAccessorJunk(rootProjectAccessor: String): String =

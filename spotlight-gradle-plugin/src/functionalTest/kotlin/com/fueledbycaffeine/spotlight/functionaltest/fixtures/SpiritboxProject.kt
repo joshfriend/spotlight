@@ -9,15 +9,34 @@ import com.autonomousapps.kit.gradle.Plugin
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import java.io.File
 
-private val INCLUDE_PATTERN = Regex("include[\\(\\s]+?[\"'](\\S+)[\"']")
+private val INCLUDE_PATTERN = Regex("include[(\\s]+?[\"'](\\S+)[\"']")
 
 class SpiritboxProject : AbstractGradleProject() {
   fun build(dslKind: GradleProject.DslKind = GradleProject.DslKind.GROOVY): GradleProject {
     val project = newGradleProjectBuilder(dslKind)
+      .withIncludedBuild("included-build") {
+        withRootProject {
+          withSettingsScript {
+            rootProjectName = "included-build"
+          }
+          withBuildScript {
+            plugins(Plugin.javaLibrary)
+          }
+          sources = mutableListOf(
+            Source.java(
+              """
+              package com.spiritbox;
+              public class Perennial {}
+              """.trimIndent()
+            ).withPath("com/spiritbox", "Perennial").build()
+          )
+        }
+      }
       .withRootProject {
         withSettingsScript {
           rootProjectName = "spiritbox"
           plugins(Plugin("com.fueledbycaffeine.spotlight", PLUGIN_UNDER_TEST_VERSION))
+          additions = "includeBuild(\"included-build\")"
         }
       }
       .withSubproject(":rotoscope:hysteria") {
@@ -155,7 +174,8 @@ class SpiritboxProject : AbstractGradleProject() {
         val (path) = it.destructured
         path
       }
-    val strippedSettings = settingsContents.lines().filterNot { "include" in it }
+    val strippedSettings = settingsContents.lines()
+      .filterNot { it.matches("include[( ][\"'].*[\"']\\)?".toRegex()) }
     settings.writeText(strippedSettings.joinToString("\n"))
 
     project.gradleDir.mkdirs()

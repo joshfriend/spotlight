@@ -95,8 +95,11 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
       }
     }
 
-    logger.lifecycle("Spotlight included {} projects", projects.size)
-    include(projects)
+    // Composite builds may contain projects from other builds besides this one. Included builds cannot have `include()`
+    // called for their projects again so we have to filter those from spotlight
+    val mainBuildProjects = projects.filter { it.isFromMainBuild }
+    logger.lifecycle("Spotlight included {} projects", mainBuildProjects.size)
+    include(mainBuildProjects)
   }
 
   private fun Settings.implicitAndTransitiveDependenciesOf(targets: Set<GradlePath>): Set<GradlePath> {
