@@ -1,19 +1,21 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
+import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.*
-import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.ccHiddenReadText
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
+import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.ccHiddenReadLines
 import java.io.FileNotFoundException
-import kotlin.text.RegexOption.MULTILINE
 
 public data class BuildFile(public val project: GradlePath) {
   public fun parseDependencies(
-    rules: Set<ImplicitDependencyRule> = emptySet(),
+    rules: Set<DependencyRule> = emptySet(),
   ): Set<GradlePath> = parseBuildFile(project, rules)
 }
 
-private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+project\\([\"'](.*)[\"']\\)", MULTILINE)
-private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("^(?!\\s*//)(?:(?![\"']).)*?(?:^|\\W)(\\w+)?\\(?\\s*(projects\\.[\\w.]+)", MULTILINE)
+private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+project\\([\"'](.*)[\"']\\)")
+private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("^(?!\\s*//)(?:(?![\"']).)*?(?:^|\\W)(\\w+)?\\(?\\s*(projects\\.[\\w.]+)")
 private val CAMELCASE_REPLACE_PATTERN = Regex("(?<=.)[A-Z]")
 
 internal fun String.typeSafeAccessorAsDefaultGradlePath(): String {
@@ -24,9 +26,9 @@ internal fun String.typeSafeAccessorAsDefaultGradlePath(): String {
 
 internal fun parseBuildFile(
   project: GradlePath,
-  rules: Set<ImplicitDependencyRule>,
+  rules: Set<DependencyRule>,
 ): Set<GradlePath> {
-  val buildscriptContents = project.buildFilePath.ccHiddenReadText()
+  val buildscriptContents = project.buildFilePath.ccHiddenReadLines()
 
   return computeDirectDependencies(project, buildscriptContents) +
     computeTypeSafeProjectDependencies(project, buildscriptContents, rules) +
@@ -37,8 +39,8 @@ internal fun parseBuildFile(
 /**
  * Read dependencies declared as `project(':path:to:project')`
  */
-private fun computeDirectDependencies(project: GradlePath, buildscriptContents: String): Set<GradlePath> {
-  return PROJECT_DEP_PATTERN.findAll(buildscriptContents)
+private fun computeDirectDependencies(project: GradlePath, buildscriptContents: List<String>): Set<GradlePath> {
+  return buildscriptContents.mapNotNull { PROJECT_DEP_PATTERN.find(it) }
     .map { matchResult ->
       val (_, projectPath) = matchResult.destructured
       GradlePath(project.root, projectPath)
@@ -51,15 +53,15 @@ private fun computeDirectDependencies(project: GradlePath, buildscriptContents: 
  */
 private fun computeTypeSafeProjectDependencies(
   project: GradlePath,
-  buildscriptContents: String,
-  rules: Set<ImplicitDependencyRule>,
+  buildscriptContents: List<String>,
+  rules: Set<DependencyRule>,
 ): Set<GradlePath> {
   val rule = rules.filterIsInstance<TypeSafeProjectAccessorRule>().firstOrNull()
 
   // TypeSafeAccessorInference.DISABLED behavior
   if (rule == null) return emptySet()
 
-  return TYPESAFE_PROJECT_DEP_PATTERN.findAll(buildscriptContents)
+  return buildscriptContents.mapNotNull { TYPESAFE_PROJECT_DEP_PATTERN.find(it) }
     .map { matchResult ->
       val (_, typeSafeAccessor) = matchResult.destructured
       val cleanTypeSafeAccessor = typeSafeAccessor.removeTypeSafeAccessorJunk(rule.rootProjectAccessor)
@@ -82,15 +84,15 @@ private fun computeTypeSafeProjectDependencies(
  */
 private fun computeImplicitDependencies(
   project: GradlePath,
-  buildscriptContents: String,
-  rules: Set<ImplicitDependencyRule>,
+  buildscriptContents: List<String>,
+  rules: Set<DependencyRule>,
 ): Set<GradlePath> {
   return rules
+    .filterIsInstance<ImplicitDependencyRule>()
     .filter { rule ->
       when (rule) {
-        is BuildscriptMatchRule -> rule.pattern.find(buildscriptContents) != null
-        is ProjectPathMatchRule -> rule.pattern.matches(project.path)
-        is TypeSafeProjectAccessorRule -> true
+        is BuildscriptMatchRule -> buildscriptContents.any { rule.regex.containsMatchIn(it) }
+        is ProjectPathMatchRule -> rule.regex.containsMatchIn(project.path)
       }
     }
     .flatMapTo(mutableSetOf()) { rule -> rule.includedProjects }

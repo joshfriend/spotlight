@@ -2,9 +2,10 @@ package com.fueledbycaffeine.spotlight
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
+import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.TypeSafeProjectAccessorRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
 import com.fueledbycaffeine.spotlight.dsl.TypeSafeAccessorInference
@@ -114,9 +115,9 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
       }
       val rootProjectTypeSafeAccessor = GradlePath(rootDir.toPath(), settings.rootProject.name).typeSafeAccessorName
       val typeSafeAccessorRule = TypeSafeProjectAccessorRule(rootProjectTypeSafeAccessor, typeSafeProjectAccessorMap)
-      options.rules + typeSafeAccessorRule
+      getSpotlightRules() + typeSafeAccessorRule
     } else {
-      options.rules
+      getSpotlightRules()
     }
 
     val bfsResults = measureTimedValue { BreadthFirstSearch.flatten(targets, rules) }
@@ -126,6 +127,7 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
     return targets + transitives
   }
 
-  private fun Settings.getAllProjects() = SpotlightProjectList.allProjects(rootDir.toPath()).read()
-  private fun Settings.getIdeProjects() = SpotlightProjectList.ideProjects(rootDir.toPath()).read()
+  private fun Settings.getAllProjects() = SpotlightProjectList.allProjects(settingsDir.toPath()).read()
+  private fun Settings.getIdeProjects() = SpotlightProjectList.ideProjects(settingsDir.toPath()).read()
+  private fun Settings.getSpotlightRules() = SpotlightRulesList(settingsDir.toPath()).read()
 }

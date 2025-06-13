@@ -1,7 +1,5 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
-import java.io.File
-import java.io.FileNotFoundException
 import java.nio.file.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.notExists

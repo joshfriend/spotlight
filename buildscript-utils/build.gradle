@@ -42,6 +42,10 @@ mavenPublishing {
 }
 
 dependencies {
+  api(libs.moshix.sealedRuntime)
+  implementation(libs.moshi.kotlin)
+  implementation(libs.moshix.sealedReflect)
+
   testImplementation gradleApi()
   testImplementation libs.assertk
   testImplementation platform(libs.junit.platform)

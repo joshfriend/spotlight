@@ -1,7 +1,7 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
+import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.GraphNode
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.GradlePathInternal
 import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.ccHiddenIsDirectory
 import java.io.File
@@ -100,7 +100,7 @@ public data class GradlePath(
       .mapTo(mutableSetOf()) { it.parent.gradlePathRelativeTo(root) }
   }
 
-  public override fun findSuccessors(rules: Set<ImplicitDependencyRule>): Set<GradlePath> {
+  public override fun findSuccessors(rules: Set<DependencyRule>): Set<GradlePath> {
     return BuildFile(this).parseDependencies(rules)
   }
 }
