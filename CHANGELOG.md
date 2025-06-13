@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.0
+* Move implicit rules config to `gradle/spotlight-rules.json`
+* Improve compatibility with composite builds
+* Ensure configuration cache can be invalidated for `-p` invocations when projects are added or removed
+
 ### 0.9
 * Add `SpotlightBuildService` to provide info about included projects to other build logic
 * Fix strings in buildscripts containing "projects." were being parsed as type-safe project accessors
