@@ -1,0 +1,104 @@
+import com.vanniktech.maven.publish.JavaLibrary
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.SonatypeHost
+
+plugins {
+  id 'application'
+  id 'org.jetbrains.kotlin.jvm'
+  id 'com.github.johnrengelman.shadow'
+  id 'com.vanniktech.maven.publish.base'
+}
+
+group = 'com.fueledbycaffeine.spotlight'
+version = '0.9-SNAPSHOT'
+
+mavenPublishing {
+  publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
+  signAllPublications()
+
+  // Skip javadoc and sources jar publication
+  configure(new JavaLibrary(new JavadocJar.None(), false))
+
+  pom {
+    name = "Spotlight CLI"
+    description = "Command-line interface for Spotlight"
+    inceptionYear = "2025"
+    url = "https://github.com/joshfriend/spotlight/"
+    licenses {
+      license {
+        name = "MIT License"
+        url = "https://choosealicense.com/licenses/mit/"
+        distribution = "https://choosealicense.com/licenses/mit/"
+      }
+    }
+    developers {
+      developer {
+        id = "joshfriend"
+        name = "Josh Friend"
+        url = "https://github.com/joshfriend/"
+      }
+    }
+    scm {
+      url = "https://github.com/joshfriend/spotlight/"
+      connection = "scm:git:git://github.com/joshfriend/spotlight.git"
+      developerConnection = "scm:git:ssh://git@github.com/joshfriend/spotlight.git"
+    }
+  }
+}
+
+dependencies {
+  implementation project(':buildscript-utils')
+  implementation libs.picocli
+  implementation libs.microutils.logging
+  runtimeOnly libs.slf4j.simple
+}
+
+application {
+  mainClass = 'com.fueledbycaffeine.spotlight.cli.SpotlightCli'
+}
+
+run {
+  workingDir = rootProject.projectDir
+}
+
+// Reproducible builds
+tasks.withType(AbstractArchiveTask).configureEach {
+  archiveBaseName = project.name
+  preserveFileTimestamps = false
+  reproducibleFileOrder = true
+}
+
+// Configure Shadow plugin to create fat jar
+shadowJar {
+  archiveClassifier.set('')
+  mergeServiceFiles()
+  minimize {
+    exclude(dependency("org.slf4j:.*:.*"))
+  }
+  exclude '**/*.kotlin_metadata'
+  exclude '**/*.kotlin_module'
+  exclude 'META-INF/maven/**'
+}
+
+tasks.withType(CreateStartScripts).configureEach {
+  applicationName = "spotlight"
+  classpath = files(shadowJar)
+}
+
+// GMM is not useful in this case and trying to generate it throws errors
+// because the publication component was changed to a zip file.
+tasks.withType(GenerateModuleMetadata).configureEach {
+  enabled = false
+}
+
+publishing {
+  publications {
+    maven {
+      artifacts.clear()
+      artifact(tasks.named('shadowDistZip')) {
+        classifier = null
+        extension = 'zip'
+      }
+    }
+  }
+}
