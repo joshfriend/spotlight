@@ -17,7 +17,10 @@ import kotlin.io.path.relativeTo
 public const val GRADLE_PATH_SEP: String = ":"
 public const val GRADLE_SCRIPT: String = "build.gradle"
 public const val GRADLE_SCRIPT_KOTLIN: String = "build.gradle.kts"
+public const val SETTINGS_SCRIPT: String = "settings.gradle"
+public const val SETTINGS_SCRIPT_KOTLIN: String = "settings.gradle.kts"
 public val BUILDSCRIPTS: List<String> = listOf(GRADLE_SCRIPT, GRADLE_SCRIPT_KOTLIN)
+public val SETTINGS_SCRIPTS: List<String> = listOf(SETTINGS_SCRIPT, SETTINGS_SCRIPT_KOTLIN)
 private val SRC_AND_BUILD_DIRS = listOf("build", "src", "src-gen")
 
 public data class GradlePath(
@@ -38,6 +41,11 @@ public data class GradlePath(
    * Indicates if this project path has either a build.gradle or a build.gradle.kts script
    */
   public val hasBuildFile: Boolean get() = GradlePathInternal.hasBuildFile(this)
+
+  /**
+   * Indicates if this project path has either a settings.gradle or a settings.gradle.kts script
+   */
+  public val hasSettingsFile: Boolean get() = GradlePathInternal.hasSettingsFile(this)
 
   /**
    * The buildscript [Path] for this Gradle path.
@@ -65,6 +73,24 @@ public data class GradlePath(
       }
 
   public val isRootProject: Boolean get() = path == GRADLE_PATH_SEP
+
+  /**
+   * Returns the parent gradle project path, or null if this is the root project
+   */
+  public val parent: GradlePath? get() {
+    val parentPath = path.substringBeforeLast(GRADLE_PATH_SEP, missingDelimiterValue = "")
+      .takeIf { it.isNotBlank() } ?: GRADLE_PATH_SEP
+    return when {
+      isRootProject -> null
+      else -> GradlePath(root, parentPath)
+    }
+  }
+
+  public val isFromMainBuild: Boolean get() {
+    val firstParentWithSettings = generateSequence(this) { it.parent }
+      .first { it.hasSettingsFile }
+    return firstParentWithSettings.isRootProject
+  }
 
   /**
    * Recursively walk the directory for this project and find all the child projects.

@@ -1,12 +1,7 @@
 package com.fueledbycaffeine.spotlight.buildscript.graph
 
-import assertk.assertAll
 import assertk.assertThat
-import assertk.assertions.contains
-import assertk.assertions.containsExactlyInAnyOrder
-import assertk.assertions.each
-import assertk.assertions.isEqualTo
-import assertk.assertions.isNotNull
+import assertk.assertions.*
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import org.gradle.internal.scripts.ScriptingLanguages
@@ -18,11 +13,8 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.io.FileNotFoundException
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
-import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
-import kotlin.io.path.createParentDirectories
 import kotlin.io.path.writeText
-import kotlin.math.exp
 
 class GradlePathTest {
   @TempDir lateinit var buildRoot: Path
@@ -35,11 +27,19 @@ class GradlePathTest {
 
   @ParameterizedTest
   @ValueSource(strings = [".gradle", ".gradle.kts"])
-  fun `can find the groovy buildscript`(extension: String) {
+  fun `can find the buildscript`(extension: String) {
     val gradlePath = GradlePath(buildRoot, ":foo:bar")
     val projectDir = buildRoot.resolve("foo/bar")
     val buildScriptPath = projectDir.createBuildFile(extension)
     assertThat(gradlePath.buildFilePath).equals(buildScriptPath)
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = [".gradle", ".gradle.kts"])
+  fun `can find the settings script`(extension: String) {
+    val gradlePath = GradlePath(buildRoot, ":")
+    buildRoot.createSettingsFile(extension)
+    assertThat(gradlePath.hasSettingsFile).isTrue()
   }
 
   @Test fun `can find the dominant buildscript`() {
@@ -98,9 +98,40 @@ class GradlePathTest {
     }
   }
 
+  @Test fun `can get parent path`() {
+    val fooBar = GradlePath(buildRoot, ":foo:bar")
+    val foo = GradlePath(buildRoot, ":foo")
+    val root = GradlePath(buildRoot, ":")
+    assertThat(fooBar.parent).isEqualTo(foo)
+    assertThat(foo.parent).isEqualTo(root)
+    assertThat(root.parent).isNull()
+  }
+
+  @Test fun `can tell if it is root project`() {
+    val foo = GradlePath(buildRoot, ":foo")
+    val root = GradlePath(buildRoot, ":")
+    assertThat(foo.isRootProject).isFalse()
+    assertThat(root.isRootProject).isTrue()
+  }
+
+  @Test fun `can tell if it is from included build`() {
+    val buildLogic = GradlePath(buildRoot, ":build-logic")
+    buildLogic.projectDir.createSettingsFile()
+    val foo = GradlePath(buildRoot, ":foo")
+    val root = GradlePath(buildRoot, ":")
+    root.projectDir.createSettingsFile()
+    assertThat(foo.isFromMainBuild).isTrue()
+    assertThat(root.isFromMainBuild).isTrue()
+    assertThat(buildLogic.isFromMainBuild).isFalse()
+  }
+
   private fun Path.createBuildFile(extension: String = ".gradle"): Path {
-    this.createParentDirectories()
-    this.createDirectory()
+    this.createDirectories()
     return this.resolve("build$extension").apply { createFile() }
+  }
+
+  private fun Path.createSettingsFile(extension: String = ".gradle"): Path {
+    this.createDirectories()
+    return this.resolve("settings$extension").apply { createFile() }
   }
 }

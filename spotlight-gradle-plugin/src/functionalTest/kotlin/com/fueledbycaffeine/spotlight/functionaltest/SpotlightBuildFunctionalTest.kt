@@ -276,6 +276,28 @@ class SpotlightBuildFunctionalTest {
   }
 
   @Test
+  fun `can run task from an included build`() {
+    // Given
+    val project = SpiritboxProject().build()
+
+    // When
+    val result = project.build(":included-build:assemble")
+
+    // Then
+    assertThat(result).task(":included-build:assemble").succeeded()
+    val includedProjects = result.includedProjects()
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+    ))
+  }
+
+  @Test
   fun `can run a task with set of target overrides`() {
     // Given
     val project = SpiritboxProject().build()

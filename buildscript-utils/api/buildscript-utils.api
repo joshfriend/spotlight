@@ -36,11 +36,14 @@ public final class com/fueledbycaffeine/spotlight/buildscript/GradlePath : com/f
 	public fun findSuccessors (Ljava/util/Set;)Ljava/util/Set;
 	public final fun getBuildFilePath ()Ljava/nio/file/Path;
 	public final fun getHasBuildFile ()Z
+	public final fun getHasSettingsFile ()Z
+	public final fun getParent ()Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;
 	public final fun getPath ()Ljava/lang/String;
 	public final fun getProjectDir ()Ljava/nio/file/Path;
 	public final fun getRoot ()Ljava/nio/file/Path;
 	public final fun getTypeSafeAccessorName ()Ljava/lang/String;
 	public fun hashCode ()I
+	public final fun isFromMainBuild ()Z
 	public final fun isRootProject ()Z
 	public fun toString ()Ljava/lang/String;
 }
@@ -49,7 +52,10 @@ public final class com/fueledbycaffeine/spotlight/buildscript/GradlePathKt {
 	public static final field GRADLE_PATH_SEP Ljava/lang/String;
 	public static final field GRADLE_SCRIPT Ljava/lang/String;
 	public static final field GRADLE_SCRIPT_KOTLIN Ljava/lang/String;
+	public static final field SETTINGS_SCRIPT Ljava/lang/String;
+	public static final field SETTINGS_SCRIPT_KOTLIN Ljava/lang/String;
 	public static final fun getBUILDSCRIPTS ()Ljava/util/List;
+	public static final fun getSETTINGS_SCRIPTS ()Ljava/util/List;
 	public static final fun gradlePathRelativeTo (Ljava/io/File;Ljava/io/File;)Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;
 	public static final fun gradlePathRelativeTo (Ljava/nio/file/Path;Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;
 }
