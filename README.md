@@ -67,13 +67,13 @@ A config file option is provided to configure some pattern matching rules based 
   {
     "type": "project-path-match-rule",
     "pattern": ":rotoscope:.*",
-    "alsoInclude": [":tsunami-sea"]
+    "includedProjects": [":tsunami-sea"]
   },
   // Add :eternal-blue to any project applying the `com.example.android` convention plugin
   {
     "type": "buildscript-match-rule",
     "pattern": "id 'com.example.android'",
-    "alsoInclude": [
+    "includedProjects": [
       ":eternal-blue",
       ":singles-collection" // multiple includes can be given for a pattern
     ]
