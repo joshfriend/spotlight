@@ -4,7 +4,7 @@ import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.squareup.moshi.JsonClass
 import dev.zacsweers.moshix.sealed.annotations.TypeLabel
 
-public interface DependencyRule
+public sealed interface DependencyRule
 
 @JsonClass(generateAdapter = false, generator = "sealed:type")
 public sealed interface ImplicitDependencyRule : DependencyRule {
@@ -27,12 +27,29 @@ public sealed interface ImplicitDependencyRule : DependencyRule {
   }
 }
 
-public data class TypeSafeProjectAccessorRule(
+public sealed interface TypeSafeProjectAccessorRule : DependencyRule {
   /**
-   * Gradle generates an accessor for the root project based on the root project name. Projects in the build are also
-   * accessible via this accessor. For example `projects.buildscriptUtils` and `projects.spotlight.buildscriptUtils`
-   * are both valid for a project named "spotlight".
+   * Gradle generates an accessor for the root project based on the root project name. Projects in
+   * the build are also accessible via this accessor. For example `projects.buildscriptUtils` and
+   * `projects.spotlight.buildscriptUtils` are both valid for a project named "spotlight".
    */
-  val rootProjectAccessor: String,
-  val typeSafeAccessorMap: Map<String, GradlePath>? = null,
-) : DependencyRule
+  public val rootProjectAccessor: String
+}
+
+/**
+ * Makes no assumptions about project path naming.
+ */
+public data class FullModeTypeSafeProjectAccessorRule(
+  override val rootProjectAccessor: String,
+  /**
+   * Specifies the mapping of accessor name to the gradle path.
+   */
+  val typeSafeAccessorMap: Map<String, GradlePath>,
+) : TypeSafeProjectAccessorRule
+
+/**
+ * Assumes that project paths are lowercase and kebab-case
+ */
+public data class StrictModeTypeSafeProjectAccessorRule(
+  override val rootProjectAccessor: String,
+) : TypeSafeProjectAccessorRule
