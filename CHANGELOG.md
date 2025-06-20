@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.1
+* Fix `STRICT` mode type-safe accessor mode not matching any projects
+
 ### 1.0
 * Move implicit rules config to `gradle/spotlight-rules.json`
 * Improve compatibility with composite builds
