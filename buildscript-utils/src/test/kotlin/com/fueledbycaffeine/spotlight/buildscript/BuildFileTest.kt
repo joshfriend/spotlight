@@ -4,13 +4,14 @@ import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEmpty
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.FullModeTypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.*
-import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
-import java.io.FileNotFoundException
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
@@ -57,7 +58,35 @@ class BuildFileTest {
     )
   }
 
-  @Test fun `reads known type-safe project accessor dependencies`() {
+  @Test fun `reads known type-safe project accessor dependencies in full mode`() {
+    val project = buildRoot.createProject(":foo")
+    // A project path which does not conform to the default expected naming of lowercase kebab
+    val typeSafeProject1 = buildRoot.createProject(":type-safe:a-B_c_d_E")
+    val typeSafeProject2 = buildRoot.createProject(":type-safe:project-2")
+    val typeSafeProjectC = buildRoot.createProject(":type-safe:project-c")
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.typeSafe.aBCDE
+        implementation projects.typeSafe.project2 // reason
+        implementation(projects.typeSafe.projectC) {
+          exclude group: 'com.example'
+        }
+        // implementation projects.typeSafe.projectD
+      }
+      """.trimIndent()
+    )
+    val buildFile = BuildFile(project)
+    val accessorMap = mapOf(
+      "typeSafe.aBCDE" to typeSafeProject1,
+      "typeSafe.project2" to typeSafeProject2,
+      "typeSafe.projectC" to typeSafeProjectC,
+    )
+    val rule = FullModeTypeSafeProjectAccessorRule("spotlight", accessorMap)
+    assertThat(buildFile.parseDependencies(setOf(rule)))
+      .containsExactlyInAnyOrder(typeSafeProject1, typeSafeProject2, typeSafeProjectC)
+  }
+
+  @Test fun `reads type-safe project accessor dependencies in strict mode`() {
     val project = buildRoot.createProject(":foo")
     val typeSafeProjectA = buildRoot.createProject(":type-safe:project-a")
     val typeSafeProjectB = buildRoot.createProject(":type-safe:project-b")
@@ -74,17 +103,12 @@ class BuildFileTest {
       """.trimIndent()
     )
     val buildFile = BuildFile(project)
-    val accessorMap = mapOf(
-      "typeSafe.projectA" to typeSafeProjectA,
-      "typeSafe.projectB" to typeSafeProjectB,
-      "typeSafe.projectC" to typeSafeProjectC,
-    )
-    val rule = TypeSafeProjectAccessorRule("spotlight", accessorMap)
+    val rule = StrictModeTypeSafeProjectAccessorRule("spotlight")
     assertThat(buildFile.parseDependencies(setOf(rule)))
       .containsExactlyInAnyOrder(typeSafeProjectA, typeSafeProjectB, typeSafeProjectC)
   }
 
-  @Test fun `reads type-safe project accessor dependencies that use explicit root project`() {
+  @Test fun `reads type-safe project accessor dependencies that use explicit root project in full mode`() {
     val project = buildRoot.createProject(":foo")
     val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
     typeSafeProject.projectDir.createDirectories()
@@ -96,7 +120,24 @@ class BuildFileTest {
       """.trimIndent()
     )
     val buildFile = BuildFile(project)
-    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    val rule = FullModeTypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    assertThat(buildFile.parseDependencies(setOf(rule)))
+      .containsExactlyInAnyOrder(typeSafeProject)
+  }
+
+  @Test fun `reads type-safe project accessor dependencies that use explicit root project in strict mode`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
+    typeSafeProject.projectDir.createDirectories()
+    typeSafeProject.projectDir.resolve("build.gradle").createFile()
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.spotlight.typeSafe.project
+      }
+      """.trimIndent()
+    )
+    val buildFile = BuildFile(project)
+    val rule = StrictModeTypeSafeProjectAccessorRule("spotlight")
     assertThat(buildFile.parseDependencies(setOf(rule)))
       .containsExactlyInAnyOrder(typeSafeProject)
   }
@@ -113,13 +154,14 @@ class BuildFileTest {
       """.trimIndent()
     )
     val buildFile = BuildFile(project)
-    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    val rule = FullModeTypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
     assertThat(buildFile.parseDependencies(setOf(rule)))
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
   @Test fun `throws error when type-safe accessor is unknown if full inference enabled`() {
     val project = buildRoot.createProject(":foo")
+    val typeSafeProjectA = buildRoot.createProject(":type-safe:project-a")
     project.buildFilePath.writeText("""
       dependencies {
         implementation projects.typeSafe.project
@@ -127,8 +169,11 @@ class BuildFileTest {
       """.trimIndent()
     )
     val buildFile = BuildFile(project)
-    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf())
-    assertThrows<FileNotFoundException> {
+    val accessorMap = mapOf(
+      "typeSafe.projectA" to typeSafeProjectA,
+    )
+    val rule = FullModeTypeSafeProjectAccessorRule("spotlight", accessorMap)
+    assertThrows<NoSuchElementException> {
       buildFile.parseDependencies(setOf(rule))
     }
   }
@@ -142,7 +187,7 @@ class BuildFileTest {
       """.trimIndent()
     )
     val buildFile = BuildFile(project)
-    val rule = TypeSafeProjectAccessorRule("spotlight", null)
+    val rule = StrictModeTypeSafeProjectAccessorRule("spotlight")
     val dependencies = buildFile.parseDependencies(setOf(rule))
     assertThat(dependencies).containsExactlyInAnyOrder(GradlePath(buildRoot, ":type-safe:project"))
   }
@@ -242,7 +287,7 @@ class BuildFileTest {
       """.trimIndent()
     )
     val buildFile = BuildFile(project)
-    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    val rule = FullModeTypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
     assertThat(buildFile.parseDependencies(setOf(rule)))
       .containsExactlyInAnyOrder(typeSafeProject)
   }
@@ -259,7 +304,7 @@ class BuildFileTest {
       """.trimIndent()
     )
     val buildFile = BuildFile(project)
-    val rule = TypeSafeProjectAccessorRule("spotlight", null)
+    val rule = StrictModeTypeSafeProjectAccessorRule("spotlight")
     assertThat(buildFile.parseDependencies(setOf(rule))).isEmpty()
   }
 
@@ -275,7 +320,7 @@ class BuildFileTest {
       """.trimIndent()
     )
     val buildFile = BuildFile(project)
-    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    val rule = FullModeTypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
     assertThat(buildFile.parseDependencies(setOf(rule)))
       .containsExactlyInAnyOrder(typeSafeProject)
   }

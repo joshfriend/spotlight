@@ -115,6 +115,19 @@ public final class com/fueledbycaffeine/spotlight/buildscript/graph/Edge {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/fueledbycaffeine/spotlight/buildscript/graph/FullModeTypeSafeProjectAccessorRule : com/fueledbycaffeine/spotlight/buildscript/graph/TypeSafeProjectAccessorRule {
+	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/util/Map;
+	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/FullModeTypeSafeProjectAccessorRule;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/FullModeTypeSafeProjectAccessorRule;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/FullModeTypeSafeProjectAccessorRule;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getRootProjectAccessor ()Ljava/lang/String;
+	public final fun getTypeSafeAccessorMap ()Ljava/util/Map;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public abstract class com/fueledbycaffeine/spotlight/buildscript/graph/Graph {
 	public fun <init> ()V
 	public final fun accessorsOf (Lcom/fueledbycaffeine/spotlight/buildscript/graph/GraphNode;)Ljava/util/Set;
@@ -157,17 +170,18 @@ public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDepe
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class com/fueledbycaffeine/spotlight/buildscript/graph/TypeSafeProjectAccessorRule : com/fueledbycaffeine/spotlight/buildscript/graph/DependencyRule {
-	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class com/fueledbycaffeine/spotlight/buildscript/graph/StrictModeTypeSafeProjectAccessorRule : com/fueledbycaffeine/spotlight/buildscript/graph/TypeSafeProjectAccessorRule {
+	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/util/Map;
-	public final fun copy (Ljava/lang/String;Ljava/util/Map;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/TypeSafeProjectAccessorRule;
-	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/TypeSafeProjectAccessorRule;Ljava/lang/String;Ljava/util/Map;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/TypeSafeProjectAccessorRule;
+	public final fun copy (Ljava/lang/String;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/StrictModeTypeSafeProjectAccessorRule;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/StrictModeTypeSafeProjectAccessorRule;Ljava/lang/String;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/StrictModeTypeSafeProjectAccessorRule;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getRootProjectAccessor ()Ljava/lang/String;
-	public final fun getTypeSafeAccessorMap ()Ljava/util/Map;
+	public fun getRootProjectAccessor ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/fueledbycaffeine/spotlight/buildscript/graph/TypeSafeProjectAccessorRule : com/fueledbycaffeine/spotlight/buildscript/graph/DependencyRule {
+	public abstract fun getRootProjectAccessor ()Ljava/lang/String;
 }
 

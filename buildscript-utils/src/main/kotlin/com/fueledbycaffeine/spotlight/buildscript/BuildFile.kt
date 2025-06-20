@@ -1,12 +1,13 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.FullModeTypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.ccHiddenReadLines
-import java.io.FileNotFoundException
 
 public data class BuildFile(public val project: GradlePath) {
   public fun parseDependencies(
@@ -65,15 +66,18 @@ private fun computeTypeSafeProjectDependencies(
     .map { matchResult ->
       val (_, typeSafeAccessor) = matchResult.destructured
       val cleanTypeSafeAccessor = typeSafeAccessor.removeTypeSafeAccessorJunk(rule.rootProjectAccessor)
-      if (rule.typeSafeAccessorMap != null) {
-        // TypeSafeAccessorInference.FULL behavior
-        rule.typeSafeAccessorMap[cleanTypeSafeAccessor] ?: throw FileNotFoundException(
-          "Could not find project buildscript for type-safe project accessor \"$typeSafeAccessor\" " +
-            "referenced by ${project.path}"
-        )
-      } else {
-        // TypeSafeAccessorInference.STRICT behavior
-        GradlePath(project.root, cleanTypeSafeAccessor.typeSafeAccessorAsDefaultGradlePath())
+      when (rule) {
+        is FullModeTypeSafeProjectAccessorRule -> {
+          // TypeSafeAccessorInference.FULL behavior
+          rule.typeSafeAccessorMap[cleanTypeSafeAccessor] ?: throw NoSuchElementException(
+            "Could not find project mapping for type-safe project accessor \"$typeSafeAccessor\" " +
+              "referenced by ${project.path}"
+          )
+        }
+        is StrictModeTypeSafeProjectAccessorRule -> {
+          // TypeSafeAccessorInference.STRICT behavior
+          GradlePath(project.root, cleanTypeSafeAccessor.typeSafeAccessorAsDefaultGradlePath())
+        }
       }
     }
     .toSet()
