@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.2.0
+* Fix mistaking gradle APIs like `subprojects` for type-safe project accessors
+* Fix `DependencyHandler` wrappers like `platform` and `testFixtures` breaking parsing
+* Add an extra decimal
+
 ### 1.1
 * Fix `STRICT` mode type-safe accessor mode not matching any projects
 
