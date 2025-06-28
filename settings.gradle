@@ -49,6 +49,14 @@ develocity {
 
 rootProject.name = 'spotlight'
 
-include ':spotlight-gradle-plugin'
-include ':spotlight-idea-plugin'
 include ':buildscript-utils'
+include ':spotlight-gradle-plugin'
+
+// only include the IDE plugin for sync, or if it was requested via flag for builds
+def buildIdePlugin = providers.gradleProperty("buildIdePlugin")
+  .getOrElse("false").toBoolean()
+def isSync = providers.systemProperty("idea.sync.active")
+  .getOrElse("false").toBoolean()
+if (buildIdePlugin || isSync) {
+  include ':spotlight-idea-plugin'
+}
