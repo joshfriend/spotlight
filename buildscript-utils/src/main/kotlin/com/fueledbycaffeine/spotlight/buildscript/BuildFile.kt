@@ -15,8 +15,8 @@ public data class BuildFile(public val project: GradlePath) {
   ): Set<GradlePath> = parseBuildFile(project, rules)
 }
 
-private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+project\\([\"'](.*)[\"']\\)")
-private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("^(?!\\s*//)(?:(?![\"']).)*?(?:^|\\W)(\\w+)?\\(?\\s*(projects\\.[\\w.]+)")
+private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+(?:\\w+\\()*project\\([\"'](.*)[\"']\\)+")
+private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("^(?!\\s*//)(?:(?![\"']).)*?(?:^|\\b|\\s)(\\w+)?\\(?\\s*(\\bprojects\\.[\\w.]+)")
 private val CAMELCASE_REPLACE_PATTERN = Regex("(?<=.)[A-Z]")
 
 internal fun String.typeSafeAccessorAsDefaultGradlePath(): String {

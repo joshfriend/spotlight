@@ -308,6 +308,28 @@ class BuildFileTest {
     assertThat(buildFile.parseDependencies(setOf(rule))).isEmpty()
   }
 
+  @Test fun `type-safe accessor support ignores projects as part of compound words like subprojects`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProjectA = buildRoot.createProject(":type-safe:project-a")
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.typeSafe.projectA
+      }
+
+      tasks.named("foo") {
+        val allTestTasks = rootProject.subprojects.mapNotNull { it.tasks.findByPath("test") }
+        mustRunAfter(allTestTasks)
+      }
+      """.trimIndent()
+    )
+    val buildFile = BuildFile(project)
+    val rule = StrictModeTypeSafeProjectAccessorRule("spotlight")
+
+    // Should only find the legitimate typeSafe.projectA reference, not the compound words
+    assertThat(buildFile.parseDependencies(setOf(rule)))
+      .containsExactlyInAnyOrder(typeSafeProjectA)
+  }
+
   @Test fun `ignores type-safe project accessor's trailing path API`() {
     val project = buildRoot.createProject(":foo")
     val typeSafeProject = GradlePath(buildRoot, ":type-safe:project")
@@ -345,6 +367,37 @@ class BuildFileTest {
         GradlePath(buildRoot, ":foo"),
         GradlePath(buildRoot, ":foo:bar"),
       )
+  }
+
+  @Test fun `reads dependencies inside any wrapper functions`() {
+    val project = buildRoot.createProject(":foo")
+    project.buildFilePath.writeText("""
+      dependencies {
+        // Common DependencyHandler "wrappers"
+        implementation(platform(project(":platform:bom")))
+        implementation(enforcedPlatform(project(":enforced:platform")))
+        testImplementation(testFixtures(project(":test:fixtures")))
+
+        // With spaces (groovy)
+        implementation platform(project(":platform:bom2"))
+        testImplementation testFixtures(project(":test:fixtures2"))
+
+        // Deep nesting, not sure how this would happen, but just in case!
+        implementation(first(second(third(project(":deeply:nested")))))
+      }
+      """.trimIndent()
+    )
+
+    val buildFile = BuildFile(project)
+
+    assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(
+      GradlePath(buildRoot, ":platform:bom"),
+      GradlePath(buildRoot, ":enforced:platform"),
+      GradlePath(buildRoot, ":test:fixtures"),
+      GradlePath(buildRoot, ":platform:bom2"),
+      GradlePath(buildRoot, ":test:fixtures2"),
+      GradlePath(buildRoot, ":deeply:nested")
+    )
   }
 
   private fun Path.createProject(path: String, extension: String = ".gradle"): GradlePath {
