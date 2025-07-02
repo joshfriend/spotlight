@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.2.1
+* Removed slow sync warning
+
 ### 1.2.0
 * Fix mistaking gradle APIs like `subprojects` for type-safe project accessors
 * Fix `DependencyHandler` wrappers like `platform` and `testFixtures` breaking parsing
