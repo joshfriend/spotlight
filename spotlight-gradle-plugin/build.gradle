@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.fueledbycaffeine.spotlight"
-version = '1.2.1'
+version = '1.2.2-SNAPSHOT'
 
 gradlePlugin {
   vcsUrl = "https://github.com/joshfriend/spotlight"
