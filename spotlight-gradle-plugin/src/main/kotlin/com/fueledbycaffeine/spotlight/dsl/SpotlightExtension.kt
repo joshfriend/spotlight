@@ -4,10 +4,10 @@ import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
 import org.gradle.api.UnknownDomainObjectException
+import org.gradle.api.file.BuildLayout
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Property
-import org.gradle.api.file.BuildLayout
 import javax.inject.Inject
 
 /**
@@ -49,7 +49,7 @@ public abstract class SpotlightExtension @Inject constructor(
    * This is useful for gradle-profiler scenarios where generating the IDE target projects list is not possible or for
    * running a task on a specific subset of projects without fully specifying the task path of each task.
    *
-   * ```
+   * ``` kotlin
    * def targetProjects = providers.gradleProperty("target-projects")
    *
    * spotlight {
@@ -60,11 +60,10 @@ public abstract class SpotlightExtension @Inject constructor(
   public val targetsOverride: Property<String> =
     objects.property(String::class.java).unsetConvention()
 
-  internal val targetPathsOverride: Set<GradlePath>?
-    get() = when (targetsOverride.isPresent) {
-      true -> targetsOverride.get().split(",\n")
-        .map { GradlePath(layout.rootDirectory.asFile, it.trim()) }
-        .toSet()
-      else -> null
-    }
+  internal val targetPathsOverride: Set<GradlePath>
+    get() = targetsOverride.getOrElse("").orEmpty()
+      .split(",", System.lineSeparator())
+      .filterNot { it.isEmpty() }
+      .map { GradlePath(layout.rootDirectory.asFile, it.trim()) }
+      .toSet()
 }

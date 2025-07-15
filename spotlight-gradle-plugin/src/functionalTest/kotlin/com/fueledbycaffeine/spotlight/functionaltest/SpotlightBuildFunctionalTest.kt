@@ -331,6 +331,67 @@ class SpotlightBuildFunctionalTest {
   }
 
   @Test
+  fun `empty target overrides runs all projects`() {
+    // Given
+    val project = SpiritboxProject().build()
+    val settings = project.rootDir.resolve("settings.gradle")
+    settings.appendText(
+      """
+      def targetProjects = providers.gradleProperty("target-projects")
+      spotlight {
+        targetsOverride = targetProjects
+      }
+    """.trimIndent()
+    )
+
+    // When
+    val result = project.build("assemble", "-Ptarget-projects=")
+
+    // Then
+    assertThat(result).task(":rotoscope:assemble").succeeded()
+    val includedProjects = result.includedProjects()
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":eternal-blue",
+      ":rotoscope",
+      ":the-fear-of-fear",
+      ":tsunami-sea",
+      ":eternal-blue:circle-with-me",
+      ":eternal-blue:constance",
+      ":eternal-blue:eternal-blue",
+      ":eternal-blue:halcyon",
+      ":eternal-blue:holy-roller",
+      ":eternal-blue:hurt-you",
+      ":eternal-blue:secret-garden",
+      ":eternal-blue:silk-in-the-strings",
+      ":eternal-blue:sun-killer",
+      ":eternal-blue:the-summit",
+      ":eternal-blue:we-live-in-a-strange-world",
+      ":eternal-blue:yellowjacket",
+      ":rotoscope:hysteria",
+      ":rotoscope:rotoscope",
+      ":rotoscope:sew-me-up",
+      ":the-fear-of-fear:angel-eyes",
+      ":the-fear-of-fear:cellar-door",
+      ":the-fear-of-fear:jaded",
+      ":the-fear-of-fear:the-void",
+      ":the-fear-of-fear:too-close-too-late",
+      ":the-fear-of-fear:ultraviolet",
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result.ccReport()
+
+    assertThat(ccReport.inputs).containsExactlyElementsIn(
+      listOf(
+        CCDiagnostic.Input(type = "system property", name = "spotlight.enabled"),
+        CCDiagnostic.Input(type = "system property", name = "idea.sync.active"),
+        CCDiagnostic.Input(type = "file system entry", name = "gradle/all-projects.txt"),
+        CCDiagnostic.Input(type = "file", name = "gradle/all-projects.txt"),
+      )
+    )
+  }
+
+  @Test
   fun `invalidates configuration cache when adding a project to directory`() {
     // Given
     val project = SpiritboxProject().build()

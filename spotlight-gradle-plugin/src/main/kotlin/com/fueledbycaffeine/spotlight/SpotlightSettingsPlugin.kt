@@ -50,7 +50,7 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
 
   private fun Settings.setupSpotlight() {
     val projectsOverride = options.targetPathsOverride
-    val projects = if (projectsOverride != null) {
+    val projects = if (projectsOverride.isNotEmpty()) {
       logger.info("spotlight.targetsOverride contains {} targets", projectsOverride.size)
       implicitAndTransitiveDependenciesOf(projectsOverride)
     } else {
