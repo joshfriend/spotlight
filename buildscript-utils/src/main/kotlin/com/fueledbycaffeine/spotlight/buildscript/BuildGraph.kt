@@ -5,20 +5,20 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.Graph
 
 public class BuildGraph private constructor(
-  private val allProjects: Set<GradlePath>,
+  private val projects: Set<GradlePath>,
   private val rules: Set<DependencyRule> = emptySet(),
 ): Graph<GradlePath>() {
-  internal companion object {
+  public companion object {
     @JvmStatic
-    fun create(
-      allProjects: Set<GradlePath>,
+    public fun create(
+      projects: Set<GradlePath>,
       rules: Set<DependencyRule> = emptySet(),
     ): BuildGraph {
-      return BuildGraph(allProjects, rules)
+      return BuildGraph(projects, rules)
     }
 
     @JvmStatic
-    fun createFromNode(
+    public fun create(
       node: GradlePath,
       rules: Set<DependencyRule> = emptySet(),
     ): BuildGraph {
@@ -26,8 +26,5 @@ public class BuildGraph private constructor(
     }
   }
 
-  override val dependencyMap: Map<GradlePath, Set<GradlePath>> by lazy { BreadthFirstSearch.run(allProjects, rules) }
+  override val dependencyMap: Map<GradlePath, Set<GradlePath>> by lazy { BreadthFirstSearch.run(projects, rules) }
 }
-
-public fun GradlePath.buildGraph(rules: Set<DependencyRule> = emptySet()): BuildGraph =
-  BuildGraph.createFromNode(this, rules)
