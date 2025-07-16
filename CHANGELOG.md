@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.2.2
+* `targetsOverride` can handle an empty value
+* Tweaks to `BuildGraph` API
+
 ### 1.2.1
 * Removed slow sync warning
 
