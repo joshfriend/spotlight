@@ -12,6 +12,12 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
 
   <resource-bundle>messages.SpotlightBundle</resource-bundle>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <editorNotificationProvider implementation="com.fueledbycaffeine.spotlight.idea.notification.ProjectStaleNotificationProvider"/>
+    <statusBarWidgetFactory implementation="com.fueledbycaffeine.spotlight.idea.ui.SpotlightStatusBarWidgetFactory"
+                            id="com.fueledbycaffeine.spotlight"/>
+  </extensions>
+
   <actions>
     <group id="Group.SpotlightWorkspace"
            description="Add or Remove Spotlight projects"

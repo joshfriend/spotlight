@@ -6,7 +6,7 @@ import kotlin.io.path.notExists
 import kotlin.io.path.readLines
 import kotlin.io.path.writeText
 
-public class SpotlightProjectList internal constructor(private val buildRoot: Path, private val projectList: Path) {
+public class SpotlightProjectList internal constructor(private val buildRoot: Path, public val projectList: Path) {
   public companion object {
     private const val COMMENT_CHAR = "#"
     public const val ALL_PROJECTS_LOCATION: String = "gradle/all-projects.txt"
@@ -32,8 +32,12 @@ public class SpotlightProjectList internal constructor(private val buildRoot: Pa
 
   public infix fun contains(path: GradlePath): Boolean = read().contains(path)
 
-  public fun add(paths: Iterable<GradlePath>) {
+  public fun ensureFileExists() {
     if (projectList.notExists()) projectList.createFile()
+  }
+
+  public fun add(paths: Iterable<GradlePath>) {
+    ensureFileExists()
     projectList.writeText((read() + paths).joinToString("\n") { it.path })
   }
 
