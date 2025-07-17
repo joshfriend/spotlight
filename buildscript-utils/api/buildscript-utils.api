@@ -74,6 +74,8 @@ public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightProjectLi
 	public final fun add (Ljava/lang/Iterable;)V
 	public static final fun allProjects (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;
 	public final fun contains (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Z
+	public final fun ensureFileExists ()V
+	public final fun getProjectList ()Ljava/nio/file/Path;
 	public static final fun ideProjects (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;
 	public final fun read ()Ljava/util/Set;
 	public final fun remove (Ljava/lang/Iterable;)V
