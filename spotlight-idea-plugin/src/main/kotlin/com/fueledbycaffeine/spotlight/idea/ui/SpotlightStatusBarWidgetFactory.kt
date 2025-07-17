@@ -54,6 +54,7 @@ private class SpotlightStatusBarWidget(
   private var statusBar: StatusBar? = null
   private val job = SupervisorJob()
   private val cs = parentScope + job
+
   @Volatile
   private var ideProjectsCount = 0
 
