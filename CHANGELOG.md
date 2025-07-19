@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.2.3
+* Add unsynced project notification banner to IDE plugin
+* Add statusbar widget that links to `ide-projects.txt` to IDE plugin
+
 ### 1.2.2
 * `targetsOverride` can handle an empty value
 * Tweaks to `BuildGraph` API
