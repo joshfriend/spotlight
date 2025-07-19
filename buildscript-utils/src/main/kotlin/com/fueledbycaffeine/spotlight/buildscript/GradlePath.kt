@@ -158,7 +158,7 @@ public fun Collection<GradlePath>.minimize(): Set<GradlePath> {
     return setOf(sorted[0])
   }
   return sortedBy { it.path }
-    .fold(LinkedHashSet()) { acc, path ->
+    .fold(mutableListOf<GradlePath>()) { acc, path ->
       val last = acc.lastOrNull()
       if (last != null && path.path.startsWith("${last.path}:")) {
         acc
@@ -167,4 +167,5 @@ public fun Collection<GradlePath>.minimize(): Set<GradlePath> {
         acc
       }
     }
+    .toSet()
 }
