@@ -64,5 +64,8 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Test IDE Plugin
+        run: ./gradlew :spotlight-idea-plugin:test -PbuildIdePlugin=true
+
       - name: Verify IDE Plugin
         run: ./gradlew :spotlight-idea-plugin:verifyPlugin -PbuildIdePlugin=true

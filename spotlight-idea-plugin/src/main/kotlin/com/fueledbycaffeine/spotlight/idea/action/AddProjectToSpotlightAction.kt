@@ -4,9 +4,8 @@ package com.fueledbycaffeine.spotlight.idea.action
 
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.ALL_PROJECTS_LOCATION
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
+import com.fueledbycaffeine.spotlight.idea.spotlightService
 import com.fueledbycaffeine.spotlight.idea.utils.gradlePathsSelected
-import com.fueledbycaffeine.spotlight.idea.utils.spotlightAllProjectList
-import com.fueledbycaffeine.spotlight.idea.utils.spotlightIdeProjectList
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -20,11 +19,11 @@ private val logger = Logger.getInstance(AddProjectToSpotlightAction::class.java)
  */
 class AddProjectToSpotlightAction : AnAction() {
   override fun actionPerformed(action: AnActionEvent) {
-    val project = action.project ?: return
-    val allProjects = project.spotlightAllProjectList.read()
+    val projectService = action.project?.spotlightService ?: return
+    val allProjects = projectService.allProjects.value
     val pathsInBuild = action.gradlePathsSelected.intersect(allProjects)
     logger.info("Add projects to IDE Spotlight: ${pathsInBuild.joinToString { it.path }}")
-    project.spotlightIdeProjectList.add(pathsInBuild)
+    projectService.addIdeProjects(pathsInBuild)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -36,10 +35,10 @@ class AddProjectToSpotlightAction : AnAction() {
     super.update(e)
     e.presentation.apply {
       icon = AllIcons.General.Add
-      val project = e.project
-      isVisible = if (project != null) {
-        val allProjects = project.spotlightAllProjectList.read()
-        val loadedProjects = project.spotlightIdeProjectList.read()
+      val projectService = e.project?.spotlightService
+      isVisible = if (projectService != null) {
+        val allProjects = projectService.allProjects.value
+        val loadedProjects = projectService.ideProjects.value
         val selected = e.gradlePathsSelected
         selected.any { it in allProjects } && selected.any { it !in loadedProjects }
       } else {

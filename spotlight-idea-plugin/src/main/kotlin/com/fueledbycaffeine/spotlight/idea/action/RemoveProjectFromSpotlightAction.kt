@@ -3,8 +3,8 @@
 package com.fueledbycaffeine.spotlight.idea.action
 
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
+import com.fueledbycaffeine.spotlight.idea.spotlightService
 import com.fueledbycaffeine.spotlight.idea.utils.gradlePathsSelected
-import com.fueledbycaffeine.spotlight.idea.utils.spotlightIdeProjectList
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -18,11 +18,11 @@ private val logger = Logger.getInstance(RemoveProjectFromSpotlightAction::class.
  */
 class RemoveProjectFromSpotlightAction : AnAction() {
   override fun actionPerformed(action: AnActionEvent) {
-    val project = action.project ?: return
-    val loadedProjects = project.spotlightIdeProjectList.read()
+    val spotlightService = action.project?.spotlightService ?: return
+    val loadedProjects = spotlightService.ideProjects.value
     val pathsInBuild = action.gradlePathsSelected.intersect(loadedProjects)
     logger.info("Remove projects from IDE Spotlight: ${pathsInBuild.joinToString { it.path }}")
-    project.spotlightIdeProjectList.remove(pathsInBuild)
+    spotlightService.removeIdeProjects(pathsInBuild)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
@@ -34,9 +34,9 @@ class RemoveProjectFromSpotlightAction : AnAction() {
     super.update(e)
     e.presentation.apply {
       icon = AllIcons.General.Remove
-      val project = e.project
-      isVisible = if (project != null) {
-        val loadedProjects = project.spotlightIdeProjectList.read()
+      val spotlightService = e.project?.spotlightService
+      isVisible = if (spotlightService != null) {
+        val loadedProjects = spotlightService.ideProjects.value
         e.gradlePathsSelected.any { it in loadedProjects }
       } else {
         false
