@@ -6,7 +6,7 @@ import com.fueledbycaffeine.spotlight.idea.SpotlightProjectService
 import com.fueledbycaffeine.spotlight.idea.spotlightService
 import com.fueledbycaffeine.spotlight.idea.utils.toGradlePath
 import com.intellij.openapi.components.service
-import com.intellij.openapi.externalSystem.model.ProjectSystemId
+import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
@@ -14,10 +14,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotificationProvider
 import com.intellij.ui.EditorNotifications
+import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.util.function.Function
 import javax.swing.JComponent
 
-private val GRADLE_SYSTEM_ID = ProjectSystemId("GRADLE")
 
 /**
  * Shows a banner in editors for files that belong to projects not currently indexed by Spotlight
@@ -73,7 +73,8 @@ class ProjectStaleNotificationProvider(project: Project) : EditorNotificationPro
       spotlightService.addIdeProjects(listOf(gradlePath))
 
       // Trigger a fresh Gradle sync
-      ExternalSystemUtil.requestImport(project, project.basePath!!, GRADLE_SYSTEM_ID)
+      val importSpec = ImportSpecBuilder(project, GradleConstants.SYSTEM_ID).build()
+      ExternalSystemUtil.refreshProject(project.basePath!!, importSpec)
 
       // Refresh editor notifications to hide this banner after adding the project
       EditorNotifications.getInstance(project).updateAllNotifications()
