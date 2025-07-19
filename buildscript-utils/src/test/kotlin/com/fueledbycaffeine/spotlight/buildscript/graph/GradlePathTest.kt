@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.*
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
+import com.fueledbycaffeine.spotlight.buildscript.minimize
 import org.gradle.internal.scripts.ScriptingLanguages
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -123,6 +124,118 @@ class GradlePathTest {
     assertThat(foo.isFromMainBuild).isTrue()
     assertThat(root.isFromMainBuild).isTrue()
     assertThat(buildLogic.isFromMainBuild).isFalse()
+  }
+
+  @Test fun `minimize removes nested paths when parent is present`() {
+    val paths = listOf(
+      GradlePath(buildRoot, ":foo"),
+      GradlePath(buildRoot, ":foo:bar"),
+      GradlePath(buildRoot, ":foo:bar:baz"),
+      GradlePath(buildRoot, ":other")
+    )
+    
+    val minimized = paths.minimize()
+    
+    assertThat(minimized).containsExactlyInAnyOrder(
+      GradlePath(buildRoot, ":foo"),
+      GradlePath(buildRoot, ":other")
+    )
+  }
+
+  @Test fun `minimize preserves non-overlapping paths`() {
+    val paths = listOf(
+      GradlePath(buildRoot, ":foo"),
+      GradlePath(buildRoot, ":bar"),
+      GradlePath(buildRoot, ":baz")
+    )
+    
+    val minimized = paths.minimize()
+    
+    assertThat(minimized).containsExactlyInAnyOrder(
+      GradlePath(buildRoot, ":foo"),
+      GradlePath(buildRoot, ":bar"),
+      GradlePath(buildRoot, ":baz")
+    )
+  }
+
+  @Test fun `minimize handles empty collection`() {
+    val paths = emptyList<GradlePath>()
+    
+    val minimized = paths.minimize()
+    
+    assertThat(minimized).isEmpty()
+  }
+
+  @Test fun `minimize handles single path`() {
+    val paths = listOf(GradlePath(buildRoot, ":foo"))
+    
+    val minimized = paths.minimize()
+    
+    assertThat(minimized).containsOnly(GradlePath(buildRoot, ":foo"))
+  }
+
+  @Test fun `minimize works with unsorted input`() {
+    val paths = listOf(
+      GradlePath(buildRoot, ":foo:bar:baz"),
+      GradlePath(buildRoot, ":foo"),
+      GradlePath(buildRoot, ":foo:bar"),
+      GradlePath(buildRoot, ":other:nested")
+    )
+    
+    val minimized = paths.minimize()
+    
+    assertThat(minimized).containsExactlyInAnyOrder(
+      GradlePath(buildRoot, ":foo"),
+      GradlePath(buildRoot, ":other:nested")
+    )
+  }
+
+  @Test fun `minimize handles root project with nested paths`() {
+    val paths = listOf(
+      GradlePath(buildRoot, ":"),
+      GradlePath(buildRoot, ":foo"),
+      GradlePath(buildRoot, ":foo:bar")
+    )
+    
+    val minimized = paths.minimize()
+    
+    assertThat(minimized).containsOnly(GradlePath(buildRoot, ":"))
+  }
+
+  @Test fun `minimize preserves paths with similar but non-prefixed names`() {
+    val paths = listOf(
+      GradlePath(buildRoot, ":foo"),
+      GradlePath(buildRoot, ":foobar"),
+      GradlePath(buildRoot, ":foo-bar")
+    )
+    
+    val minimized = paths.minimize()
+    
+    assertThat(minimized).containsExactlyInAnyOrder(
+      GradlePath(buildRoot, ":foo"),
+      GradlePath(buildRoot, ":foo-bar"),
+      GradlePath(buildRoot, ":foobar")
+    )
+  }
+
+  @Test fun `minimize works with complex nested hierarchy`() {
+    val paths = listOf(
+      GradlePath(buildRoot, ":app"),
+      GradlePath(buildRoot, ":app:ui"),
+      GradlePath(buildRoot, ":app:ui:components"),
+      GradlePath(buildRoot, ":lib"),
+      GradlePath(buildRoot, ":lib:core"),
+      GradlePath(buildRoot, ":lib:utils"),
+      GradlePath(buildRoot, ":tools")
+    )
+    
+    val minimized = paths.minimize()
+    
+    assertThat(minimized).containsExactlyInAnyOrder(
+      GradlePath(buildRoot, ":app"),
+      GradlePath(buildRoot, ":lib"),
+      GradlePath(buildRoot, ":tools")
+    )
   }
 
   private fun Path.createBuildFile(extension: String = ".gradle"): Path {

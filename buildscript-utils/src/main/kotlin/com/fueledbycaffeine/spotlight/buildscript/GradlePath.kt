@@ -146,3 +146,26 @@ public fun Path.gradlePathRelativeTo(buildRoot: Path): GradlePath {
 private fun String.capitalize(): String = replaceFirstChar {
   if (it.isLowerCase()) it.titlecase(getDefault()) else it.toString()
 }
+
+/**
+ * Minimize the set of project paths to exclude by filtering out any that are prefixed by another path.
+ */
+public fun Collection<GradlePath>.minimize(): Set<GradlePath> {
+  if (size < 2) return toSet()
+  val sorted = sortedBy { it.path }
+  if (sorted[0].path == ":") {
+    // Root project consumes all
+    return setOf(sorted[0])
+  }
+  return sortedBy { it.path }
+    .fold(mutableListOf<GradlePath>()) { acc, path ->
+      val last = acc.lastOrNull()
+      if (last != null && path.path.startsWith("${last.path}:")) {
+        acc
+      } else {
+        acc.add(path)
+        acc
+      }
+    }
+    .toSet()
+}
