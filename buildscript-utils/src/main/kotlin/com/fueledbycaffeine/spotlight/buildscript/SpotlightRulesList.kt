@@ -1,6 +1,9 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
+import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.FullModeTypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightRules
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.JsonDataException
@@ -32,7 +35,7 @@ public class SpotlightRulesList(private val root: Path) {
             } catch (_: JsonDataException) {
               // Try just parsing it as a set of rules (legacy)
               val ruleSet = ruleSetAdapter.fromJson(reader) ?: emptySet()
-              SpotlightRules(ruleSet)
+              SpotlightRules(implicitRules = ruleSet)
             }
           }
         }
@@ -65,4 +68,28 @@ public class InvalidSpotlightRules(message: String, cause: Throwable) : Exceptio
 private class GradlePathAdapter(private val root: Path) {
   @ToJson fun gradlePathToJson(path: GradlePath): String = path.path
   @FromJson fun gradlePathFromJson(pathString: String): GradlePath = GradlePath(root, pathString)
+}
+
+/**
+ * Computes the set of all [DependencyRule] that should be applied to a given project.
+ */
+public fun computeSpotlightRules(
+  rootDir: Path,
+  projectName: String,
+  implicitRules: Set<ImplicitDependencyRule> = emptySet(),
+  typeSafeInferenceLevel: TypeSafeAccessorInference = TypeSafeAccessorInference.DISABLED,
+  allProjects: () -> Set<GradlePath> = { emptySet() },
+): Set<DependencyRule> {
+  return if (typeSafeInferenceLevel != TypeSafeAccessorInference.DISABLED) {
+    val rootProjectTypeSafeAccessor = GradlePath(rootDir, projectName).typeSafeAccessorName
+    val typeSafeAccessorRule = if (typeSafeInferenceLevel == TypeSafeAccessorInference.FULL) {
+      val mapping = allProjects().associateBy { it.typeSafeAccessorName }
+      FullModeTypeSafeProjectAccessorRule(rootProjectTypeSafeAccessor, mapping)
+    } else {
+      StrictModeTypeSafeProjectAccessorRule(rootProjectTypeSafeAccessor)
+    }
+    implicitRules + typeSafeAccessorRule
+  } else {
+    implicitRules
+  }
 }

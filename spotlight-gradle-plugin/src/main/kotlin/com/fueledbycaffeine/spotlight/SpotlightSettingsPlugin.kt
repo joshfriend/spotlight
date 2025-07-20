@@ -11,6 +11,7 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorR
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
 import com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference
+import com.fueledbycaffeine.spotlight.buildscript.computeSpotlightRules
 import com.fueledbycaffeine.spotlight.utils.guessProjectsFromTaskRequests
 import com.fueledbycaffeine.spotlight.utils.include
 import com.fueledbycaffeine.spotlight.utils.isIdeSync
@@ -106,18 +107,11 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
     val typeSafeInferenceLevel = options.typeSafeAccessorInference.get()
     logger.info("Spotlight type-safe project accessor inference is {}", typeSafeInferenceLevel)
 
-    val rules = if (typeSafeInferenceLevel != TypeSafeAccessorInference.DISABLED) {
-      val rootProjectTypeSafeAccessor = GradlePath(rootDir.toPath(), settings.rootProject.name).typeSafeAccessorName
-      val typeSafeAccessorRule = if (typeSafeInferenceLevel == TypeSafeAccessorInference.FULL) {
-        val mapping = getAllProjects().associateBy { it.typeSafeAccessorName }
-        FullModeTypeSafeProjectAccessorRule(rootProjectTypeSafeAccessor, mapping)
-      } else {
-        StrictModeTypeSafeProjectAccessorRule(rootProjectTypeSafeAccessor)
-      }
-      getSpotlightRules() + typeSafeAccessorRule
-    } else {
-      getSpotlightRules()
-    }
+    // Ignore project name and type-safe accessors set in rules JSON as we read the source of truth here
+    // TODO or error if not equal?
+    val implicitRules = getSpotlightRules().implicitRules
+    val projectName = settings.rootProject.name
+    val rules = computeSpotlightRules(rootDir.toPath(), projectName, implicitRules, typeSafeInferenceLevel) { getAllProjects() }
 
     val bfsResults = measureTimedValue { BreadthFirstSearch.flatten(targets, rules) }
     logger.info("BFS search of project graph took {}ms", bfsResults.duration.inWholeMilliseconds)

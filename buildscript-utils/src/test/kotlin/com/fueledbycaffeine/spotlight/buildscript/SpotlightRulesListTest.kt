@@ -8,6 +8,7 @@ import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isNull
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.*
 import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
 import org.junit.jupiter.api.assertThrows
@@ -43,6 +44,8 @@ class SpotlightRulesListTest {
       ProjectPathMatchRule(":foo", setOf(GradlePath(tempDir, ":bar"))),
       BuildscriptMatchRule("example", setOf(GradlePath(tempDir, ":foo"))),
     )
+    assertThat(rules.projectName).isNull()
+    assertThat(rules.typeSafeAccessorInference).isNull()
   }
 
   @Test
@@ -52,6 +55,7 @@ class SpotlightRulesListTest {
     rulesFile.writeText(
       """
       {
+        "projectName": "example-project",
         "implicitRules": [
           {
             "type": "project-path-match-rule",
@@ -69,6 +73,7 @@ class SpotlightRulesListTest {
       """.trimIndent()
     )
     val rules = SpotlightRulesList(tempDir).read()
+    assertThat(rules.projectName).isEqualTo("example-project")
     assertThat(rules.implicitRules).containsExactlyInAnyOrder(
       ProjectPathMatchRule(":foo", setOf(GradlePath(tempDir, ":bar"))),
       BuildscriptMatchRule("example", setOf(GradlePath(tempDir, ":foo"))),
