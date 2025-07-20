@@ -6,8 +6,10 @@ import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList.Companion.SPOTLIGHT_RULES_LOCATION
+import com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference
+import com.fueledbycaffeine.spotlight.buildscript.computeSpotlightRules
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
+import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightRules
 import com.fueledbycaffeine.spotlight.idea.utils.vfsEventsFlow
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -35,10 +37,10 @@ class SpotlightProjectService(
   scope: CoroutineScope,
 ) : Disposable {
 
-  private val buildRoot = Path.of(project.basePath!!)
-  private val ideProjectsList = SpotlightProjectList.ideProjects(buildRoot)
-  private val allProjectsList = SpotlightProjectList.allProjects(buildRoot)
-  private val rulesList = SpotlightRulesList(buildRoot)
+  private val rootDir = Path.of(project.basePath!!)
+  private val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
+  private val allProjectsList = SpotlightProjectList.allProjects(rootDir)
+  private val rulesList = SpotlightRulesList(rootDir)
 
   private val _ideProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
   val ideProjects: StateFlow<Set<GradlePath>> = _ideProjects
@@ -68,15 +70,19 @@ class SpotlightProjectService(
 
   private suspend fun readAndEmit(
     spotlightFileChangeType: SpotlightFileChangeType,
-    // TODO this doesn't cover type-safe accessors
-    rules: () -> Set<ImplicitDependencyRule> = { rulesList.read() }
+    readRules: () -> SpotlightRules = { rulesList.read() }
   ) {
     // VFS CHANGES are delivered on EDT+write; move read off EDT
     withContext(Dispatchers.IO) {
       when (spotlightFileChangeType) {
         SpotlightFileChangeType.IDE_PROJECTS -> {
           val paths = ideProjectsList.read()
-          val allPaths = BreadthFirstSearch.flatten(paths, rules())
+          val rules = readRules()
+          val implicitRules = rules.implicitRules
+          val typeSafeInferenceLevel = rules.typeSafeAccessorInference ?: TypeSafeAccessorInference.DISABLED
+          val projectName = rules.projectName ?: project.name
+          val ruleSet = computeSpotlightRules(rootDir, projectName, implicitRules, typeSafeInferenceLevel) { allProjects.value }
+          val allPaths = BreadthFirstSearch.flatten(paths, ruleSet)
           _ideProjects.emit(allPaths)
         }
 
@@ -87,7 +93,7 @@ class SpotlightProjectService(
 
         SpotlightFileChangeType.RULES -> {
           // Read the rules once and re-read other lists
-          val rules = rules()
+          val rules = readRules()
           readAndEmit(SpotlightFileChangeType.IDE_PROJECTS) { rules }
           readAndEmit(SpotlightFileChangeType.ALL_PROJECTS) { rules }
         }
