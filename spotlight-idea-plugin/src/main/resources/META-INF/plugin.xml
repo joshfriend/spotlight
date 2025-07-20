@@ -17,6 +17,8 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     <editorNotificationProvider implementation="com.fueledbycaffeine.spotlight.idea.notification.ProjectStaleNotificationProvider"/>
     <statusBarWidgetFactory implementation="com.fueledbycaffeine.spotlight.idea.ui.SpotlightStatusBarWidgetFactory"
                             id="com.fueledbycaffeine.spotlight"/>
+    <directoryIndexExcludePolicy
+            implementation="com.fueledbycaffeine.spotlight.idea.direxclude.SpotlightExcludeDirectoryPolicy"/>
   </extensions>
 
   <actions>
