@@ -20,3 +20,4 @@ moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
 moshix-sealedReflect = { module = "dev.zacsweers.moshix:moshi-sealed-reflect", version.ref = "moshix" }
 moshix-sealedRuntime = { module = "dev.zacsweers.moshix:moshi-sealed-runtime", version.ref = "moshix" }
+okio = "com.squareup.okio:okio:3.7.0"
