@@ -3,25 +3,21 @@ package com.fueledbycaffeine.spotlight
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList
+import com.fueledbycaffeine.spotlight.buildscript.computeSpotlightRules
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
-import com.fueledbycaffeine.spotlight.buildscript.graph.FullModeTypeSafeProjectAccessorRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
-import com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference
-import com.fueledbycaffeine.spotlight.buildscript.computeSpotlightRules
 import com.fueledbycaffeine.spotlight.utils.guessProjectsFromTaskRequests
 import com.fueledbycaffeine.spotlight.utils.include
 import com.fueledbycaffeine.spotlight.utils.isIdeSync
 import com.fueledbycaffeine.spotlight.utils.isSpotlightEnabled
+import java.io.FileNotFoundException
+import kotlin.time.measureTimedValue
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import java.io.FileNotFoundException
-import kotlin.time.measureTimedValue
 
 private val logger: Logger = Logging.getLogger(SpotlightSettingsPlugin::class.java)
 

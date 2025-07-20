@@ -1,17 +1,15 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
-import assertk.all
 import assertk.assertThat
-import assertk.assertions.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.api.io.TempDir
-import java.io.FileNotFoundException
+import assertk.assertions.isFalse
+import assertk.assertions.isTrue
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 
 class SpotlightProjectListTest {
   @TempDir
