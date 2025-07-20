@@ -10,7 +10,7 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjec
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
-import com.fueledbycaffeine.spotlight.dsl.TypeSafeAccessorInference
+import com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference
 import com.fueledbycaffeine.spotlight.utils.guessProjectsFromTaskRequests
 import com.fueledbycaffeine.spotlight.utils.include
 import com.fueledbycaffeine.spotlight.utils.isIdeSync

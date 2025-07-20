@@ -1,7 +1,10 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
+import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightRules
 import com.squareup.moshi.FromJson
+import com.squareup.moshi.JsonDataException
+import com.squareup.moshi.JsonReader
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.ToJson
 import com.squareup.moshi.adapter
@@ -9,24 +12,35 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dev.zacsweers.moshix.sealed.reflect.MoshiSealedJsonAdapterFactory
 import java.nio.file.Path
 import kotlin.io.path.exists
-import kotlin.io.path.readText
 import okio.IOException
+import okio.buffer
+import okio.source
 
 public class SpotlightRulesList(private val root: Path) {
   public companion object {
     public const val SPOTLIGHT_RULES_LOCATION: String = "gradle/spotlight-rules.json"
   }
 
-  public fun read(): Set<ImplicitDependencyRule> {
+  public fun read(): SpotlightRules {
     val rulesPath = root.resolve(SPOTLIGHT_RULES_LOCATION)
     return if (rulesPath.exists()) {
       try {
-        ruleSetAdapter.fromJson(rulesPath.readText()) ?: emptySet()
+        JsonReader.of(rulesPath.source().buffer()).use { reader ->
+          reader.peekJson().use { reader ->
+            try {
+              rulesAdapter.fromJson(reader) ?: SpotlightRules()
+            } catch (_: JsonDataException) {
+              // Try just parsing it as a set of rules (legacy)
+              val ruleSet = ruleSetAdapter.fromJson(reader) ?: emptySet()
+              SpotlightRules(ruleSet)
+            }
+          }
+        }
       } catch (e: IOException) {
         throw InvalidSpotlightRules("Spotlight rules at $SPOTLIGHT_RULES_LOCATION were invalid", e)
       }
     } else {
-      emptySet()
+      SpotlightRules()
     }
   }
 
@@ -37,6 +51,9 @@ public class SpotlightRulesList(private val root: Path) {
       .addLast(KotlinJsonAdapterFactory())
       .build()
   }
+
+  @OptIn(ExperimentalStdlibApi::class) // Not actually experimental anymore!
+  private val rulesAdapter = moshi.adapter<SpotlightRules>()
 
   @OptIn(ExperimentalStdlibApi::class) // Not actually experimental anymore!
   private val ruleSetAdapter = moshi.adapter<Set<ImplicitDependencyRule>>()

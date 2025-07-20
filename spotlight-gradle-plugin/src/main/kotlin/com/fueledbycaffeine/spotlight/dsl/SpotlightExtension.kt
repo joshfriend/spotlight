@@ -3,6 +3,7 @@ package com.fueledbycaffeine.spotlight.dsl
 import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
+import com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.file.BuildLayout
 import org.gradle.api.model.ObjectFactory
@@ -34,7 +35,7 @@ public abstract class SpotlightExtension @Inject constructor(
   /**
    * Sets the level of processing to be done to support type-safe project accessors.
    *
-   * Defaults to [TypeSafeAccessorInference.STRICT]
+   * Defaults to [com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference.STRICT]
    *
    * @see <a href="https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html#sec:type-safe-project-accessors">Gradle type-safe project accessors docs</a>
    */
