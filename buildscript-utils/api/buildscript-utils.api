@@ -205,19 +205,22 @@ public abstract interface class com/fueledbycaffeine/spotlight/buildscript/graph
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules {
+	public static final field Companion Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules$Companion;
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Ljava/util/Set;
-	public final fun component3 ()Lcom/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference;
-	public final fun copy (Ljava/lang/String;Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference;)Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
-	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;Ljava/lang/String;Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
+	public fun <init> (Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference;)V
+	public synthetic fun <init> (Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun component2 ()Lcom/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference;
+	public final fun copy (Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference;)Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getImplicitRules ()Ljava/util/Set;
-	public final fun getProjectName ()Ljava/lang/String;
 	public final fun getTypeSafeAccessorInference ()Lcom/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules$Companion {
+	public final fun getEMPTY ()Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
 }
 
