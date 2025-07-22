@@ -11,13 +11,10 @@ public object BreadthFirstSearch {
     // In lieu of a flattenTo() option, this creates an intermediate
     // set to avoid the intermediate list + distinct()
     return buildSet(INITIAL_CAPACITY) {
-      val seen = LinkedHashSet<T>(INITIAL_CAPACITY)
+      // Include the initial nodes in the result
+      addAll(nodes)
       for (values in deps.values) {
-        for (dep in values) {
-          if (seen.add(dep)) {
-            add(dep)
-          }
-        }
+        addAll(values)
       }
     }
   }
