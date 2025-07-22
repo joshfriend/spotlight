@@ -1,3 +1,5 @@
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+
 plugins {
   id 'java'
   id 'org.jetbrains.kotlin.jvm'
@@ -12,13 +14,23 @@ repositories {
   }
 }
 
+def intellijTarget = "2025.1.3"
+
 dependencies {
   implementation project(":buildscript-utils")
 
   intellijPlatform {
-    intellijIdeaCommunity("2025.1.3")
+    intellijIdeaCommunity(intellijTarget)
 
     bundledPlugin("com.intellij.gradle")
+
+    intellijPlatformTesting.runIde.register("runLocalIde") {
+      // https://plugins.jetbrains.com/docs/intellij/android-studio.html#configuring-the-plugin-gradle-build-script
+      def path = providers.gradleProperty("intellijPlatformTesting.idePath").getOrNull()
+      if (path != null) {
+        localPath.set(file(it))
+      }
+    }
   }
 }
 
@@ -50,7 +62,10 @@ intellijPlatform {
 
   pluginVerification {
     ides {
-      recommended()
+      ide(
+        IntelliJPlatformType.IntellijIdeaCommunity,
+        intellijTarget
+      )
     }
   }
 }
