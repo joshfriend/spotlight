@@ -44,7 +44,6 @@ class SpotlightRulesListTest {
       ProjectPathMatchRule(":foo", setOf(GradlePath(tempDir, ":bar"))),
       BuildscriptMatchRule("example", setOf(GradlePath(tempDir, ":foo"))),
     )
-    assertThat(rules.projectName).isNull()
     assertThat(rules.typeSafeAccessorInference).isNull()
   }
 
@@ -55,7 +54,6 @@ class SpotlightRulesListTest {
     rulesFile.writeText(
       """
       {
-        "projectName": "example-project",
         "implicitRules": [
           {
             "type": "project-path-match-rule",
@@ -73,7 +71,6 @@ class SpotlightRulesListTest {
       """.trimIndent()
     )
     val rules = SpotlightRulesList(tempDir).read()
-    assertThat(rules.projectName).isEqualTo("example-project")
     assertThat(rules.implicitRules).containsExactlyInAnyOrder(
       ProjectPathMatchRule(":foo", setOf(GradlePath(tempDir, ":bar"))),
       BuildscriptMatchRule("example", setOf(GradlePath(tempDir, ":foo"))),

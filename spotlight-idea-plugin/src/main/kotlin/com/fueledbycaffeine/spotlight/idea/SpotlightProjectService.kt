@@ -80,8 +80,7 @@ class SpotlightProjectService(
           val rules = readRules()
           val implicitRules = rules.implicitRules
           val typeSafeInferenceLevel = rules.typeSafeAccessorInference ?: TypeSafeAccessorInference.DISABLED
-          val projectName = rules.projectName ?: project.name
-          val ruleSet = computeSpotlightRules(rootDir, projectName, implicitRules, typeSafeInferenceLevel) { allProjects.value }
+          val ruleSet = computeSpotlightRules(rootDir, project.name, implicitRules, typeSafeInferenceLevel) { allProjects.value }
           val allPaths = BreadthFirstSearch.flatten(paths, ruleSet)
           _ideProjects.emit(allPaths)
         }
