@@ -48,6 +48,8 @@ class SpotlightProjectService(
   private val _allProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
   val allProjects: StateFlow<Set<GradlePath>> = _allProjects
 
+  private val rules = MutableStateFlow(SpotlightRules.EMPTY)
+
   init {
     // Connect to the message bus and listen for file ide-projects.txt
     scope.launch {
@@ -69,18 +71,18 @@ class SpotlightProjectService(
   }
 
   private suspend fun readAndEmit(
-    spotlightFileChangeType: SpotlightFileChangeType,
-    readRules: () -> SpotlightRules = { rulesList.read() }
+    changeType: SpotlightFileChangeType
   ) {
     // VFS CHANGES are delivered on EDT+write; move read off EDT
     withContext(Dispatchers.IO) {
-      when (spotlightFileChangeType) {
+      when (changeType) {
         SpotlightFileChangeType.IDE_PROJECTS -> {
           val paths = ideProjectsList.read()
-          val rules = readRules()
-          val implicitRules = rules.implicitRules
-          val typeSafeInferenceLevel = rules.typeSafeAccessorInference ?: TypeSafeAccessorInference.DISABLED
-          val ruleSet = computeSpotlightRules(rootDir, project.name, implicitRules, typeSafeInferenceLevel) { allProjects.value }
+          val currentRules = rules.value
+          val implicitRules = currentRules.implicitRules
+          val typeSafeInferenceLevel = currentRules.typeSafeAccessorInference ?: TypeSafeAccessorInference.DISABLED
+          val ruleSet =
+            computeSpotlightRules(rootDir, project.name, implicitRules, typeSafeInferenceLevel) { allProjects.value }
           val allPaths = BreadthFirstSearch.flatten(paths, ruleSet)
           _ideProjects.emit(allPaths)
         }
@@ -92,9 +94,9 @@ class SpotlightProjectService(
 
         SpotlightFileChangeType.RULES -> {
           // Read the rules once and re-read other lists
-          val rules = readRules()
-          readAndEmit(SpotlightFileChangeType.IDE_PROJECTS) { rules }
-          readAndEmit(SpotlightFileChangeType.ALL_PROJECTS) { rules }
+          rules.emit(rulesList.read())
+          readAndEmit(SpotlightFileChangeType.IDE_PROJECTS)
+          readAndEmit(SpotlightFileChangeType.ALL_PROJECTS)
         }
       }
     }

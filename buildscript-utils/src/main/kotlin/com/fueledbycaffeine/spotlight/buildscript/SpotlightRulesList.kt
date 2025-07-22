@@ -31,7 +31,7 @@ public class SpotlightRulesList(private val root: Path) {
         JsonReader.of(rulesPath.source().buffer()).use { reader ->
           reader.peekJson().use { reader ->
             try {
-              rulesAdapter.fromJson(reader) ?: SpotlightRules()
+              rulesAdapter.fromJson(reader) ?: SpotlightRules.EMPTY
             } catch (_: JsonDataException) {
               // Try just parsing it as a set of rules (legacy)
               val ruleSet = ruleSetAdapter.fromJson(reader) ?: emptySet()
@@ -43,7 +43,7 @@ public class SpotlightRulesList(private val root: Path) {
         throw InvalidSpotlightRules("Spotlight rules at $SPOTLIGHT_RULES_LOCATION were invalid", e)
       }
     } else {
-      SpotlightRules()
+      SpotlightRules.EMPTY
     }
   }
 

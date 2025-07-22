@@ -6,4 +6,8 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 public data class SpotlightRules(
   val implicitRules: Set<ImplicitDependencyRule> = emptySet(),
   val typeSafeAccessorInference: TypeSafeAccessorInference? = null,
-)
+) {
+  public companion object {
+    public val EMPTY: SpotlightRules = SpotlightRules()
+  }
+}
