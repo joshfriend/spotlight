@@ -35,7 +35,7 @@ public abstract class SpotlightExtension @Inject constructor(
   /**
    * Sets the level of processing to be done to support type-safe project accessors.
    *
-   * Defaults to [com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference.STRICT]
+   * Defaults to [TypeSafeAccessorInference.STRICT]
    *
    * @see <a href="https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html#sec:type-safe-project-accessors">Gradle type-safe project accessors docs</a>
    */
