@@ -1,5 +1,10 @@
 # Changelog
 
+### 1.3.0
+* Exclude unused projects from IDE indexing
+* IDE plugin now understands `spotlight-rules.json` and computes transitively included projects.
+* `spotlight-rules.json` format change. Specify rules under the `implicitRules` object key instead of using a toplevel array. The old format is still read as a fallback for now.
+
 ### 1.2.3
 * Add unsynced project notification banner to IDE plugin
 * Add statusbar widget that links to `ide-projects.txt` to IDE plugin
