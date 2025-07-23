@@ -109,11 +109,10 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
     val projectName = settings.rootProject.name
     val rules = computeSpotlightRules(rootDir.toPath(), projectName, implicitRules, typeSafeInferenceLevel) { getAllProjects() }
 
-    val bfsResults = measureTimedValue { BreadthFirstSearch.flatten(targets, rules) }
-    logger.info("BFS search of project graph took {}ms", bfsResults.duration.inWholeMilliseconds)
-    val transitives = bfsResults.value
-    logger.info("Requested targets include {} projects transitively", transitives.size)
-    return targets + transitives
+    val (targetsAndTransitives, duration) = measureTimedValue { BreadthFirstSearch.flatten(targets, rules) }
+    logger.info("BFS search of project graph took {}ms", duration.inWholeMilliseconds)
+    logger.info("Requested targets include {} projects transitively", targetsAndTransitives.size - targets.size)
+    return targetsAndTransitives
   }
 
   private fun Settings.getAllProjects() = SpotlightProjectList.allProjects(settingsDir.toPath()).read()
