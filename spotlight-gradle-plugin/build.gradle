@@ -30,7 +30,6 @@ gradlePlugin {
 
 mavenPublishing {
   publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
-  signAllPublications()
 
   pom {
     name = "Spotlight Gradle plugin"

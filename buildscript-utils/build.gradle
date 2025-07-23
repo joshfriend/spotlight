@@ -12,7 +12,6 @@ version = VERSION_NAME
 
 mavenPublishing {
   publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
-  signAllPublications()
 
   pom {
     name = "Spotlight buildscript utils"
