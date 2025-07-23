@@ -1,21 +1,27 @@
 package com.fueledbycaffeine.spotlight.buildscript.graph
 
 import assertk.assertThat
-import assertk.assertions.*
+import assertk.assertions.containsExactlyInAnyOrder
+import assertk.assertions.containsOnly
+import assertk.assertions.isEmpty
+import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
+import assertk.assertions.isNull
+import assertk.assertions.isTrue
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import com.fueledbycaffeine.spotlight.buildscript.minimize
+import java.io.FileNotFoundException
+import java.nio.file.Path
+import kotlin.io.path.createDirectories
+import kotlin.io.path.createFile
+import kotlin.io.path.writeText
 import org.gradle.internal.scripts.ScriptingLanguages
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import java.io.FileNotFoundException
-import java.nio.file.Path
-import kotlin.io.path.createDirectories
-import kotlin.io.path.createFile
-import kotlin.io.path.writeText
 
 class GradlePathTest {
   @TempDir lateinit var buildRoot: Path

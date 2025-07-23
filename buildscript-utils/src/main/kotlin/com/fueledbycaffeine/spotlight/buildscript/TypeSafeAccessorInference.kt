@@ -1,6 +1,4 @@
-package com.fueledbycaffeine.spotlight.dsl
-
-import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.ALL_PROJECTS_LOCATION
+package com.fueledbycaffeine.spotlight.buildscript
 
 public enum class TypeSafeAccessorInference {
   /**
@@ -16,7 +14,7 @@ public enum class TypeSafeAccessorInference {
   /**
    * Enables full processing of type-safe project accessors, with no limitations on path names.
    *
-   * Note that this causes [ALL_PROJECTS_LOCATION] to be captured in the configuration cache because this file must be
+   * Note that this causes [SpotlightProjectList.ALL_PROJECTS_LOCATION] to be captured in the configuration cache because this file must be
    * read to fully compute the mapping of type-safe project accessor names to Gradle project paths.
    */
   FULL,

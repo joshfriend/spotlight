@@ -3,24 +3,21 @@ package com.fueledbycaffeine.spotlight
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList
+import com.fueledbycaffeine.spotlight.buildscript.computeSpotlightRules
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
-import com.fueledbycaffeine.spotlight.buildscript.graph.FullModeTypeSafeProjectAccessorRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
-import com.fueledbycaffeine.spotlight.dsl.TypeSafeAccessorInference
 import com.fueledbycaffeine.spotlight.utils.guessProjectsFromTaskRequests
 import com.fueledbycaffeine.spotlight.utils.include
 import com.fueledbycaffeine.spotlight.utils.isIdeSync
 import com.fueledbycaffeine.spotlight.utils.isSpotlightEnabled
+import java.io.FileNotFoundException
+import kotlin.time.measureTimedValue
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import java.io.FileNotFoundException
-import kotlin.time.measureTimedValue
 
 private val logger: Logger = Logging.getLogger(SpotlightSettingsPlugin::class.java)
 
@@ -106,24 +103,16 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
     val typeSafeInferenceLevel = options.typeSafeAccessorInference.get()
     logger.info("Spotlight type-safe project accessor inference is {}", typeSafeInferenceLevel)
 
-    val rules = if (typeSafeInferenceLevel != TypeSafeAccessorInference.DISABLED) {
-      val rootProjectTypeSafeAccessor = GradlePath(rootDir.toPath(), settings.rootProject.name).typeSafeAccessorName
-      val typeSafeAccessorRule = if (typeSafeInferenceLevel == TypeSafeAccessorInference.FULL) {
-        val mapping = getAllProjects().associateBy { it.typeSafeAccessorName }
-        FullModeTypeSafeProjectAccessorRule(rootProjectTypeSafeAccessor, mapping)
-      } else {
-        StrictModeTypeSafeProjectAccessorRule(rootProjectTypeSafeAccessor)
-      }
-      getSpotlightRules() + typeSafeAccessorRule
-    } else {
-      getSpotlightRules()
-    }
+    // Ignore project name and type-safe accessors set in rules JSON as we read the source of truth here
+    // TODO or error if not equal?
+    val implicitRules = getSpotlightRules().implicitRules
+    val projectName = settings.rootProject.name
+    val rules = computeSpotlightRules(rootDir.toPath(), projectName, implicitRules, typeSafeInferenceLevel) { getAllProjects() }
 
-    val bfsResults = measureTimedValue { BreadthFirstSearch.flatten(targets, rules) }
-    logger.info("BFS search of project graph took {}ms", bfsResults.duration.inWholeMilliseconds)
-    val transitives = bfsResults.value
-    logger.info("Requested targets include {} projects transitively", transitives.size)
-    return targets + transitives
+    val (targetsAndTransitives, duration) = measureTimedValue { BreadthFirstSearch.flatten(targets, rules) }
+    logger.info("BFS search of project graph took {}ms", duration.inWholeMilliseconds)
+    logger.info("Requested targets include {} projects transitively", targetsAndTransitives.size - targets.size)
+    return targetsAndTransitives
   }
 
   private fun Settings.getAllProjects() = SpotlightProjectList.allProjects(settingsDir.toPath()).read()

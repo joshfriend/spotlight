@@ -1,23 +1,26 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
-import java.nio.file.Path
-import kotlin.io.path.writeText
 import assertk.assertThat
 import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEmpty
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.*
-import org.junit.jupiter.api.assertThrows
+import assertk.assertions.isEqualTo
+import assertk.assertions.isNull
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
+import java.nio.file.Path
 import kotlin.io.path.createFile
 import kotlin.io.path.createParentDirectories
+import kotlin.io.path.writeText
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.io.TempDir
 
 class SpotlightRulesListTest {
   @TempDir
   lateinit var tempDir: Path
 
   @Test
-  fun `can read rules from file`() {
+  fun `can read legacy rules from file`() {
     val rulesFile = tempDir.resolve(SpotlightRulesList.SPOTLIGHT_RULES_LOCATION)
     rulesFile.createParentDirectories()
     rulesFile.writeText(
@@ -37,16 +40,48 @@ class SpotlightRulesListTest {
       """.trimIndent()
     )
     val rules = SpotlightRulesList(tempDir).read()
-    assertThat(rules).containsExactlyInAnyOrder(
+    assertThat(rules.implicitRules).containsExactlyInAnyOrder(
       ProjectPathMatchRule(":foo", setOf(GradlePath(tempDir, ":bar"))),
       BuildscriptMatchRule("example", setOf(GradlePath(tempDir, ":foo"))),
     )
+    assertThat(rules.typeSafeAccessorInference).isNull()
+  }
+
+  @Test
+  fun `can read rules from file`() {
+    val rulesFile = tempDir.resolve(SpotlightRulesList.SPOTLIGHT_RULES_LOCATION)
+    rulesFile.createParentDirectories()
+    rulesFile.writeText(
+      """
+      {
+        "implicitRules": [
+          {
+            "type": "project-path-match-rule",
+            "pattern": ":foo",
+            "includedProjects": [":bar"]
+          },
+          {
+            "type": "buildscript-match-rule",
+            "pattern": "example",
+            "includedProjects": [":foo"]
+          }
+        ],
+        "typeSafeAccessorInference": "STRICT"
+      }
+      """.trimIndent()
+    )
+    val rules = SpotlightRulesList(tempDir).read()
+    assertThat(rules.implicitRules).containsExactlyInAnyOrder(
+      ProjectPathMatchRule(":foo", setOf(GradlePath(tempDir, ":bar"))),
+      BuildscriptMatchRule("example", setOf(GradlePath(tempDir, ":foo"))),
+    )
+    assertThat(rules.typeSafeAccessorInference).isEqualTo(TypeSafeAccessorInference.STRICT)
   }
 
   @Test
   fun `returns empty ruleset if file does not exist`() {
     val rules = SpotlightRulesList(tempDir).read()
-    assertThat(rules).isEmpty()
+    assertThat(rules.implicitRules).isEmpty()
   }
 
   @Test
@@ -56,7 +91,7 @@ class SpotlightRulesListTest {
     rulesFile.writeText("[]")
 
     val rules = SpotlightRulesList(tempDir).read()
-    assertThat(rules).isEmpty()
+    assertThat(rules.implicitRules).isEmpty()
   }
 
   @Test

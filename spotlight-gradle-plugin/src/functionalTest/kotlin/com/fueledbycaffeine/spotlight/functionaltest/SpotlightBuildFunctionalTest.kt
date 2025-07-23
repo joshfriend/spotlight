@@ -135,6 +135,7 @@ class SpotlightBuildFunctionalTest {
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
       CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input(type="file", name="gradle/spotlight-rules.json"),
     ))
   }
 
@@ -189,6 +190,7 @@ class SpotlightBuildFunctionalTest {
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="system property", name="idea.sync.active"),
       CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input(type="file", name="gradle/spotlight-rules.json"),
     ))
   }
 

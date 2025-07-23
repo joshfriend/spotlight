@@ -45,6 +45,7 @@ dependencies {
   api(libs.moshix.sealedRuntime)
   implementation(libs.moshi.kotlin)
   implementation(libs.moshix.sealedReflect)
+  implementation(libs.okio)
 
   testImplementation gradleApi()
   testImplementation libs.assertk

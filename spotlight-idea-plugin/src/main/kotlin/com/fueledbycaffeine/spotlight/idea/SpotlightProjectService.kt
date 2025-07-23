@@ -4,6 +4,12 @@ import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.ALL_PROJECTS_LOCATION
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
+import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList
+import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList.Companion.SPOTLIGHT_RULES_LOCATION
+import com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference
+import com.fueledbycaffeine.spotlight.buildscript.computeSpotlightRules
+import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
+import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightRules
 import com.fueledbycaffeine.spotlight.idea.utils.vfsEventsFlow
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -31,9 +37,10 @@ class SpotlightProjectService(
   scope: CoroutineScope,
 ) : Disposable {
 
-  private val buildRoot = Path.of(project.basePath!!)
-  private val ideProjectsList = SpotlightProjectList.ideProjects(buildRoot)
-  private val allProjectsList = SpotlightProjectList.allProjects(buildRoot)
+  private val rootDir = Path.of(project.basePath!!)
+  private val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
+  private val allProjectsList = SpotlightProjectList.allProjects(rootDir)
+  private val rulesList = SpotlightRulesList(rootDir)
 
   private val _ideProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
   val ideProjects: StateFlow<Set<GradlePath>> = _ideProjects
@@ -41,17 +48,19 @@ class SpotlightProjectService(
   private val _allProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
   val allProjects: StateFlow<Set<GradlePath>> = _allProjects
 
+  private val rules = MutableStateFlow(SpotlightRules.EMPTY)
+
   init {
     // Connect to the message bus and listen for file ide-projects.txt
     scope.launch {
       // Set initial values
-      readAndEmit(SpotlightFileType.IDE_PROJECTS)
-      readAndEmit(SpotlightFileType.ALL_PROJECTS)
+      // Rules triggers a load of ide-projects.txt and all-projects.txt
+      readAndEmit(SpotlightFileChangeType.RULES)
 
       vfsEventsFlow(project)
         .flatMapMerge { events ->
           events.mapNotNull { event ->
-            SpotlightFileType.entries.find { event.path.endsWith(it.suffix) }
+            SpotlightFileChangeType.entries.find { event.path.endsWith(it.suffix) }
           }
             .asFlow()
         }
@@ -61,18 +70,33 @@ class SpotlightProjectService(
     }
   }
 
-  private suspend fun readAndEmit(spotlightFileType: SpotlightFileType) {
+  private suspend fun readAndEmit(
+    changeType: SpotlightFileChangeType
+  ) {
     // VFS CHANGES are delivered on EDT+write; move read off EDT
     withContext(Dispatchers.IO) {
-      when (spotlightFileType) {
-        SpotlightFileType.IDE_PROJECTS -> {
+      when (changeType) {
+        SpotlightFileChangeType.IDE_PROJECTS -> {
           val paths = ideProjectsList.read()
-          _ideProjects.emit(paths)
+          val currentRules = rules.value
+          val implicitRules = currentRules.implicitRules
+          val typeSafeInferenceLevel = currentRules.typeSafeAccessorInference ?: TypeSafeAccessorInference.DISABLED
+          val ruleSet =
+            computeSpotlightRules(rootDir, project.name, implicitRules, typeSafeInferenceLevel) { allProjects.value }
+          val allPaths = BreadthFirstSearch.flatten(paths, ruleSet)
+          _ideProjects.emit(allPaths)
         }
 
-        SpotlightFileType.ALL_PROJECTS -> {
+        SpotlightFileChangeType.ALL_PROJECTS -> {
           val paths = allProjectsList.read()
           _allProjects.emit(paths)
+        }
+
+        SpotlightFileChangeType.RULES -> {
+          // Read the rules once and re-read other lists
+          rules.emit(rulesList.read())
+          readAndEmit(SpotlightFileChangeType.IDE_PROJECTS)
+          readAndEmit(SpotlightFileChangeType.ALL_PROJECTS)
         }
       }
     }
@@ -109,9 +133,10 @@ class SpotlightProjectService(
 
   }
 
-  private enum class SpotlightFileType(val suffix: String) {
+  private enum class SpotlightFileChangeType(val suffix: String) {
     IDE_PROJECTS(IDE_PROJECTS_LOCATION),
     ALL_PROJECTS(ALL_PROJECTS_LOCATION),
+    RULES(SPOTLIGHT_RULES_LOCATION),
   }
 }
 

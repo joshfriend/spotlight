@@ -3,6 +3,7 @@ package com.fueledbycaffeine.spotlight.dsl
 import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
+import com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.file.BuildLayout
 import org.gradle.api.model.ObjectFactory
