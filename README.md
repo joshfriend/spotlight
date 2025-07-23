@@ -61,24 +61,29 @@ A config file option is provided to configure some pattern matching rules based 
 
 ```json
 // gradle/spotlight-rules.json
-[
-  // Add :tsunami-sea as a dependency to all projects with a path matching ":rotoscope:.*"
-  // The pattern strings are regexes
-  {
-    "type": "project-path-match-rule",
-    "pattern": ":rotoscope:.*",
-    "includedProjects": [":tsunami-sea"]
-  },
-  // Add :eternal-blue to any project applying the `com.example.android` convention plugin
-  {
-    "type": "buildscript-match-rule",
-    "pattern": "id 'com.example.android'",
-    "includedProjects": [
-      ":eternal-blue",
-      ":singles-collection" // multiple includes can be given for a pattern
-    ]
-  }
-]
+{
+  "implicitRules": [
+    // Add :tsunami-sea as a dependency to all projects with a path matching ":rotoscope:.*"
+    // The pattern strings are regexes
+    {
+      "type": "project-path-match-rule",
+      "pattern": ":rotoscope:.*",
+      "includedProjects": [
+        ":tsunami-sea"
+      ]
+    },
+    // Add :eternal-blue to any project applying the `com.example.android` convention plugin
+    {
+      "type": "buildscript-match-rule",
+      "pattern": "id 'com.example.android'",
+      "includedProjects": [
+        ":eternal-blue",
+        ":singles-collection"
+        // multiple includes can be given for a pattern
+      ]
+    }
+  ]
+}
 ```
 
 Implicit rules apply to all Gradle invocations (sync and task execution).
