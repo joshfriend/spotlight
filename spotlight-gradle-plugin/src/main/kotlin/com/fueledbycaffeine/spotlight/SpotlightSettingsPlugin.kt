@@ -52,7 +52,8 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
       implicitAndTransitiveDependenciesOf(projectsOverride)
     } else {
       if (isIdeSync) {
-        val targets = getIdeProjects()
+        val allProjects = getAllProjects()
+        val targets = getIdeProjects(allProjects)
         if (targets.isNotEmpty()) {
           logger.info("{} contains {} targets", SpotlightProjectList.IDE_PROJECTS_LOCATION, targets.size)
           implicitAndTransitiveDependenciesOf(targets)
@@ -61,7 +62,7 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
             "{} was missing or empty, including all projects. This can result in slow sync times!",
             SpotlightProjectList.IDE_PROJECTS_LOCATION,
           )
-          getAllProjects()
+          allProjects
         }
       } else {
         // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
@@ -116,6 +117,6 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
   }
 
   private fun Settings.getAllProjects() = SpotlightProjectList.allProjects(settingsDir.toPath()).read()
-  private fun Settings.getIdeProjects() = SpotlightProjectList.ideProjects(settingsDir.toPath()).read()
+  private fun Settings.getIdeProjects(allProjects: Set<GradlePath>) = SpotlightProjectList.ideProjects(settingsDir.toPath(), allProjects).read()
   private fun Settings.getSpotlightRules() = SpotlightRulesList(settingsDir.toPath()).read()
 }
