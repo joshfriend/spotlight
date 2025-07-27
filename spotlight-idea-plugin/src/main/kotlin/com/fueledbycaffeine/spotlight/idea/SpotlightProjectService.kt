@@ -38,7 +38,6 @@ class SpotlightProjectService(
 ) : Disposable {
 
   private val rootDir = Path.of(project.basePath!!)
-  private val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
   private val allProjectsList = SpotlightProjectList.allProjects(rootDir)
   private val rulesList = SpotlightRulesList(rootDir)
 
@@ -77,6 +76,7 @@ class SpotlightProjectService(
     withContext(Dispatchers.IO) {
       when (changeType) {
         SpotlightFileChangeType.IDE_PROJECTS -> {
+          val ideProjectsList = SpotlightProjectList.ideProjects(rootDir, allProjects.value)
           val paths = ideProjectsList.read()
           val currentRules = rules.value
           val implicitRules = currentRules.implicitRules
@@ -103,20 +103,24 @@ class SpotlightProjectService(
   }
 
   fun addIdeProjects(paths: Iterable<GradlePath>) {
+    val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
     ideProjectsList.add(paths)
     refreshIdeProjectsFile()
   }
 
   fun removeIdeProjects(pathsInBuild: Set<GradlePath>) {
+    val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
     ideProjectsList.remove(pathsInBuild)
     refreshIdeProjectsFile()
   }
 
   private fun ideProjectsFile(): VirtualFile? {
+    val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
     return VirtualFileManager.getInstance().findFileByNioPath(ideProjectsList.projectList)
   }
 
   fun openIdeProjectsInEditor() {
+    val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
     ideProjectsList.ensureFileExists()
     val virtualFile = ideProjectsFile() ?: return
     FileEditorManager.getInstance(project)
