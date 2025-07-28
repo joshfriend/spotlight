@@ -25,7 +25,7 @@ class SpotlightProjectListTest {
     )
     projectListFile.writeText(expectedProjects.joinToString("\n") { it.path })
 
-    val projects = SpotlightProjectList(buildRoot, projectListFile).read()
+    val projects = AllProjects(buildRoot, projectListFile).read()
     assertThat(projects).equals(expectedProjects)
   }
 
@@ -40,7 +40,7 @@ class SpotlightProjectListTest {
       :foo
     """.trimIndent())
 
-    val projects = SpotlightProjectList(buildRoot, projectListFile).read()
+    val projects = AllProjects(buildRoot, projectListFile).read()
     assertThat(projects).equals(expectedProjects)
   }
 
@@ -57,7 +57,7 @@ class SpotlightProjectListTest {
       :foo:bar
     """.trimIndent())
 
-    val projects = SpotlightProjectList(buildRoot, projectListFile).read()
+    val projects = AllProjects(buildRoot, projectListFile).read()
     assertThat(projects).equals(expectedProjects)
   }
 
@@ -72,7 +72,7 @@ class SpotlightProjectListTest {
       :foo
     """.trimIndent())
 
-    val projects = SpotlightProjectList(buildRoot, projectListFile).read()
+    val projects = AllProjects(buildRoot, projectListFile).read()
     assertThat(projects).equals(expectedProjects)
   }
 
@@ -88,7 +88,7 @@ class SpotlightProjectListTest {
 
     val present = GradlePath(buildRoot, ":foo")
     val missing = GradlePath(buildRoot, ":bar")
-    val projects = SpotlightProjectList(buildRoot, projectListFile)
+    val projects = AllProjects(buildRoot, projectListFile)
     assertThat(projects.contains(missing)).isFalse()
     assertThat(projects.contains(present)).isTrue()
   }
@@ -105,10 +105,68 @@ class SpotlightProjectListTest {
     """.trimIndent())
 
     val missing = GradlePath(buildRoot, ":bar")
-    val projects = SpotlightProjectList(buildRoot, projectListFile)
+    val projects = IdeProjects(buildRoot, projectListFile)
     projects.add(listOf(missing))
     val updatedFileContents = projectListFile.readText()
     assertThat(updatedFileContents).equals(":foo\n:bar\n")
+  }
+
+  @Test
+  fun `IdeProjects supports glob patterns`() {
+    val ideProjectListFile = buildRoot.resolve("ide-projects.txt")
+    val allProjectsList = buildRoot.createProjectList(
+      ":libraries:core",
+      ":libraries:ui",
+      ":libraries:data",
+      ":apps:main",
+      ":apps:sample"
+    )
+    ideProjectListFile.writeText("""
+      :libraries:*
+      :apps:main
+    """.trimIndent())
+
+    val projects = IdeProjects(buildRoot, ideProjectListFile, allProjectsList::toSet).read()
+    val expectedProjects = allProjectsList.filter {
+      it.path in setOf(":libraries:core",
+        ":libraries:ui",
+        ":libraries:data",
+        ":apps:main")
+    }
+    assertThat(projects).equals(expectedProjects.toSet())
+  }
+
+  @Test
+  fun `IdeProjects filters non-existent projects when allProjects provided`() {
+    val ideProjectListFile = buildRoot.resolve("ide-projects.txt")
+    val allProjectsList = buildRoot.createProjectList(
+      ":foo",
+      ":bar"
+    )
+    ideProjectListFile.writeText("""
+      :foo
+      :baz
+    """.trimIndent())
+
+    val projects = IdeProjects(buildRoot, ideProjectListFile, allProjectsList::toSet).read()
+    val expectedProjects = allProjectsList.filter { it.path == ":foo" }
+    assertThat(projects).equals(expectedProjects.toSet())
+  }
+
+  @Test
+  fun `IdeProjects works without allProjects`() {
+    val ideProjectListFile = buildRoot.resolve("ide-projects.txt")
+    val projects = buildRoot.createProjectList(
+      ":foo",
+      ":bar"
+    )
+    ideProjectListFile.writeText("""
+      :foo
+      :bar
+    """.trimIndent())
+
+    val ideProjects = IdeProjects(buildRoot, ideProjectListFile, null).read()
+    assertThat(ideProjects).equals(projects.toSet())
   }
 
   private fun Path.createProjectList(vararg projects: String): List<GradlePath> {

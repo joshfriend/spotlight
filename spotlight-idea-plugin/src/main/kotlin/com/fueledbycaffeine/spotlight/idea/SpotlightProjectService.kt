@@ -38,15 +38,17 @@ class SpotlightProjectService(
 ) : Disposable {
 
   private val rootDir = Path.of(project.basePath!!)
-  private val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
-  private val allProjectsList = SpotlightProjectList.allProjects(rootDir)
-  private val rulesList = SpotlightRulesList(rootDir)
 
+  private val allProjectsList = SpotlightProjectList.allProjects(rootDir)
+  private val _allProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
+  val allProjects: StateFlow<Set<GradlePath>> = _allProjects
+
+  private val ideProjectsList = SpotlightProjectList.ideProjects(rootDir, allProjects::value)
   private val _ideProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
   val ideProjects: StateFlow<Set<GradlePath>> = _ideProjects
 
-  private val _allProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
-  val allProjects: StateFlow<Set<GradlePath>> = _allProjects
+  private val rulesList = SpotlightRulesList(rootDir)
+
 
   private val rules = MutableStateFlow(SpotlightRules.EMPTY)
 

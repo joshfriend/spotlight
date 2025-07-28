@@ -57,7 +57,7 @@ class SpotlightSyncFunctionalTest {
     )
     val projectsSynced = syncResult.projects.map { it.path }
     assertThat(projectsSynced).containsExactlyElementsIn(expectedProjects)
-    assertThat(syncResult.stdout).contains("gradle/ide-projects.txt contains 1 targets")
+    assertThat(syncResult.stdout).contains("gradle/ide-projects.txt matches 1 targets")
   }
 
   @Test
@@ -105,12 +105,46 @@ class SpotlightSyncFunctionalTest {
     )
     val projectsSynced = syncResult.projects.map { it.path }
     assertThat(projectsSynced).containsExactlyElementsIn(expectedProjects)
-    assertThat(syncResult.stdout).contains("gradle/ide-projects.txt contains 1 targets")
+    assertThat(syncResult.stdout).contains("gradle/ide-projects.txt matches 1 targets")
     assertThat(syncResult.configurationCacheStored).isTrue()
     val ccReport = syncResult.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
       CCDiagnostic.Input(type = "file system entry", name = "gradle/ide-projects.txt"),
       CCDiagnostic.Input(type = "file", name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input(type = "file system entry", name = "gradle/spotlight-rules.json"),
+      CCDiagnostic.Input(type = "system property", name = "idea.sync.active"),
+      CCDiagnostic.Input(type = "system property", name = "spotlight.enabled"),
+    ))
+  }
+
+  @Test
+  fun `supports isolated projects when syncing specific projects with a glob char`() {
+    // Given
+    val project = SpiritboxProject().build()
+    project.ideProjects.writeText(":rotoscope:*")
+    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+
+    // When
+    val syncResult = project.sync()
+
+    // Then
+    val expectedProjects = listOf(
+      ":",
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+    )
+    val projectsSynced = syncResult.projects.map { it.path }
+    assertThat(projectsSynced).containsExactlyElementsIn(expectedProjects)
+    assertThat(syncResult.stdout).contains("gradle/ide-projects.txt matches 3 targets")
+    assertThat(syncResult.configurationCacheStored).isTrue()
+    val ccReport = syncResult.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type = "file system entry", name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input(type = "file system entry", name = "gradle/all-projects.txt"),
+      CCDiagnostic.Input(type = "file", name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input(type = "file", name = "gradle/all-projects.txt"),
       CCDiagnostic.Input(type = "file system entry", name = "gradle/spotlight-rules.json"),
       CCDiagnostic.Input(type = "system property", name = "idea.sync.active"),
       CCDiagnostic.Input(type = "system property", name = "spotlight.enabled"),
