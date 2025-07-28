@@ -1,12 +1,10 @@
 public final class com/fueledbycaffeine/spotlight/buildscript/AllProjects : com/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList {
-	public fun add (Ljava/lang/Iterable;)V
 	public fun contains (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Z
 	public fun ensureFileExists ()V
 	public fun getBuildRoot ()Ljava/nio/file/Path;
 	public fun getProjectList ()Ljava/nio/file/Path;
 	public fun read ()Ljava/util/Set;
-	public fun readRawPaths ()Ljava/util/List;
-	public fun remove (Ljava/lang/Iterable;)V
+	public fun readRawPaths (Z)Ljava/util/List;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/BuildFile {
@@ -76,14 +74,14 @@ public final class com/fueledbycaffeine/spotlight/buildscript/GradlePathKt {
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/IdeProjects : com/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList {
-	public fun add (Ljava/lang/Iterable;)V
+	public final fun add (Ljava/lang/Iterable;)V
 	public fun contains (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Z
 	public fun ensureFileExists ()V
 	public fun getBuildRoot ()Ljava/nio/file/Path;
 	public fun getProjectList ()Ljava/nio/file/Path;
 	public fun read ()Ljava/util/Set;
-	public fun readRawPaths ()Ljava/util/List;
-	public fun remove (Ljava/lang/Iterable;)V
+	public fun readRawPaths (Z)Ljava/util/List;
+	public final fun remove (Ljava/lang/Iterable;)V
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/InvalidSpotlightRules : java/lang/Exception {
@@ -94,32 +92,28 @@ public abstract interface class com/fueledbycaffeine/spotlight/buildscript/Spotl
 	public static final field ALL_PROJECTS_LOCATION Ljava/lang/String;
 	public static final field Companion Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList$Companion;
 	public static final field IDE_PROJECTS_LOCATION Ljava/lang/String;
-	public abstract fun add (Ljava/lang/Iterable;)V
 	public static fun allProjects (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/AllProjects;
 	public abstract fun contains (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Z
 	public abstract fun ensureFileExists ()V
 	public abstract fun getBuildRoot ()Ljava/nio/file/Path;
 	public abstract fun getProjectList ()Ljava/nio/file/Path;
-	public static fun ideProjects (Ljava/nio/file/Path;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/IdeProjects;
+	public static fun ideProjects (Ljava/nio/file/Path;Lkotlin/jvm/functions/Function0;)Lcom/fueledbycaffeine/spotlight/buildscript/IdeProjects;
 	public abstract fun read ()Ljava/util/Set;
-	public abstract fun readRawPaths ()Ljava/util/List;
-	public abstract fun remove (Ljava/lang/Iterable;)V
+	public abstract fun readRawPaths (Z)Ljava/util/List;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList$Companion {
 	public static final field ALL_PROJECTS_LOCATION Ljava/lang/String;
 	public static final field IDE_PROJECTS_LOCATION Ljava/lang/String;
 	public final fun allProjects (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/AllProjects;
-	public final fun ideProjects (Ljava/nio/file/Path;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/IdeProjects;
-	public static synthetic fun ideProjects$default (Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList$Companion;Ljava/nio/file/Path;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/IdeProjects;
+	public final fun ideProjects (Ljava/nio/file/Path;Lkotlin/jvm/functions/Function0;)Lcom/fueledbycaffeine/spotlight/buildscript/IdeProjects;
+	public static synthetic fun ideProjects$default (Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList$Companion;Ljava/nio/file/Path;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/IdeProjects;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList$DefaultImpls {
-	public static fun add (Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;Ljava/lang/Iterable;)V
 	public static fun contains (Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Z
 	public static fun ensureFileExists (Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;)V
-	public static fun readRawPaths (Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;)Ljava/util/List;
-	public static fun remove (Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;Ljava/lang/Iterable;)V
+	public static fun readRawPaths (Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList;Z)Ljava/util/List;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightRulesList {
