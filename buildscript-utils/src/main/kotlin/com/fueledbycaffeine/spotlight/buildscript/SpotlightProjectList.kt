@@ -21,7 +21,7 @@ public sealed interface SpotlightProjectList {
       AllProjects(buildRoot, buildRoot.resolve(ALL_PROJECTS_LOCATION))
 
     @JvmStatic
-    public fun ideProjects(buildRoot: Path, allProjects: Set<GradlePath>? = null): IdeProjects =
+    public fun ideProjects(buildRoot: Path, allProjects: Lazy<Set<GradlePath>>? = null): IdeProjects =
       IdeProjects(buildRoot, buildRoot.resolve(IDE_PROJECTS_LOCATION), allProjects)
   }
 
@@ -65,7 +65,7 @@ public class AllProjects internal constructor(
 public class IdeProjects internal constructor(
   override val buildRoot: Path,
   override val projectList: Path,
-  private val allProjects: Set<GradlePath>? = null
+  private val allProjects: Lazy<Set<GradlePath>>? = null
 ) : SpotlightProjectList {
 
   private companion object {
@@ -93,7 +93,7 @@ public class IdeProjects internal constructor(
             // Handle glob patterns like :libraries:*
             val globPattern = "glob:$path"
             val pathMatcher = FileSystems.getDefault().getPathMatcher(globPattern)
-            allProjects.filter { gradlePath ->
+            allProjects.value.filter { gradlePath ->
               // Convert gradle path to a Path for matching
               val pathToMatch = FileSystems.getDefault().getPath(gradlePath.path)
               pathMatcher.matches(pathToMatch)
@@ -102,12 +102,10 @@ public class IdeProjects internal constructor(
 
           else -> {
             // Direct project reference
+            // Assume it's real and don't cross-reference all-projects.txt as this
+            // lets us avoid it getting pulled in to CC
             val gradlePath = GradlePath(buildRoot, path)
-            if (allProjects.contains(gradlePath)) {
-              listOf(gradlePath)
-            } else {
-              emptyList()
-            }
+            listOf(gradlePath)
           }
         }
       }.toSet()

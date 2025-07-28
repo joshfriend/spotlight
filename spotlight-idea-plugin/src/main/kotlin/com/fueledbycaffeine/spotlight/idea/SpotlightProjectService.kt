@@ -76,7 +76,7 @@ class SpotlightProjectService(
     withContext(Dispatchers.IO) {
       when (changeType) {
         SpotlightFileChangeType.IDE_PROJECTS -> {
-          val ideProjectsList = SpotlightProjectList.ideProjects(rootDir, allProjects.value)
+          val ideProjectsList = SpotlightProjectList.ideProjects(rootDir, lazy { allProjects.value })
           val paths = ideProjectsList.read()
           val currentRules = rules.value
           val implicitRules = currentRules.implicitRules
