@@ -55,7 +55,7 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
         val allProjects = lazy { getAllProjects() }
         val targets = getIdeProjects(allProjects)
         if (targets.isNotEmpty()) {
-          logger.info("{} contains {} targets", SpotlightProjectList.IDE_PROJECTS_LOCATION, targets.size)
+          logger.info("{} matches {} targets", SpotlightProjectList.IDE_PROJECTS_LOCATION, targets.size)
           implicitAndTransitiveDependenciesOf(targets)
         } else {
           logger.info(
