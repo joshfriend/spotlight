@@ -74,11 +74,13 @@ public class IdeProjects internal constructor(
     }
   }
 
+  // TODO filter out paths already covered by a glob
   public fun add(paths: Iterable<GradlePath>) {
     ensureFileExists()
     projectList.writeText((readRawPaths(includeComments = true) + paths.map { it.path }).joinToString("\n"))
   }
 
+  // TODO detect if paths are included by a pattern and signal to user
   public fun remove(paths: Iterable<GradlePath>) {
     if (projectList.notExists()) return
     projectList.writeText((read().filter { it !in paths }).joinToString("\n") { it.path })
