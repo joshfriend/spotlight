@@ -38,14 +38,17 @@ class SpotlightProjectService(
 ) : Disposable {
 
   private val rootDir = Path.of(project.basePath!!)
-  private val allProjectsList = SpotlightProjectList.allProjects(rootDir)
-  private val rulesList = SpotlightRulesList(rootDir)
 
+  private val allProjectsList = SpotlightProjectList.allProjects(rootDir)
+  private val _allProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
+  val allProjects: StateFlow<Set<GradlePath>> = _allProjects
+
+  private val ideProjectsList = SpotlightProjectList.ideProjects(rootDir, allProjects::value)
   private val _ideProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
   val ideProjects: StateFlow<Set<GradlePath>> = _ideProjects
 
-  private val _allProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
-  val allProjects: StateFlow<Set<GradlePath>> = _allProjects
+  private val rulesList = SpotlightRulesList(rootDir)
+
 
   private val rules = MutableStateFlow(SpotlightRules.EMPTY)
 
@@ -76,7 +79,6 @@ class SpotlightProjectService(
     withContext(Dispatchers.IO) {
       when (changeType) {
         SpotlightFileChangeType.IDE_PROJECTS -> {
-          val ideProjectsList = SpotlightProjectList.ideProjects(rootDir, lazy { allProjects.value })
           val paths = ideProjectsList.read()
           val currentRules = rules.value
           val implicitRules = currentRules.implicitRules
@@ -103,24 +105,20 @@ class SpotlightProjectService(
   }
 
   fun addIdeProjects(paths: Iterable<GradlePath>) {
-    val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
     ideProjectsList.add(paths)
     refreshIdeProjectsFile()
   }
 
   fun removeIdeProjects(pathsInBuild: Set<GradlePath>) {
-    val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
     ideProjectsList.remove(pathsInBuild)
     refreshIdeProjectsFile()
   }
 
   private fun ideProjectsFile(): VirtualFile? {
-    val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
     return VirtualFileManager.getInstance().findFileByNioPath(ideProjectsList.projectList)
   }
 
   fun openIdeProjectsInEditor() {
-    val ideProjectsList = SpotlightProjectList.ideProjects(rootDir)
     ideProjectsList.ensureFileExists()
     val virtualFile = ideProjectsFile() ?: return
     FileEditorManager.getInstance(project)

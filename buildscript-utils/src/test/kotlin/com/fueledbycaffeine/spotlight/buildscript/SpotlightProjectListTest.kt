@@ -105,7 +105,7 @@ class SpotlightProjectListTest {
     """.trimIndent())
 
     val missing = GradlePath(buildRoot, ":bar")
-    val projects = AllProjects(buildRoot, projectListFile)
+    val projects = IdeProjects(buildRoot, projectListFile)
     projects.add(listOf(missing))
     val updatedFileContents = projectListFile.readText()
     assertThat(updatedFileContents).equals(":foo\n:bar\n")
@@ -126,7 +126,7 @@ class SpotlightProjectListTest {
       :apps:main
     """.trimIndent())
 
-    val projects = IdeProjects(buildRoot, ideProjectListFile, allProjectsList.toSet()).read()
+    val projects = IdeProjects(buildRoot, ideProjectListFile, allProjectsList::toSet).read()
     val expectedProjects = allProjectsList.filter {
       it.path in setOf(":libraries:core",
         ":libraries:ui",
@@ -148,7 +148,7 @@ class SpotlightProjectListTest {
       :baz
     """.trimIndent())
 
-    val projects = IdeProjects(buildRoot, ideProjectListFile, allProjectsList.toSet()).read()
+    val projects = IdeProjects(buildRoot, ideProjectListFile, allProjectsList::toSet).read()
     val expectedProjects = allProjectsList.filter { it.path == ":foo" }
     assertThat(projects).equals(expectedProjects.toSet())
   }

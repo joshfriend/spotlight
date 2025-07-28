@@ -53,7 +53,7 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
     } else {
       if (isIdeSync) {
         val allProjects = lazy { getAllProjects() }
-        val targets = getIdeProjects(allProjects)
+        val targets = getIdeProjects(allProjects::value)
         if (targets.isNotEmpty()) {
           logger.info("{} matches {} targets", SpotlightProjectList.IDE_PROJECTS_LOCATION, targets.size)
           implicitAndTransitiveDependenciesOf(targets)
@@ -117,6 +117,6 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
   }
 
   private fun Settings.getAllProjects() = SpotlightProjectList.allProjects(settingsDir.toPath()).read()
-  private fun Settings.getIdeProjects(allProjects: Lazy<Set<GradlePath>>) = SpotlightProjectList.ideProjects(settingsDir.toPath(), allProjects).read()
+  private fun Settings.getIdeProjects(allProjects: () -> Set<GradlePath>) = SpotlightProjectList.ideProjects(settingsDir.toPath(), allProjects).read()
   private fun Settings.getSpotlightRules() = SpotlightRulesList(settingsDir.toPath()).read()
 }

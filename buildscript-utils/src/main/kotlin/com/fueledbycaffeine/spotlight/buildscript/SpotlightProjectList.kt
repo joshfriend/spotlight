@@ -21,7 +21,7 @@ public sealed interface SpotlightProjectList {
       AllProjects(buildRoot, buildRoot.resolve(ALL_PROJECTS_LOCATION))
 
     @JvmStatic
-    public fun ideProjects(buildRoot: Path, allProjects: Lazy<Set<GradlePath>>? = null): IdeProjects =
+    public fun ideProjects(buildRoot: Path, allProjects: (() -> Set<GradlePath>)? = null): IdeProjects =
       IdeProjects(buildRoot, buildRoot.resolve(IDE_PROJECTS_LOCATION), allProjects)
   }
 
@@ -33,20 +33,12 @@ public sealed interface SpotlightProjectList {
     if (projectList.notExists()) projectList.createFile()
   }
 
-  public fun add(paths: Iterable<GradlePath>) {
-    ensureFileExists()
-    projectList.writeText((read() + paths).joinToString("\n") { it.path })
-  }
-
-  public fun remove(paths: Iterable<GradlePath>) {
-    if (projectList.notExists()) return
-    projectList.writeText((read().filter { it !in paths }).joinToString("\n") { it.path })
-  }
-
-  public fun readRawPaths(): List<String> {
+  public fun readRawPaths(includeComments: Boolean): List<String> {
     if (projectList.notExists()) return emptyList()
     return projectList.readLines()
-      .filterNot { line -> line.trim().startsWith(COMMENT_CHAR) || line.isBlank() }
+      .filterNot { line ->
+        (!includeComments && line.trim().startsWith(COMMENT_CHAR)) || line.isBlank()
+      }
   }
 }
 
@@ -56,7 +48,7 @@ public class AllProjects internal constructor(
 ) : SpotlightProjectList {
 
   override fun read(): Set<GradlePath> {
-    return readRawPaths()
+    return readRawPaths(includeComments = false)
       .map { GradlePath(buildRoot, it) }
       .toSet()
   }
@@ -65,7 +57,7 @@ public class AllProjects internal constructor(
 public class IdeProjects internal constructor(
   override val buildRoot: Path,
   override val projectList: Path,
-  private val allProjects: Lazy<Set<GradlePath>>? = null
+  private val allProjects: (() -> Set<GradlePath>)? = null
 ) : SpotlightProjectList {
 
   private companion object {
@@ -82,8 +74,18 @@ public class IdeProjects internal constructor(
     }
   }
 
+  public fun add(paths: Iterable<GradlePath>) {
+    ensureFileExists()
+    projectList.writeText((readRawPaths(includeComments = true) + paths.map { it.path }).joinToString("\n"))
+  }
+
+  public fun remove(paths: Iterable<GradlePath>) {
+    if (projectList.notExists()) return
+    projectList.writeText((read().filter { it !in paths }).joinToString("\n") { it.path })
+  }
+
   override fun read(): Set<GradlePath> {
-    val rawPaths = readRawPaths()
+    val rawPaths = readRawPaths(includeComments = false)
 
     return if (allProjects != null) {
       // Apply filtering when allProjects is provided
@@ -93,7 +95,7 @@ public class IdeProjects internal constructor(
             // Handle glob patterns like :libraries:*
             val globPattern = "glob:$path"
             val pathMatcher = FileSystems.getDefault().getPathMatcher(globPattern)
-            allProjects.value.filter { gradlePath ->
+            allProjects().filter { gradlePath ->
               // Convert gradle path to a Path for matching
               val pathToMatch = FileSystems.getDefault().getPath(gradlePath.path)
               pathMatcher.matches(pathToMatch)
