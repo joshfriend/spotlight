@@ -65,13 +65,8 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
         }
       } else {
         // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
-        val taskPaths = try {
-          guessProjectsFromTaskRequests()
-        } catch (e: FileNotFoundException) {
-          logger.warn("Not sure how to map all tasks to projects: {}", e.message)
-          null
-        }
-        if (!taskPaths.isNullOrEmpty()) {
+        val taskPaths = guessProjectsFromTaskRequests()
+        if (!taskPaths.isEmpty() && taskPaths.none { it.path.isEmpty() }) {
           logger.info("Using transitives for projects of requested tasks")
           implicitAndTransitiveDependenciesOf(taskPaths)
         } else {
