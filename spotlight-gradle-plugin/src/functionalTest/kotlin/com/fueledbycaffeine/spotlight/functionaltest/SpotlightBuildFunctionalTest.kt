@@ -45,6 +45,36 @@ class SpotlightBuildFunctionalTest {
   }
 
   @Test
+  fun `ignores arguments that are not project paths`() {
+    // Given
+    val project = SpiritboxProject().build()
+
+    // When
+    val result = project.build(":rotoscope:assemble", "--stacktrace")
+
+    // Then
+    assertThat(result).task(":rotoscope:assemble").succeeded()
+    assertThat(result).task(":rotoscope:rotoscope:compileJava").succeeded()
+    assertThat(result).task(":rotoscope:hysteria:compileJava").noSource()
+    assertThat(result).task(":rotoscope:sew-me-up:compileJava").noSource()
+    val includedProjects = result.includedProjects()
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
+    ))
+  }
+
+  @Test
   fun `configuration cache can be reused`() {
     // Given
     val project = SpiritboxProject().build()
@@ -98,11 +128,10 @@ class SpotlightBuildFunctionalTest {
       .isEqualTo("file 'rotoscope/build.gradle' has changed.")
   }
 
-  @ParameterizedTest
-  @EnumSource(GradleProject.DslKind::class)
-  fun `can include implicit dependencies by project path`(dslKind: GradleProject.DslKind) {
+  @Test
+  fun `can include implicit dependencies by project path`() {
     // Given
-    val project = SpiritboxProject().build(dslKind = dslKind)
+    val project = SpiritboxProject().build()
 
     val rules = project.rootDir.resolve("gradle/spotlight-rules.json")
     rules.writeText("""
@@ -227,6 +256,32 @@ class SpotlightBuildFunctionalTest {
     assertThat(result).task(":rotoscope:assemble").succeeded()
     assertThat(result).task(":the-fear-of-fear:assemble").succeeded()
     assertThat(result).task(":eternal-blue:assemble").succeeded()
+    val includedProjects = result.includedProjects()
+    val allProjects = project.allProjects.readLines() +
+      project.rootProject.settingsScript.rootProjectName
+    assertThat(includedProjects).containsExactlyElementsIn(allProjects)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/all-projects.txt"),
+      CCDiagnostic.Input(type="file", name="gradle/all-projects.txt"),
+    ))
+  }
+
+  @Test
+  fun `can run a global task with a project task`() {
+    // Given
+    val project = SpiritboxProject().build()
+
+    // When
+    val result = project.build("clean", ":rotoscope:assemble")
+
+    // Then
+    assertThat(result).task(":rotoscope:clean").upToDate()
+    assertThat(result).task(":the-fear-of-fear:clean").upToDate()
+    assertThat(result).task(":eternal-blue:clean").upToDate()
+    assertThat(result).task(":rotoscope:assemble").succeeded()
     val includedProjects = result.includedProjects()
     val allProjects = project.allProjects.readLines() +
       project.rootProject.settingsScript.rootProjectName
