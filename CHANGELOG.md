@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.3.1
+* Fix a bug where running something like `./gradlew clean :foo:bar` would not include all projects as required by global task request `clean`
+* Support glob patterns in `ide-projects.txt`
+
 ### 1.3.0
 * Exclude unused projects from IDE indexing
 * IDE plugin now understands `spotlight-rules.json` and computes transitively included projects.
