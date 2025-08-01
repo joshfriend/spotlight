@@ -222,6 +222,7 @@ class BuildFileTest {
     )
     assertThat(buildFile.parseDependencies(rules))
       .containsExactlyInAnyOrder(
+        GradlePath(buildRoot, ":features"),
         GradlePath(buildRoot, ":foo"),
         GradlePath(buildRoot, ":bar"),
       )
@@ -248,6 +249,7 @@ class BuildFileTest {
     )
     assertThat(buildFile.parseDependencies(rules))
       .containsExactlyInAnyOrder(
+        GradlePath(buildRoot, ":features"),
         GradlePath(buildRoot, ":foo"),
         GradlePath(buildRoot, ":bar"),
       )
