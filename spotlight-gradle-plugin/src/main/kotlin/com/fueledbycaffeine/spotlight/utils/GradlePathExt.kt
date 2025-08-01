@@ -2,9 +2,7 @@ package com.fueledbycaffeine.spotlight.utils
 
 import com.fueledbycaffeine.spotlight.SpotlightBuildService
 import com.fueledbycaffeine.spotlight.SpotlightBuildService.Companion.NAME
-import com.fueledbycaffeine.spotlight.buildscript.GRADLE_PATH_SEP
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
-import java.io.FileNotFoundException
 import org.gradle.api.initialization.Settings
 
 internal fun Settings.guessProjectsFromTaskRequests(): Set<GradlePath> {

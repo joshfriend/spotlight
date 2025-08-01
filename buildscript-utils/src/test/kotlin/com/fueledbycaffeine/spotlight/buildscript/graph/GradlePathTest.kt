@@ -18,6 +18,7 @@ import kotlin.io.path.createFile
 import kotlin.io.path.writeText
 import org.gradle.internal.scripts.ScriptingLanguages
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNull
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
@@ -55,6 +56,19 @@ class GradlePathTest {
     projectDir.createDirectories()
     val buildscripts = ScriptingLanguages.all().map { lang ->
       val buildScriptPath = projectDir.resolve("build${lang.extension}")
+      buildScriptPath.createFile()
+    }
+    // Some other script
+    projectDir.resolve("project.gradle").createFile()
+    assertThat(gradlePath.buildFilePath).equals(buildscripts.first())
+  }
+
+  @Test fun `fall back to any other buildscript`() {
+    val gradlePath = GradlePath(buildRoot, ":foo:bar")
+    val projectDir = buildRoot.resolve("foo/bar")
+    projectDir.createDirectories()
+    val buildscripts = ScriptingLanguages.all().map { lang ->
+      val buildScriptPath = projectDir.resolve("bar${lang.extension}")
       buildScriptPath.createFile()
     }
     assertThat(gradlePath.buildFilePath).equals(buildscripts.first())
