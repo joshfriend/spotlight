@@ -52,13 +52,9 @@ public data class GradlePath(
    *
    * @throws FileNotFoundException if there is no buildscript.
    */
-  public val buildFilePath: Path get() = try {
+  public val buildFilePath: Path get() =
     GradlePathInternal.buildFilePath(this)
-  } catch (_: GradlePathInternal.NoBuildFileException) {
-    // The package for GradlePathInternal is really weird and possibly confusing so make it look like the exception
-    // came from here in the public API.
-    throw FileNotFoundException("No build.gradle(.kts) for $path found")
-  }
+      ?: throw FileNotFoundException("No *.gradle(.kts) for $path found")
 
   /**
    * The equivalent type-safe project accessor of [path] used to reference this Gradle project in a buildscript
