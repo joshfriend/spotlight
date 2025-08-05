@@ -8,6 +8,7 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.P
 import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.ccHiddenReadLines
+import java.io.FileNotFoundException
 
 public data class BuildFile(public val project: GradlePath) {
   public fun parseDependencies(
@@ -111,7 +112,7 @@ private fun computeImplicitParentProjects(project: GradlePath): Set<GradlePath> 
   // libs/foo/impl/build.gradle.kts -> libs/foo
   // Then iterate up to the root directory
   val sequence = generateSequence(project) { it.parent }
-  return sequence.filterTo(mutableSetOf()) { it != project && it.hasBuildFile }
+  return sequence.filterTo(mutableSetOf()) { it != project && !it.isRootProject }
 }
 
 private fun String.removeTypeSafeAccessorJunk(rootProjectAccessor: String): String =
