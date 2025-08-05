@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.3.2
+* Fall back to any `*.gradle(.kts)` when looking for buildscript in a project
+
 ### 1.3.1
 * Fix a bug where running something like `./gradlew clean :foo:bar` would not include all projects as required by global task request `clean`
 * Support glob patterns in `ide-projects.txt`
