@@ -9,6 +9,7 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
@@ -19,6 +20,11 @@ import kotlin.io.path.writeText
 
 class BuildFileTest {
   @TempDir lateinit var buildRoot: Path
+
+  @BeforeEach fun setupBuild() {
+    buildRoot.resolve("build.gradle").createFile()
+    buildRoot.resolve("settings.gradle").createFile()
+  }
 
   @Test fun `reads dependencies`() {
     val project = buildRoot.createProject(":foo")
@@ -222,7 +228,6 @@ class BuildFileTest {
     )
     assertThat(buildFile.parseDependencies(rules))
       .containsExactlyInAnyOrder(
-        GradlePath(buildRoot, ":features"),
         GradlePath(buildRoot, ":foo"),
         GradlePath(buildRoot, ":bar"),
       )
@@ -249,7 +254,6 @@ class BuildFileTest {
     )
     assertThat(buildFile.parseDependencies(rules))
       .containsExactlyInAnyOrder(
-        GradlePath(buildRoot, ":features"),
         GradlePath(buildRoot, ":foo"),
         GradlePath(buildRoot, ":bar"),
       )
