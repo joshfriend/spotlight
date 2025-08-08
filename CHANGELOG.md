@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.3.3
+* Revert support for any `*.gradle(.kts)` when looking for buildscript in a project
+
 ### 1.3.2
 * Fall back to any `*.gradle(.kts)` when looking for buildscript in a project
 
