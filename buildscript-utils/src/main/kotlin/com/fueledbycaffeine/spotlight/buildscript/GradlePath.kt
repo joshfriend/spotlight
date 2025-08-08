@@ -55,7 +55,7 @@ public data class GradlePath(
    */
   public val buildFilePath: Path get() =
     GradlePathInternal.buildFilePath(this)
-      ?: throw FileNotFoundException("No *.gradle(.kts) for $path found")
+      ?: throw FileNotFoundException("No build.gradle(.kts) for $path found")
 
   /**
    * The equivalent type-safe project accessor of [path] used to reference this Gradle project in a buildscript

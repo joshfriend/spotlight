@@ -58,19 +58,6 @@ class GradlePathTest {
       val buildScriptPath = projectDir.resolve("build${lang.extension}")
       buildScriptPath.createFile()
     }
-    // Some other script
-    projectDir.resolve("project.gradle").createFile()
-    assertThat(gradlePath.buildFilePath).equals(buildscripts.first())
-  }
-
-  @Test fun `fall back to any other buildscript`() {
-    val gradlePath = GradlePath(buildRoot, ":foo:bar")
-    val projectDir = buildRoot.resolve("foo/bar")
-    projectDir.createDirectories()
-    val buildscripts = ScriptingLanguages.all().map { lang ->
-      val buildScriptPath = projectDir.resolve("bar${lang.extension}")
-      buildScriptPath.createFile()
-    }
     assertThat(gradlePath.buildFilePath).equals(buildscripts.first())
   }
 

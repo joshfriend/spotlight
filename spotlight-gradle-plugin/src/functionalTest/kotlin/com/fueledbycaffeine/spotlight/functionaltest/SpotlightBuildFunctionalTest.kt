@@ -434,6 +434,17 @@ class SpotlightBuildFunctionalTest {
       ":the-fear-of-fear:the-void",
       ":the-fear-of-fear:too-close-too-late",
       ":the-fear-of-fear:ultraviolet",
+      ":tsunami-sea:a-haven-with-two-faces",
+      ":tsunami-sea:black-rainbow",
+      ":tsunami-sea:crystal-roses",
+      ":tsunami-sea:deep-end",
+      ":tsunami-sea:fata-morgana",
+      ":tsunami-sea:keep-sweet",
+      ":tsunami-sea:no-loss-no-love",
+      ":tsunami-sea:perfect-soul",
+      ":tsunami-sea:ride-the-wave",
+      ":tsunami-sea:soft-spine",
+      ":tsunami-sea:tsunami-sea",
     )
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
     val ccReport = result.ccReport()
@@ -584,6 +595,32 @@ class SpotlightBuildFunctionalTest {
       CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
       CCDiagnostic.Input(type="file system entry", name="gradle/all-projects.txt"),
       CCDiagnostic.Input(type="file", name="gradle/all-projects.txt"),
+    ))
+  }
+
+  @Test
+  fun `handles parent project with no buildfile`() {
+    // Given
+    val project = SpiritboxProject().build()
+    project.rootDir.resolve("tsunami-sea/build.gradle").delete()
+
+    // When
+    val result = project.build(":tsunami-sea:deep-end:assemble")
+
+    // Then
+    assertThat(result).task(":tsunami-sea:deep-end:assemble").succeeded()
+    val includedProjects = result.includedProjects()
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":tsunami-sea",
+      ":tsunami-sea:deep-end",
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
+      CCDiagnostic.Input(type="system property", name="spotlight.enabled"),
+      CCDiagnostic.Input(type="system property", name="idea.sync.active"),
+      CCDiagnostic.Input(type="file system entry", name="gradle/spotlight-rules.json"),
     ))
   }
 }

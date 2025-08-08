@@ -154,6 +154,39 @@ class SpiritboxProject : AbstractGradleProject() {
         }
       }
       .withSubproject(":tsunami-sea") { }
+      .withSubproject(":tsunami-sea:fata-morgana") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":tsunami-sea:black-rainbow") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":tsunami-sea:perfect-soul") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":tsunami-sea:keep-sweet") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":tsunami-sea:soft-spine") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":tsunami-sea:tsunami-sea") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":tsunami-sea:a-haven-with-two-faces") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":tsunami-sea:no-loss-no-love") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":tsunami-sea:crystal-roses") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":tsunami-sea:ride-the-wave") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
+      .withSubproject(":tsunami-sea:deep-end") {
+        withBuildScript { plugins(Plugin.javaLibrary) }
+      }
       .write()
 
     project.rootDir.resolve("gradle.properties")
