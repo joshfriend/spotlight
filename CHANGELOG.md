@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.3.4
+* Update Okio dependency to 3.16.2
+
 ### 1.3.3
 * Revert support for any `*.gradle(.kts)` when looking for buildscript in a project
 
