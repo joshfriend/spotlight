@@ -6,6 +6,7 @@ testkit = "0.18"
 lint-gradle = "1.0.0-alpha05"
 moshi = "1.15.2"
 moshix = "0.25.1"
+okio = "3.16.2"
 
 [libraries]
 junit-platform = { module = "org.junit:junit-bom", version.ref = "junit" }
@@ -20,4 +21,4 @@ moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
 moshix-sealedReflect = { module = "dev.zacsweers.moshix:moshi-sealed-reflect", version.ref = "moshix" }
 moshix-sealedRuntime = { module = "dev.zacsweers.moshix:moshi-sealed-runtime", version.ref = "moshix" }
-okio = "com.squareup.okio:okio:3.7.0"
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
