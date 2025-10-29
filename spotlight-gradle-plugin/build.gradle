@@ -30,7 +30,9 @@ gradlePlugin {
 
 mavenPublishing {
   publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
-  signAllPublications()
+  if (project.hasProperty("signingInMemoryKey")) {
+    signAllPublications()
+  }
 
   pom {
     name = "Spotlight Gradle plugin"
