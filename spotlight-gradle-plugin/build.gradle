@@ -65,6 +65,12 @@ kotlin {
   explicitApi()
 }
 
+java {
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(libs.versions.javaTarget.get()))
+  }
+}
+
 gradleTestKitSupport {
   withSupportLibrary()
   withTruthLibrary()
@@ -74,6 +80,17 @@ dependencyAnalysis {
   issues {
     onIncorrectConfiguration {
       exclude libs.autonomousapps.testkit.support
+    }
+  }
+}
+
+["runtimeElements", "apiElements"].each { configurationName ->
+  configurations.named(configurationName).configure {
+    attributes {
+      attribute(
+        GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
+        objects.named(GradlePluginApiVersion, libs.versions.minGradle.get())
+      )
     }
   }
 }
@@ -104,5 +121,6 @@ tasks.withType(ValidatePlugins).configureEach {
 }
 
 tasks.withType(Test).configureEach {
+  systemProperty("gradleVersion", System.getProperty("gradleVersion"))
   useJUnitPlatform()
 }

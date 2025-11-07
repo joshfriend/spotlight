@@ -60,6 +60,12 @@ kotlin {
   explicitApi()
 }
 
+java {
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(libs.versions.javaTarget.get()))
+  }
+}
+
 test {
   useJUnitPlatform()
 }

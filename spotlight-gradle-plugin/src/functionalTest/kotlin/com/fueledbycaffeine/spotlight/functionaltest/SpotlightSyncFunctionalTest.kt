@@ -1,6 +1,10 @@
 package com.fueledbycaffeine.spotlight.functionaltest
 
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.*
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.FILE
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.FILE_SYSTEM_ENTRY
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.PROPERTY
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.PROPERTY
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 import kotlin.io.path.appendText
@@ -76,12 +80,12 @@ class SpotlightSyncFunctionalTest {
     assertThat(syncResult.configurationCacheStored).isTrue()
     val ccReport = syncResult.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type = "file system entry", name = "gradle/all-projects.txt"),
-      CCDiagnostic.Input(type = "file", name = "gradle/all-projects.txt"),
-      CCDiagnostic.Input(type = "file system entry", name = "gradle/ide-projects.txt"),
-      CCDiagnostic.Input(type = "file", name = "gradle/ide-projects.txt"),
-      CCDiagnostic.Input(type = "system property", name = "idea.sync.active"),
-      CCDiagnostic.Input(type = "system property", name = "spotlight.enabled"),
+      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/all-projects.txt"),
+      CCDiagnostic.Input(type = FILE, name = "gradle/all-projects.txt"),
+      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input(type = FILE, name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input(type = PROPERTY, name = "idea.sync.active"),
+      CCDiagnostic.Input(type = PROPERTY, name = "spotlight.enabled"),
     ))
   }
 
@@ -109,11 +113,11 @@ class SpotlightSyncFunctionalTest {
     assertThat(syncResult.configurationCacheStored).isTrue()
     val ccReport = syncResult.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type = "file system entry", name = "gradle/ide-projects.txt"),
-      CCDiagnostic.Input(type = "file", name = "gradle/ide-projects.txt"),
-      CCDiagnostic.Input(type = "file system entry", name = "gradle/spotlight-rules.json"),
-      CCDiagnostic.Input(type = "system property", name = "idea.sync.active"),
-      CCDiagnostic.Input(type = "system property", name = "spotlight.enabled"),
+      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input(type = FILE, name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/spotlight-rules.json"),
+      CCDiagnostic.Input(type = PROPERTY, name = "idea.sync.active"),
+      CCDiagnostic.Input(type = PROPERTY, name = "spotlight.enabled"),
     ))
   }
 
@@ -141,13 +145,13 @@ class SpotlightSyncFunctionalTest {
     assertThat(syncResult.configurationCacheStored).isTrue()
     val ccReport = syncResult.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type = "file system entry", name = "gradle/ide-projects.txt"),
-      CCDiagnostic.Input(type = "file system entry", name = "gradle/all-projects.txt"),
-      CCDiagnostic.Input(type = "file", name = "gradle/ide-projects.txt"),
-      CCDiagnostic.Input(type = "file", name = "gradle/all-projects.txt"),
-      CCDiagnostic.Input(type = "file system entry", name = "gradle/spotlight-rules.json"),
-      CCDiagnostic.Input(type = "system property", name = "idea.sync.active"),
-      CCDiagnostic.Input(type = "system property", name = "spotlight.enabled"),
+      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/all-projects.txt"),
+      CCDiagnostic.Input(type = FILE, name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input(type = FILE, name = "gradle/all-projects.txt"),
+      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/spotlight-rules.json"),
+      CCDiagnostic.Input(type = PROPERTY, name = "idea.sync.active"),
+      CCDiagnostic.Input(type = PROPERTY, name = "spotlight.enabled"),
     ))
   }
 

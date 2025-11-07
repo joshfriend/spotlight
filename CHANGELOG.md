@@ -1,5 +1,8 @@
 # Changelog
 
+### Unreleased
+* Publish plugin artifact with `org.gradle.plugin.api-version` attribute, current minimum Gradle version is 8.7
+
 ### 1.3.4
 * Update Okio dependency to 3.16.2
 
