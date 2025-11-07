@@ -42,7 +42,9 @@ data class CCReport(
   val diagnostics: List<CCDiagnostic>,
   val totalProblemCount: Int,
 ) {
-  val inputs: List<CCDiagnostic.Input> get() = diagnostics.map { it.input }
+  // TODO: See note below about project properties not listed in some CC reports. They do show up
+  //  in newer versions but since we treat them the same they are duplicated.
+  val inputs: List<CCDiagnostic.Input> get() = diagnostics.map { it.input }.distinct()
 }
 
 data class CCDiagnostic(
@@ -62,12 +64,32 @@ data class CCDiagnostic(
   )
 
   data class Input(
-    val type: String,
+    val type: Type,
     val name: String,
-  )
+  ) {
+    enum class Type(private val names: List<String>) {
+      // Gradle versions prior to 9.1.0 apparently do not list project properties as inputs in the
+      // configuration cache report. Spotlight checks both the project and system property for
+      // stuff like `spotlight.enabled` so even though the project property isn't listed, it can
+      // still be verified in tests. We're just going to treat these as equivalent even though they
+      // technically aren't so that lots of gradle version checking isn't required in the tests.
+      // TODO: Once minGradle version is 9.1.0, break these out separately
+      PROPERTY(listOf("Gradle property", "system property")),
+      FILE(listOf("file")),
+      FILE_SYSTEM_ENTRY(listOf("file system entry")),
+      DIRECTORY_CONTENT(listOf("directory content")),
+      ENVIRONMENT_VARIABLE(listOf("environment variable")),
+      CUSTOM_SOURCE(listOf("value from custom source")),
+      ;
+
+      companion object {
+        fun of(name: String) = entries.first { name in it.names }
+      }
+    }
+  }
 
   val input = Input(
-    inputJunk.firstNotNullOf { it.type }.trim(),
+    Input.Type.of(inputJunk.firstNotNullOf { it.type }.trim()),
     inputJunk.firstNotNullOf { it.name }.trim(),
   )
 }
