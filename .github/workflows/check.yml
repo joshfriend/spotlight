@@ -34,9 +34,6 @@ jobs:
     - name: Unit Tests
       run: ./gradlew test -x functionalTest
 
-    - name: Functional Tests
-      run: ./gradlew functionalTest
-
     - name: Build Health
       run: ./gradlew buildHealth
 

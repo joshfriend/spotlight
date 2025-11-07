@@ -1,4 +1,6 @@
 [versions]
+javaTarget = "17"
+minGradle = "8.7"
 junit = "5.12.2"
 assertk = "0.28.1"
 truth = "1.1.3"

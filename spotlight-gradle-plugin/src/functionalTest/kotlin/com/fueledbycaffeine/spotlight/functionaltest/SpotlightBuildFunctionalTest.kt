@@ -301,7 +301,7 @@ class SpotlightBuildFunctionalTest {
     val project = SpiritboxProject().build()
 
     // When
-    val result = GradleBuilder.build(
+    val result = project.build(
       project.rootDir.resolve("rotoscope"),
       "assemble",
       "--info",
@@ -465,7 +465,7 @@ class SpotlightBuildFunctionalTest {
     val project = SpiritboxProject().build()
 
     // When
-    val result1 = GradleBuilder.build(
+    val result1 = project.build(
       project.rootDir.resolve("rotoscope"),
       "assemble",
       "--info",
@@ -537,14 +537,14 @@ class SpotlightBuildFunctionalTest {
     }
 
     // When
-    val result1 = GradleBuilder.build(
+    val result1 = project.build(
       project.rootDir.resolve("rotoscope"),
       "assemble",
       "--info",
       "--configuration-cache",
     )
     projectToRemove.deleteRecursively()
-    val result2 = GradleBuilder.build(
+    val result2 = project.build(
       project.rootDir.resolve("rotoscope"),
       "assemble",
       "--info",

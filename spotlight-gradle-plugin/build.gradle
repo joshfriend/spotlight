@@ -78,6 +78,17 @@ dependencyAnalysis {
   }
 }
 
+["runtimeElements", "apiElements"].each { configurationName ->
+  configurations.named(configurationName).configure {
+    attributes {
+      attribute(
+        GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
+        objects.named(GradlePluginApiVersion, libs.versions.minGradle.get())
+      )
+    }
+  }
+}
+
 def main = sourceSets["main"]
 
 // Add a source set for the functional test suite. This must come _above_ the `dependencies` block.
@@ -104,5 +115,6 @@ tasks.withType(ValidatePlugins).configureEach {
 }
 
 tasks.withType(Test).configureEach {
+  systemProperty("gradleVersion", System.getProperty("gradleVersion"))
   useJUnitPlatform()
 }
