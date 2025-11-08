@@ -4,11 +4,14 @@ package com.fueledbycaffeine.spotlight.functionaltest
 
 import com.autonomousapps.kit.GradleProject
 import com.autonomousapps.kit.truth.TestKitTruth.Companion.assertThat
+import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.*
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.DIRECTORY_CONTENT
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.FILE
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.FILE_SYSTEM_ENTRY
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.PROPERTY
+import com.fueledbycaffeine.spotlight.tasks.CheckSpotlightProjectListTask
+import com.fueledbycaffeine.spotlight.tasks.SortSpotlightProjectsListTask
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest

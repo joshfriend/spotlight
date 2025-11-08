@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package com.fueledbycaffeine.spotlight
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
@@ -8,16 +10,17 @@ import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
+import com.fueledbycaffeine.spotlight.tasks.CheckSpotlightProjectListTask
+import com.fueledbycaffeine.spotlight.tasks.SortSpotlightProjectsListTask
 import com.fueledbycaffeine.spotlight.utils.guessProjectsFromTaskRequests
 import com.fueledbycaffeine.spotlight.utils.include
 import com.fueledbycaffeine.spotlight.utils.isIdeSync
 import com.fueledbycaffeine.spotlight.utils.isSpotlightEnabled
-import java.io.FileNotFoundException
-import kotlin.time.measureTimedValue
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
+import kotlin.time.measureTimedValue
 
 private val logger: Logger = Logging.getLogger(SpotlightSettingsPlugin::class.java)
 
@@ -33,6 +36,8 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
 
   public override fun apply(settings: Settings): Unit = settings.run {
     options = extensions.getSpotlightExtension()
+
+    registerSpotlightLintTasks()
 
     if (isSpotlightEnabled) {
       gradle.settingsEvaluated { setupSpotlight() }
@@ -114,4 +119,22 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
   private fun Settings.getAllProjects() = SpotlightProjectList.allProjects(settingsDir.toPath()).read()
   private fun Settings.getIdeProjects(allProjects: () -> Set<GradlePath>) = SpotlightProjectList.ideProjects(settingsDir.toPath(), allProjects).read()
   private fun Settings.getSpotlightRules() = SpotlightRulesList(settingsDir.toPath()).read()
+
+  private fun Settings.registerSpotlightLintTasks() {
+    val allProjectsFile = settingsDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
+    gradle.lifecycle.beforeProject { project ->
+      if (project.path == ":") {
+        project.tasks.register(SortSpotlightProjectsListTask.NAME, SortSpotlightProjectsListTask::class.java) { task ->
+          task.group = "spotlight"
+          task.description = "Sorts the ${SpotlightProjectList.ALL_PROJECTS_LOCATION} file"
+          task.projectList.set(allProjectsFile)
+        }
+        project.tasks.register(CheckSpotlightProjectListTask.NAME, CheckSpotlightProjectListTask::class.java) { task ->
+          task.group = "spotlight"
+          task.description = "Checks if ${SpotlightProjectList.ALL_PROJECTS_LOCATION} is sorted"
+          task.projectsFile.set(allProjectsFile)
+        }
+      }
+    }
+  }
 }
