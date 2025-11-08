@@ -203,7 +203,7 @@ class SpiritboxProject : AbstractGradleProject() {
     val settings = project.rootDir.resolve(dslKind.settingsFile)
     val settingsContents = settings.readText()
     val projectPaths = INCLUDE_PATTERN.findAll(settingsContents)
-      .map { it ->
+      .map {
         val (path) = it.destructured
         path
       }
