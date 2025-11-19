@@ -38,6 +38,24 @@ public final class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension$Compani
 	public final fun getSpotlightExtension (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension;
 }
 
+public abstract class com/fueledbycaffeine/spotlight/tasks/CheckSpotlightProjectListTask : org/gradle/api/DefaultTask {
+	public static final field Companion Lcom/fueledbycaffeine/spotlight/tasks/CheckSpotlightProjectListTask$Companion;
+	public static final field NAME Ljava/lang/String;
+	public fun <init> ()V
+}
+
+public final class com/fueledbycaffeine/spotlight/tasks/CheckSpotlightProjectListTask$Companion {
+}
+
+public abstract class com/fueledbycaffeine/spotlight/tasks/SortSpotlightProjectsListTask : org/gradle/api/DefaultTask {
+	public static final field Companion Lcom/fueledbycaffeine/spotlight/tasks/SortSpotlightProjectsListTask$Companion;
+	public static final field NAME Ljava/lang/String;
+	public fun <init> ()V
+}
+
+public final class com/fueledbycaffeine/spotlight/tasks/SortSpotlightProjectsListTask$Companion {
+}
+
 public final class com/fueledbycaffeine/spotlight/utils/SpotlightProperties {
 	public static final fun isSpotlightEnabled (Lorg/gradle/api/initialization/Settings;)Z
 }
