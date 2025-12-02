@@ -93,13 +93,13 @@ public abstract interface class com/fueledbycaffeine/spotlight/buildscript/Spotl
 	public static final field Companion Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList$Companion;
 	public static final field IDE_PROJECTS_LOCATION Ljava/lang/String;
 	public static fun allProjects (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/AllProjects;
-	public abstract fun contains (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Z
-	public abstract fun ensureFileExists ()V
+	public fun contains (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Z
+	public fun ensureFileExists ()V
 	public abstract fun getBuildRoot ()Ljava/nio/file/Path;
 	public abstract fun getProjectList ()Ljava/nio/file/Path;
 	public static fun ideProjects (Ljava/nio/file/Path;Lkotlin/jvm/functions/Function0;)Lcom/fueledbycaffeine/spotlight/buildscript/IdeProjects;
 	public abstract fun read ()Ljava/util/Set;
-	public abstract fun readRawPaths (Z)Ljava/util/List;
+	public fun readRawPaths (Z)Ljava/util/List;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList$Companion {
