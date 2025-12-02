@@ -1,5 +1,3 @@
-import com.vanniktech.maven.publish.SonatypeHost
-
 plugins {
   id 'java-gradle-plugin'
   id 'com.gradle.plugin-publish'
@@ -29,8 +27,8 @@ gradlePlugin {
 }
 
 mavenPublishing {
-  publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, true)
-  if (project.hasProperty("signingInMemoryKey")) {
+  publishToMavenCentral(true)
+  if (providers.gradleProperty("signingInMemoryKey").isPresent()) {
     signAllPublications()
   }
 

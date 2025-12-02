@@ -32,7 +32,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v4
 
     - name: Unit Tests
-      run: ./gradlew test -x functionalTest
+      run: ./gradlew test
 
     - name: Build Health
       run: ./gradlew buildHealth
