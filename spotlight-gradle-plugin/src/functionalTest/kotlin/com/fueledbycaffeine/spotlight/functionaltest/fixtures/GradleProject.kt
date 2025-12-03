@@ -18,6 +18,9 @@ fun GradleProject.build(rootDir: File, vararg args: String): BuildResult =
 fun GradleProject.build(vararg args: String): BuildResult =
   GradleBuilder.build(gradleVersion, rootDir, *args, "--info")
 
+fun GradleProject.buildAndFail(vararg args: String): BuildResult =
+  GradleBuilder.buildAndFail(gradleVersion, rootDir, *args, "--info")
+
 fun GradleProject.setGradleProperties(vararg props: Pair<String, String>) {
   rootDir.resolve("gradle.properties")
     .appendText(buildString {
