@@ -1,12 +1,12 @@
 package com.fueledbycaffeine.spotlight.functionaltest.fixtures
 
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.*
 import com.squareup.moshi.Json
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapter
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.gradle.testkit.runner.BuildResult
 import java.net.URI
-import java.nio.file.Path
 import kotlin.io.path.readLines
 import kotlin.io.path.toPath
 
@@ -85,6 +85,19 @@ data class CCDiagnostic(
       companion object {
         fun of(name: String) = entries.first { name in it.names }
       }
+    }
+
+
+    companion object {
+      val SpotlightValueSource = Input(CUSTOM_SOURCE, "SpotlightIncludedProjectsValueSource")
+      val IdeSyncActive = Input(PROPERTY, "idea.sync.active")
+      val SpotlightEnabled = Input(PROPERTY, "spotlight.enabled")
+
+      val SPOTLIGHT_INPUTS = listOf(
+        SpotlightEnabled,
+        IdeSyncActive,
+        SpotlightValueSource,
+      )
     }
   }
 

@@ -13,7 +13,7 @@ private fun ProviderFactory.flagFromGradleOrSystemProperty(property: String, def
     .getOrElse(default)
 }
 
-private val ProviderFactory.isSpotlightEnabled: Boolean
+internal val ProviderFactory.isSpotlightEnabled: Boolean
   get() = flagFromGradleOrSystemProperty(SPOTLIGHT_ENABLED_PROPERTY, default = true)
 
 public val Settings.isSpotlightEnabled: Boolean get() = providers.isSpotlightEnabled
