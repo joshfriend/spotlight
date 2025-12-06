@@ -3,10 +3,16 @@ package com.fueledbycaffeine.spotlight.utils
 import com.fueledbycaffeine.spotlight.SpotlightBuildService
 import com.fueledbycaffeine.spotlight.SpotlightBuildService.Companion.NAME
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
+import org.gradle.StartParameter
+import org.gradle.TaskExecutionRequest
 import org.gradle.api.initialization.Settings
+import java.nio.file.Path
 
-internal fun Settings.guessProjectsFromTaskRequests(): Set<GradlePath> {
-  return startParameter.taskRequests.flatMap { it.args }
+internal fun guessProjectsFromTaskRequests(
+  rootDir: Path,
+  taskRequests: List<TaskExecutionRequest>,
+): Set<GradlePath> {
+  return taskRequests.flatMap { it.args }
     .map { GradlePath(rootDir, it.projectPathGuess) }
     .filter { it.hasBuildFile }
     .toSet()

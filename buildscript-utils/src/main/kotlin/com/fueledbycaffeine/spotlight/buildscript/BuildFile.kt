@@ -7,8 +7,7 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.B
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
-import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.ccHiddenReadLines
-import java.io.FileNotFoundException
+import kotlin.io.path.readLines
 
 public data class BuildFile(public val project: GradlePath) {
   public fun parseDependencies(
@@ -30,7 +29,7 @@ internal fun parseBuildFile(
   project: GradlePath,
   rules: Set<DependencyRule>,
 ): Set<GradlePath> {
-  val buildscriptContents = project.buildFilePath.ccHiddenReadLines()
+  val buildscriptContents = project.buildFilePath.readLines()
 
   return computeDirectDependencies(project, buildscriptContents) +
     computeTypeSafeProjectDependencies(project, buildscriptContents, rules) +

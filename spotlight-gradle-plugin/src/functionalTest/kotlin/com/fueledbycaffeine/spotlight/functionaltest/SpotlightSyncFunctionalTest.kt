@@ -80,10 +80,7 @@ class SpotlightSyncFunctionalTest {
     assertThat(syncResult.configurationCacheStored).isTrue()
     val ccReport = syncResult.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/all-projects.txt"),
-      CCDiagnostic.Input(type = FILE, name = "gradle/all-projects.txt"),
-      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/ide-projects.txt"),
-      CCDiagnostic.Input(type = FILE, name = "gradle/ide-projects.txt"),
+      CCDiagnostic.Input.SpotlightValueSource,
       CCDiagnostic.Input(type = PROPERTY, name = "idea.sync.active"),
       CCDiagnostic.Input(type = PROPERTY, name = "spotlight.enabled"),
     ))
@@ -113,9 +110,7 @@ class SpotlightSyncFunctionalTest {
     assertThat(syncResult.configurationCacheStored).isTrue()
     val ccReport = syncResult.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/ide-projects.txt"),
-      CCDiagnostic.Input(type = FILE, name = "gradle/ide-projects.txt"),
-      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightValueSource,
       CCDiagnostic.Input(type = PROPERTY, name = "idea.sync.active"),
       CCDiagnostic.Input(type = PROPERTY, name = "spotlight.enabled"),
     ))
@@ -145,11 +140,7 @@ class SpotlightSyncFunctionalTest {
     assertThat(syncResult.configurationCacheStored).isTrue()
     val ccReport = syncResult.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/ide-projects.txt"),
-      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/all-projects.txt"),
-      CCDiagnostic.Input(type = FILE, name = "gradle/ide-projects.txt"),
-      CCDiagnostic.Input(type = FILE, name = "gradle/all-projects.txt"),
-      CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightValueSource,
       CCDiagnostic.Input(type = PROPERTY, name = "idea.sync.active"),
       CCDiagnostic.Input(type = PROPERTY, name = "spotlight.enabled"),
     ))
@@ -228,7 +219,7 @@ class SpotlightSyncFunctionalTest {
     // Then
     assertThat(syncResult1.configurationCacheStored).isTrue()
     assertThat(syncResult2.configurationCacheInvalidationReason)
-      .isEqualTo("file 'gradle/ide-projects.txt' has changed.")
+      .isEqualTo("a build logic input of type 'SpotlightIncludedProjectsValueSource' has changed.")
     assertThat(syncResult2.configurationCacheReused).isFalse()
     assertThat(syncResult2.configurationCacheStored).isTrue()
   }

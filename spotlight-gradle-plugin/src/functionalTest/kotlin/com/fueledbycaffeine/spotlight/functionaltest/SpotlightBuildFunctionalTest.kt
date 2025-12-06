@@ -5,10 +5,7 @@ package com.fueledbycaffeine.spotlight.functionaltest
 import com.autonomousapps.kit.GradleProject
 import com.autonomousapps.kit.truth.TestKitTruth.Companion.assertThat
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.*
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.DIRECTORY_CONTENT
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.FILE
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.FILE_SYSTEM_ENTRY
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.PROPERTY
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Type.*
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -42,9 +39,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -72,9 +69,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -96,9 +93,9 @@ class SpotlightBuildFunctionalTest {
 
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -121,9 +118,9 @@ class SpotlightBuildFunctionalTest {
 
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -179,10 +176,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
-      CCDiagnostic.Input(type=FILE, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -234,10 +230,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
-      CCDiagnostic.Input(type=FILE, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -256,9 +251,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactly(project.rootProject.settingsScript.rootProjectName)
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -280,10 +275,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(allProjects)
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/all-projects.txt"),
-      CCDiagnostic.Input(type=FILE, name="gradle/all-projects.txt"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -306,10 +300,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(allProjects)
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/all-projects.txt"),
-      CCDiagnostic.Input(type=FILE, name="gradle/all-projects.txt"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -339,13 +332,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope/sew-me-up"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope/hysteria"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope/rotoscope"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -366,9 +355,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -400,8 +389,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -471,8 +461,7 @@ class SpotlightBuildFunctionalTest {
       listOf(
         CCDiagnostic.Input(type = PROPERTY, name = "spotlight.enabled"),
         CCDiagnostic.Input(type = PROPERTY, name = "idea.sync.active"),
-        CCDiagnostic.Input(type = FILE_SYSTEM_ENTRY, name = "gradle/all-projects.txt"),
-        CCDiagnostic.Input(type = FILE, name = "gradle/all-projects.txt"),
+        CCDiagnostic.Input.SpotlightValueSource,
       )
     )
   }
@@ -524,14 +513,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
     val ccReport = result2.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope/sew-me-up"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope/a-new-project"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope/hysteria"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope/rotoscope"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -583,13 +567,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
     val ccReport = result2.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope/sew-me-up"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope/hysteria"),
-      CCDiagnostic.Input(type=DIRECTORY_CONTENT, name="rotoscope/rotoscope"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -610,9 +590,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(result.output).contains("Spotlight is disabled")
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/all-projects.txt"),
-      CCDiagnostic.Input(type=FILE, name="gradle/all-projects.txt"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 
@@ -636,9 +616,9 @@ class SpotlightBuildFunctionalTest {
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(listOf(
-      CCDiagnostic.Input(type=PROPERTY, name="spotlight.enabled"),
-      CCDiagnostic.Input(type=PROPERTY, name="idea.sync.active"),
-      CCDiagnostic.Input(type=FILE_SYSTEM_ENTRY, name="gradle/spotlight-rules.json"),
+      CCDiagnostic.Input.SpotlightEnabled,
+      CCDiagnostic.Input.IdeSyncActive,
+      CCDiagnostic.Input.SpotlightValueSource,
     ))
   }
 }

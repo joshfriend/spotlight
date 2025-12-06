@@ -19,6 +19,23 @@ public abstract interface class com/fueledbycaffeine/spotlight/SpotlightBuildSer
 	public abstract fun getSpotlightProjects ()Lorg/gradle/api/provider/SetProperty;
 }
 
+public abstract class com/fueledbycaffeine/spotlight/SpotlightIncludedProjectsValueSource : org/gradle/api/provider/ValueSource {
+	public fun <init> ()V
+	public synthetic fun obtain ()Ljava/lang/Object;
+	public fun obtain ()Ljava/util/Set;
+}
+
+public abstract interface class com/fueledbycaffeine/spotlight/SpotlightIncludedProjectsValueSource$Params : org/gradle/api/provider/ValueSourceParameters {
+	public abstract fun getIdeSync ()Lorg/gradle/api/provider/Property;
+	public abstract fun getProjectDir ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getRootDirectory ()Lorg/gradle/api/file/DirectoryProperty;
+	public abstract fun getRootProjectName ()Lorg/gradle/api/provider/Property;
+	public abstract fun getSpotlightEnabled ()Lorg/gradle/api/provider/Property;
+	public abstract fun getTargetsOverride ()Lorg/gradle/api/provider/Property;
+	public abstract fun getTaskRequests ()Lorg/gradle/api/provider/ListProperty;
+	public abstract fun getTypeSafeAccessorInference ()Lorg/gradle/api/provider/Property;
+}
+
 public final class com/fueledbycaffeine/spotlight/SpotlightSettingsPlugin : org/gradle/api/Plugin {
 	public fun <init> ()V
 	public synthetic fun apply (Ljava/lang/Object;)V
