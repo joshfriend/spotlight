@@ -1,11 +1,11 @@
 package com.fueledbycaffeine.spotlight.dsl
 
 import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
-import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
 import com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.file.BuildLayout
+import org.gradle.api.initialization.Settings
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.provider.Property
@@ -60,11 +60,4 @@ public abstract class SpotlightExtension @Inject constructor(
    */
   public val targetsOverride: Property<String> =
     objects.property(String::class.java).unsetConvention()
-
-  internal val targetPathsOverride: Set<GradlePath>
-    get() = targetsOverride.getOrElse("").orEmpty()
-      .split(",", System.lineSeparator())
-      .filterNot { it.isEmpty() }
-      .map { GradlePath(layout.rootDirectory.asFile, it.trim()) }
-      .toSet()
 }

@@ -2,14 +2,13 @@ package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.GraphNode
-import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.GradlePathInternal
-import com.gradle.scan.plugin.internal.com.fueledbycaffeine.spotlight.internal.ccHiddenIsDirectory
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.Serializable
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Locale.getDefault
+import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 import kotlin.io.path.name
 import kotlin.io.path.relativeTo
@@ -41,21 +40,26 @@ public data class GradlePath(
    * Indicates if this project path has either a build.gradle, build.gradle.kts, or some other
    * *.gradle(.kts) script.
    */
-  public val hasBuildFile: Boolean get() = GradlePathInternal.hasBuildFile(this)
+  public val hasBuildFile: Boolean get() =
+    projectDir.resolve(GRADLE_SCRIPT).exists() || projectDir.resolve(GRADLE_SCRIPT_KOTLIN).exists()
 
   /**
    * Indicates if this project path has either a settings.gradle or a settings.gradle.kts script
    */
-  public val hasSettingsFile: Boolean get() = GradlePathInternal.hasSettingsFile(this)
+  public val hasSettingsFile: Boolean get() =
+    projectDir.resolve(SETTINGS_SCRIPT).exists() ||
+      projectDir.resolve(SETTINGS_SCRIPT_KOTLIN).exists()
 
   /**
    * The buildscript [Path] for this Gradle path.
    *
    * @throws FileNotFoundException if there is no buildscript.
    */
-  public val buildFilePath: Path get() =
-    GradlePathInternal.buildFilePath(this)
-      ?: throw FileNotFoundException("No build.gradle(.kts) for $path found")
+  public val buildFilePath: Path get() = when {
+    projectDir.resolve(GRADLE_SCRIPT).exists() -> projectDir.resolve(GRADLE_SCRIPT)
+    projectDir.resolve(GRADLE_SCRIPT_KOTLIN).exists() -> projectDir.resolve(GRADLE_SCRIPT_KOTLIN)
+    else -> throw FileNotFoundException("No build.gradle(.kts) for $path found")
+  }
 
   /**
    * The equivalent type-safe project accessor of [path] used to reference this Gradle project in a buildscript
@@ -116,7 +120,7 @@ private fun Path.findGradleBuildFiles(excludeDirs: List<String>): Set<Path> {
   return Files.newDirectoryStream(this)
     .use { stream ->
       stream.flatMap { path ->
-        if (path.ccHiddenIsDirectory() && path.name !in excludeDirs) {
+        if (Files.isDirectory(path) && path.name !in excludeDirs) {
           path.findGradleBuildFiles(excludeDirs)
         } else if (path.name in BUILDSCRIPTS) {
           setOf(path)
