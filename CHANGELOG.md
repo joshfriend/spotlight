@@ -1,8 +1,9 @@
 # Changelog
 
-### Unreleased
+### 1.4.0
+* Encapsulate all buildscript parsing I/O in a `ValueSource` and remove configuration cache hidden workarounds
 * Publish plugin artifact with `org.gradle.plugin.api-version` attribute, current minimum Gradle version is 8.8
-* Add `:checkSpotlightAllProjects` task to validate `all-projects.txt` (sorting)
+* Add `:checkAllProjectsList` task to validate `all-projects.txt` (sorting)
 * Add `:sortAllProjectsList` task to automatically sort `all-projects.txt`
 
 ### 1.3.4
