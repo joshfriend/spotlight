@@ -1,7 +1,7 @@
 [versions]
 javaTarget = "17"
 # This is currently the minimum Gradle version that has the APIs we need to use.
-minGradle = "8.7"
+minGradle = "8.8"
 
 junit = "5.12.2"
 assertk = "0.28.1"
