@@ -23,7 +23,7 @@ public abstract class SortSpotlightProjectsListTask : DefaultTask() {
   @TaskAction
   internal fun sort() {
     projectList.asFile.get().apply {
-      writeText(readLines().sorted().joinToString("/n"))
+      writeText(readLines().sorted().joinToString("\n"))
     }
   }
 }

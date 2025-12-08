@@ -48,7 +48,8 @@ class SpotlightLintTasksFunctionalTest {
     val project = SpiritboxProject().build()
     project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
-    allProjects.writeText(allProjects.readLines().sorted().reversed().joinToString("\n"))
+    val allProjectsList = allProjects.readLines().sorted().reversed()
+    allProjects.writeText(allProjectsList.joinToString("\n"))
 
     // When
     val result = project.build(":${SortSpotlightProjectsListTask.NAME}")
@@ -56,7 +57,7 @@ class SpotlightLintTasksFunctionalTest {
     // Then
     assertThat(result).task(":${SortSpotlightProjectsListTask.NAME}").succeeded()
     val projectList = allProjects.readLines()
-    assertThat(projectList).isInOrder()
+    assertThat(projectList).isEqualTo(allProjectsList.reversed())
   }
 
   @Test
