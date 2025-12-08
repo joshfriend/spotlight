@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.4.1
+* Fix incorrect line separator used in `:sortAllProjectsList`
+
 ### 1.4.0
 * Encapsulate all buildscript parsing I/O in a `ValueSource` and remove configuration cache hidden workarounds
 * Publish plugin artifact with `org.gradle.plugin.api-version` attribute, current minimum Gradle version is 8.8
