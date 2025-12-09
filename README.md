@@ -110,6 +110,11 @@ spotlight {
 > [!TIP]
 > If your project does not use type-safe project accessors at all, you can disable this inference entirely with `DISABLED` mode.
 
+### Useful Tasks
+Spotlight provides several tasks for managing its config files:
+* `./gradlew :checkAllProjectsList` - Check that the `all-projects.txt` file is correct (sorted)
+* `./gradlew :sortAllProjectsList` - Sort the `all-projects.txt` file
+
 ## Differences from Focus
 Unlike [Focus][focus], which configures your gradle project to select which projects get synced using the `:createFocusSettings` task provided by the plugin, Spotlight relies on parsing of your buildscripts with regexes to compute the dependency graph, which is much faster.
 
