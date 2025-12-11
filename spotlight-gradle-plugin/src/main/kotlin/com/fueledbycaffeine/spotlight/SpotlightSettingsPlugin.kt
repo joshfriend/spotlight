@@ -43,8 +43,9 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
     val checkSpotlightSort = project.tasks
       .register(CheckSpotlightProjectListTask.NAME, CheckSpotlightProjectListTask::class.java) { task ->
         task.group = "spotlight"
-        task.description = "Checks if ${SpotlightProjectList.ALL_PROJECTS_LOCATION} is sorted"
+        task.description = "Checks if ${SpotlightProjectList.ALL_PROJECTS_LOCATION} is set up correctly"
         task.projectsFile.set(allProjectsFile)
+        task.rootDirectory.set(settingsDir)
       }
     project.pluginManager.withPlugin("base") {
       project.tasks.named("check") {
