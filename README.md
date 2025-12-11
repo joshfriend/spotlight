@@ -112,7 +112,9 @@ spotlight {
 
 ### Useful Tasks
 Spotlight provides several tasks for managing its config files:
-* `./gradlew :checkAllProjectsList` - Check that the `all-projects.txt` file is correct (sorted)
+* `./gradlew :checkAllProjectsList` - Check that the `all-projects.txt` file is correct
+  * Verifies alphabetic sorting
+  * Verifies that `settings.gradle(.kts)` does not have any `include`s
 * `./gradlew :sortAllProjectsList` - Sort the `all-projects.txt` file
 
 ## Differences from Focus
