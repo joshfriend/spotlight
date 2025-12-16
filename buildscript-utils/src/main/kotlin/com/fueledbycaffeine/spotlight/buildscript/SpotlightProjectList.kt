@@ -27,7 +27,14 @@ public sealed interface SpotlightProjectList {
 
   public fun read(): Set<GradlePath>
 
-  public infix fun contains(path: GradlePath): Boolean = read().contains(path)
+  /**
+   * Check if an exact path or pattern exists in the file.
+   * Returns true only if the exact path is present, not if it's covered by another pattern.
+   */
+  public operator fun contains(path: GradlePath): Boolean {
+    val existingPaths = readRawPaths(includeComments = false)
+    return existingPaths.any { it.trim() == path.path }
+  }
 
   public fun ensureFileExists() {
     if (projectList.notExists()) projectList.createFile()
@@ -74,16 +81,46 @@ public class IdeProjects internal constructor(
     }
   }
 
-  // TODO filter out paths already covered by a glob
+  /**
+   * Add paths to the file. Only prevents exact duplicates.
+   * Allows overlapping patterns (e.g., both :advertising:** and :advertising:backend can coexist).
+   */
   public fun add(paths: Iterable<GradlePath>) {
     ensureFileExists()
-    projectList.writeText((readRawPaths(includeComments = true) + paths.map { it.path }).joinToString("\n"))
+    val existingRawPaths = readRawPaths(includeComments = true)
+    val existingNonCommentPaths = readRawPaths(includeComments = false)
+      .map { it.trim() }
+      .toSet()
+
+    // Only filter out exact duplicates
+    val pathsToAdd = paths.filter { it.path !in existingNonCommentPaths }
+
+    if (pathsToAdd.isNotEmpty()) {
+      projectList.writeText((existingRawPaths + pathsToAdd.map { it.path }).joinToString("\n"))
+    }
   }
 
-  // TODO detect if paths are included by a pattern and signal to user
+  /**
+   * Remove paths from the file. Only removes exact matches.
+   */
   public fun remove(paths: Iterable<GradlePath>) {
     if (projectList.notExists()) return
-    projectList.writeText((read().filter { it !in paths }).joinToString("\n") { it.path })
+    val pathsToRemove = paths.map { it.path }.toSet()
+    val rawPaths = readRawPaths(includeComments = true)
+
+    // Remove lines that exactly match the paths to remove
+    val filteredPaths = rawPaths.filterNot { rawPath ->
+      val trimmed = rawPath.trim()
+      // Keep comments and blank lines
+      if (trimmed.startsWith("#") || trimmed.isBlank()) {
+        false
+      } else {
+        // Remove if exact match
+        trimmed in pathsToRemove
+      }
+    }
+
+    projectList.writeText(filteredPaths.joinToString("\n"))
   }
 
   override fun read(): Set<GradlePath> {
