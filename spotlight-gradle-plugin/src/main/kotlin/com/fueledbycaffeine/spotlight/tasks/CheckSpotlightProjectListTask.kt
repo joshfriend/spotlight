@@ -1,8 +1,10 @@
 package com.fueledbycaffeine.spotlight.tasks
 
+import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT
 import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT_KOTLIN
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
+import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.DirectoryProperty
@@ -34,6 +36,8 @@ public abstract class CheckSpotlightProjectListTask : DefaultTask() {
   internal fun action() {
     checkSorted()
     checkForIncludeStatements()
+    checkValidProjects()
+    checkAllProjectsAreDiscovered()
   }
 
   private fun checkSorted() {
@@ -44,7 +48,7 @@ public abstract class CheckSpotlightProjectListTask : DefaultTask() {
       throw InvalidUserDataException(
         """
         Spotlight's list of all projects is not sorted: ${file.path}
-        Run :${SortSpotlightProjectsListTask.NAME} to fix it.
+        Run :${FixSpotlightProjectListTask.NAME} to fix it.
         """.trimIndent().trim()
       )
     }
@@ -75,6 +79,55 @@ public abstract class CheckSpotlightProjectListTask : DefaultTask() {
           "Please remove these 'include' statements and add the project paths to " +
             "${SpotlightProjectList.ALL_PROJECTS_LOCATION} instead."
         )
+      }
+      throw InvalidUserDataException(errorMessage)
+    }
+  }
+
+  private fun checkValidProjects() {
+    val rootDir = rootDirectory.asFile.get()
+    val allProjects = SpotlightProjectList.allProjects(rootDir.toPath())
+    val projects = allProjects.read()
+
+    // Check that all listed projects have build files
+    val invalidProjects = projects.filterNot { it.hasBuildFile }
+
+    if (invalidProjects.isNotEmpty()) {
+      val errorMessage = buildString {
+        appendLine("Found invalid projects in ${SpotlightProjectList.ALL_PROJECTS_LOCATION}:")
+        appendLine()
+        appendLine("The following projects do not have a build.gradle(.kts) file:")
+        invalidProjects.sortedBy { it.path }.forEach { project ->
+          appendLine("  ${project.path} (expected at ${project.projectDir})")
+        }
+        appendLine()
+        appendLine("Run :${FixSpotlightProjectListTask.NAME} to remove these invalid projects.")
+      }
+      throw InvalidUserDataException(errorMessage)
+    }
+  }
+
+  private fun checkAllProjectsAreDiscovered() {
+    val rootDir = rootDirectory.asFile.get()
+    val allProjects = SpotlightProjectList.allProjects(rootDir.toPath())
+    val listedProjects = allProjects.read()
+
+    // Use BFS to discover all projects starting from the listed ones
+    val discoveredProjects = BreadthFirstSearch.flatten(listedProjects)
+
+    // Find projects discovered by BFS that are not in the all-projects.txt file
+    val missingProjects = discoveredProjects.filterNot { listedProjects.contains(it) }
+
+    if (missingProjects.isNotEmpty()) {
+      val errorMessage = buildString {
+        appendLine("Found projects missing from ${SpotlightProjectList.ALL_PROJECTS_LOCATION}:")
+        appendLine()
+        appendLine("The following projects were discovered via dependency graph but are not listed:")
+        missingProjects.sortedBy { it.path }.forEach { project ->
+          appendLine("  ${project.path}")
+        }
+        appendLine()
+        appendLine("Run :${FixSpotlightProjectListTask.NAME} to add these missing projects.")
       }
       throw InvalidUserDataException(errorMessage)
     }
