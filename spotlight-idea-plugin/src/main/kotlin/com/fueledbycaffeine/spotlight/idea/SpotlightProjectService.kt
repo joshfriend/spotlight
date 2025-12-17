@@ -109,9 +109,13 @@ class SpotlightProjectService(
     refreshIdeProjectsFile()
   }
 
-  fun removeIdeProjects(pathsInBuild: Set<GradlePath>) {
+  fun removeIdeProjects(pathsInBuild: Iterable<GradlePath>) {
     ideProjectsList.remove(pathsInBuild)
     refreshIdeProjectsFile()
+  }
+
+  fun isInIdeProjectsFile(path: GradlePath): Boolean {
+    return path in ideProjectsList
   }
 
   private fun ideProjectsFile(): VirtualFile? {
