@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.5.1
+* Fixed the IDE plugin editor notification not showing on files from unloaded projects
+
 ### 1.5.0
 * Type-safe accessor inference is always enabled with what was formerly `FULL` mode. There is no longer any practical penalty for using it this way so options to configure it have been eliminated.
 * `:checkAllProjectsList` now validates that `settings.gradle(.kts)` does not contain any `include` statements
