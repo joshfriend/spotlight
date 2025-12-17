@@ -1,5 +1,14 @@
 # Changelog
 
+### 1.5.0
+* Type-safe accessor inference is always enabled with what was formerly `FULL` mode. There is no longer any practical penalty for using it this way so options to configure it have been eliminated.
+* `:checkAllProjectsList` now validates that `settings.gradle(.kts)` does not contain any `include` statements
+* `:checkAllProjectsList` now ensures all projects discovered via dependency graph are listed
+* `:checkAllProjectsList` now validates that all listed projects have build files
+* Renamed task `:sortAllProjectsList` to `:fixAllProjectsList`
+* Auto-fixe more issues with `:fixAllProjectsList` (removes invalid projects, adds missing projects, and sorts alphabetically)
+* IDE plugin add/remove project actions have better path handling and validation
+
 ### 1.4.1
 * Fix incorrect line separator used in `:sortAllProjectsList`
 
