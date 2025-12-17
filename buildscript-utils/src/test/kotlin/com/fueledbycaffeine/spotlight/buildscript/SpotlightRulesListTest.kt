@@ -44,7 +44,6 @@ class SpotlightRulesListTest {
       ProjectPathMatchRule(":foo", setOf(GradlePath(tempDir, ":bar"))),
       BuildscriptMatchRule("example", setOf(GradlePath(tempDir, ":foo"))),
     )
-    assertThat(rules.typeSafeAccessorInference).isNull()
   }
 
   @Test
@@ -65,8 +64,7 @@ class SpotlightRulesListTest {
             "pattern": "example",
             "includedProjects": [":foo"]
           }
-        ],
-        "typeSafeAccessorInference": "STRICT"
+        ]
       }
       """.trimIndent()
     )
@@ -75,7 +73,6 @@ class SpotlightRulesListTest {
       ProjectPathMatchRule(":foo", setOf(GradlePath(tempDir, ":bar"))),
       BuildscriptMatchRule("example", setOf(GradlePath(tempDir, ":foo"))),
     )
-    assertThat(rules.typeSafeAccessorInference).isEqualTo(TypeSafeAccessorInference.STRICT)
   }
 
   @Test

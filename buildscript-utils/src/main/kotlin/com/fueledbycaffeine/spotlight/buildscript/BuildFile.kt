@@ -1,11 +1,9 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.FullModeTypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import kotlin.io.path.readLines
 
@@ -58,27 +56,17 @@ private fun computeTypeSafeProjectDependencies(
   rules: Set<DependencyRule>,
 ): Set<GradlePath> {
   val rule = rules.filterIsInstance<TypeSafeProjectAccessorRule>().firstOrNull()
-
-  // TypeSafeAccessorInference.DISABLED behavior
-  if (rule == null) return emptySet()
+    ?: return emptySet()
 
   return buildscriptContents.mapNotNull { TYPESAFE_PROJECT_DEP_PATTERN.find(it) }
     .map { matchResult ->
       val (_, typeSafeAccessor) = matchResult.destructured
       val cleanTypeSafeAccessor = typeSafeAccessor.removeTypeSafeAccessorJunk(rule.rootProjectAccessor)
-      when (rule) {
-        is FullModeTypeSafeProjectAccessorRule -> {
-          // TypeSafeAccessorInference.FULL behavior
-          rule.typeSafeAccessorMap[cleanTypeSafeAccessor] ?: throw NoSuchElementException(
-            "Could not find project mapping for type-safe project accessor \"$typeSafeAccessor\" " +
-              "referenced by ${project.path}"
-          )
-        }
-        is StrictModeTypeSafeProjectAccessorRule -> {
-          // TypeSafeAccessorInference.STRICT behavior
-          GradlePath(project.root, cleanTypeSafeAccessor.typeSafeAccessorAsDefaultGradlePath())
-        }
-      }
+      // Look up project in the accessor mapping
+      rule.typeSafeAccessorMap[cleanTypeSafeAccessor] ?: throw NoSuchElementException(
+        "Could not find project mapping for type-safe project accessor \"$typeSafeAccessor\" " +
+          "referenced by ${project.path}"
+      )
     }
     .toSet()
 }

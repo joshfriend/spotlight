@@ -31,7 +31,6 @@ public abstract class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension {
 	public fun <init> (Lorg/gradle/api/file/BuildLayout;Lorg/gradle/api/model/ObjectFactory;)V
 	public static final fun getSpotlightExtension (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension;
 	public final fun getTargetsOverride ()Lorg/gradle/api/provider/Property;
-	public final fun getTypeSafeAccessorInference ()Lorg/gradle/api/provider/Property;
 }
 
 public final class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension$Companion {

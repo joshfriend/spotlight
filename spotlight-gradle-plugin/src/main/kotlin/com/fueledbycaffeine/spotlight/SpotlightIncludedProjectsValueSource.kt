@@ -4,7 +4,6 @@ import com.fueledbycaffeine.spotlight.SpotlightIncludedProjectsValueSource.Param
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList
-import com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference
 import com.fueledbycaffeine.spotlight.buildscript.computeSpotlightRules
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
@@ -86,14 +85,11 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
   }
 
   private fun implicitAndTransitiveDependenciesOf(targets: Set<GradlePath>): Set<GradlePath> {
-    val typeSafeInferenceLevel = parameters.typeSafeAccessorInference.get()
-    logger.info("Spotlight type-safe project accessor inference is {}", typeSafeInferenceLevel)
-
     // Ignore project name and type-safe accessors set in rules JSON as we read the source of truth here
     // TODO or error if not equal?
     val implicitRules = getSpotlightRules().implicitRules
     val projectName = parameters.rootProjectName.get()
-    val rules = computeSpotlightRules(rootDirectory, projectName, implicitRules, typeSafeInferenceLevel) { getAllProjects() }
+    val rules = computeSpotlightRules(rootDirectory, projectName, implicitRules) { getAllProjects() }
 
     val (targetsAndTransitives, duration) = measureTimedValue { BreadthFirstSearch.flatten(targets, rules) }
     logger.info("BFS search of project graph took {}ms", duration.inWholeMilliseconds)
@@ -123,7 +119,6 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
     val taskRequests: ListProperty<TaskExecutionRequest>
     val rootProjectName: Property<String>
     val targetsOverride: Property<String>
-    val typeSafeAccessorInference: Property<TypeSafeAccessorInference>
   }
 
   companion object {
@@ -137,7 +132,6 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
         it.parameters.projectDir.set(settings.gradle.startParameter.projectDir)
         it.parameters.taskRequests.set(settings.gradle.startParameter.taskRequests)
         it.parameters.targetsOverride.set(spotlightOptions.targetsOverride)
-        it.parameters.typeSafeAccessorInference.set(spotlightOptions.typeSafeAccessorInference)
         it.parameters.ideSync.set(settings.isIdeSync)
         it.parameters.spotlightEnabled.set(settings.isSpotlightEnabled)
       }

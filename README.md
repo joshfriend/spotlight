@@ -48,7 +48,7 @@ To load a subset of your project in the IDE, list the projects you want to work 
 ...
 ```
 
-On next sync, only `:feature-a` and other projects you choose will be be loaded. The transitive dependencies of these target projects are also loaded (because sync will fail otherwise), but you do not need to identify them yourself. The plugin statically parses your `build.gradle(.kts)` files at the start of the build to determine the dependency graph. 
+On next sync, only `:feature-a` and other projects you choose will be be loaded. The transitive dependencies of these target projects are also loaded (because sync will fail otherwise), but you do not need to identify them yourself. The plugin statically parses your `build.gradle(.kts)` files at the start of the build to determine the dependency graph.
 
 ### Task Execution
 Spotlight will infer the projects necessary to include in the build from [the task request list][taskRequests] and [the project directory][projectDir] (specified with the `-p`/`--project-dir` [flags][project-dir-flag]).
@@ -94,24 +94,10 @@ Implicit rules apply to all Gradle invocations (sync and task execution).
 If you are using the `buildscript-utils` package by itself, you can read this rules list using the `SpotlightRulesList` class.
 
 ### Type-safe Project Accessors
-By default, Spotlight attempts to do a basic "strict" mapping of any [type-safe project accessors][typesafe-project-accessors] used to project path. This assumes that your project paths are all lowercased and use kebab-case for naming convention.
-
-If your project does not follow this convention and can't be updated to follow it, you can enable full mapping of type-safe accessors:
-
-```groovy
-// settings.gradle(.kts)
-import com.fueledbycaffeine.spotlight.dsl.TypeSafeAccessorInference
-
-spotlight {
-  typeSafeAccessorInference TypeSafeAccessorInference.FULL
-}
-```
+Spotlight automatically parses [type-safe project accessors][typesafe-project-accessors] in your buildscripts and maps them to the corresponding project paths. This works with any project naming convention.
 
 > [!IMPORTANT]
 > Don't use type-safe project accessors with Kotlin buildscripts. Doing so [causes more configuration cache misses][kts-accessors-bad] when Spotlight is being used.
-
-> [!TIP]
-> If your project does not use type-safe project accessors at all, you can disable this inference entirely with `DISABLED` mode.
 
 ### Useful Tasks
 Spotlight provides several tasks for managing its config files:
@@ -150,7 +136,7 @@ dependencies {
 
 The `projectDir` for projects listed in `all-projects.txt` cannot be relocated because the list of all your projects is now a flat text file and not a dynamic script.
 
-You can still add `include`s to `settings.gradle(.kts)` in your build outside of this plugin.
+You can still add `include`s to `settings.gradle(.kts)` in your build outside of this plugin. Those will be flagged by the `:checkAllProjectsList` lint task, but you can move them to a new script plugin that you apply in settings to "hide" that from the lint check.
 
 [plugin-portal-page]: https://plugins.gradle.org/plugin/com.fueledbycaffeine.spotlight
 [jb-marketplace-page]: https://plugins.jetbrains.com/plugin/27451-spotlight

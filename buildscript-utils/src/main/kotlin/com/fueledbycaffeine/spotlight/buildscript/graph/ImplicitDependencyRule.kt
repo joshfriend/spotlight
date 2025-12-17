@@ -27,29 +27,17 @@ public sealed interface ImplicitDependencyRule : DependencyRule {
   }
 }
 
-public sealed interface TypeSafeProjectAccessorRule : DependencyRule {
-  /**
-   * Gradle generates an accessor for the root project based on the root project name. Projects in
-   * the build are also accessible via this accessor. For example `projects.buildscriptUtils` and
-   * `projects.spotlight.buildscriptUtils` are both valid for a project named "spotlight".
-   */
-  public val rootProjectAccessor: String
-}
-
 /**
- * Makes no assumptions about project path naming.
+ * Rule for resolving type-safe project accessor references in buildscripts.
+ *
+ * Gradle generates an accessor for the root project based on the root project name. Projects in
+ * the build are also accessible via this accessor. For example `projects.buildscriptUtils` and
+ * `projects.spotlight.buildscriptUtils` are both valid for a project named "spotlight".
  */
-public data class FullModeTypeSafeProjectAccessorRule(
-  override val rootProjectAccessor: String,
+public data class TypeSafeProjectAccessorRule(
+  val rootProjectAccessor: String,
   /**
    * Specifies the mapping of accessor name to the gradle path.
    */
   val typeSafeAccessorMap: Map<String, GradlePath>,
-) : TypeSafeProjectAccessorRule
-
-/**
- * Assumes that project paths are lowercase and kebab-case
- */
-public data class StrictModeTypeSafeProjectAccessorRule(
-  override val rootProjectAccessor: String,
-) : TypeSafeProjectAccessorRule
+) : DependencyRule

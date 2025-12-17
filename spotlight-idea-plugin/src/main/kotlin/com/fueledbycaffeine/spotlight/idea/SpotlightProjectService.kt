@@ -6,7 +6,6 @@ import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList.Companion.SPOTLIGHT_RULES_LOCATION
-import com.fueledbycaffeine.spotlight.buildscript.TypeSafeAccessorInference
 import com.fueledbycaffeine.spotlight.buildscript.computeSpotlightRules
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightRules
@@ -82,9 +81,8 @@ class SpotlightProjectService(
           val paths = ideProjectsList.read()
           val currentRules = rules.value
           val implicitRules = currentRules.implicitRules
-          val typeSafeInferenceLevel = currentRules.typeSafeAccessorInference ?: TypeSafeAccessorInference.DISABLED
           val ruleSet =
-            computeSpotlightRules(rootDir, project.name, implicitRules, typeSafeInferenceLevel) { allProjects.value }
+            computeSpotlightRules(rootDir, project.name, implicitRules) { allProjects.value }
           val allPaths = BreadthFirstSearch.flatten(paths, ruleSet)
           _ideProjects.emit(allPaths)
         }
