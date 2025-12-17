@@ -95,8 +95,9 @@ class SpotlightProjectService(
         SpotlightFileChangeType.RULES -> {
           // Read the rules once and re-read other lists
           rules.emit(rulesList.read())
-          readAndEmit(SpotlightFileChangeType.IDE_PROJECTS)
+          // Read ALL_PROJECTS first so IDE_PROJECTS can resolve glob patterns against it
           readAndEmit(SpotlightFileChangeType.ALL_PROJECTS)
+          readAndEmit(SpotlightFileChangeType.IDE_PROJECTS)
         }
       }
     }
