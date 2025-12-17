@@ -11,6 +11,9 @@ A [Gradle plugin][plugin-portal-page] and [IntelliJ plugin][jb-marketplace-page]
 * Inspired by tools like [Focus][focus] and [dependency-explorer][dependency-explorer], this plugin lets you easily load subsets of your project into the IDE
 * Only loads the minimum required list of projects required to run your requested build tasks
 
+> [!TIP]
+> Using Spotlight can dramatically decrease your IDE sync times, check out [this blog post][shrinking-elephants] for more info.
+
 ## How to use it
 Apply the plugin in `settings.gradle(.kts)`:
 ```groovy
@@ -105,7 +108,7 @@ spotlight {
 ```
 
 > [!IMPORTANT]
-> Enabling `FULL` type-safe accessor inference mode captures `all-projects.txt` in Gradle's configuration cache, and you will have a lower hit rate as a result.
+> Don't use type-safe project accessors with Kotlin buildscripts. Doing so [causes more configuration cache misses][kts-accessors-bad] when Spotlight is being used.
 
 > [!TIP]
 > If your project does not use type-safe project accessors at all, you can disable this inference entirely with `DISABLED` mode.
@@ -154,4 +157,6 @@ You can still add `include`s to `settings.gradle(.kts)` in your build outside of
 [cross-project-configuration]: https://github.com/joshfriend/gradle-best-practices-plugin?tab=readme-ov-file#instances-of-cross-project-configuration
 [herding-elephants]: https://developer.squareup.com/blog/herding-elephants/
 [stampeding-elephants]: https://developer.squareup.com/blog/stampeding-elephants/
+[shrinking-elephants]: https://engineering.block.xyz/blog/shrinking-elephants
 [typesafe-project-accessors]: https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html#sec:type-safe-project-accessors
+[kts-accessors-bad]: https://www.zacsweers.dev/dont-use-type-safe-project-accessors-with-kotlin-gradle-dsl/
