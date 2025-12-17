@@ -5,7 +5,7 @@ package com.fueledbycaffeine.spotlight
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
 import com.fueledbycaffeine.spotlight.tasks.CheckSpotlightProjectListTask
-import com.fueledbycaffeine.spotlight.tasks.SortSpotlightProjectsListTask
+import com.fueledbycaffeine.spotlight.tasks.FixSpotlightProjectListTask
 import com.fueledbycaffeine.spotlight.utils.include
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -35,11 +35,13 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
   private fun Settings.registerSpotlightLintTasks(project: Project) {
     val allProjectsFile = settingsDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
 
-    project.tasks.register(SortSpotlightProjectsListTask.NAME, SortSpotlightProjectsListTask::class.java) { task ->
+    project.tasks.register(FixSpotlightProjectListTask.NAME, FixSpotlightProjectListTask::class.java) { task ->
       task.group = "spotlight"
-      task.description = "Sorts the ${SpotlightProjectList.ALL_PROJECTS_LOCATION} file"
-      task.projectList.set(allProjectsFile)
+      task.description = "Auto-fixes issues in ${SpotlightProjectList.ALL_PROJECTS_LOCATION} by removing invalid projects, adding missing ones, and sorting"
+      task.projectsFile.set(allProjectsFile)
+      task.rootDirectory.set(settingsDir)
     }
+
     val checkSpotlightSort = project.tasks
       .register(CheckSpotlightProjectListTask.NAME, CheckSpotlightProjectListTask::class.java) { task ->
         task.group = "spotlight"

@@ -115,7 +115,12 @@ Spotlight provides several tasks for managing its config files:
 * `./gradlew :checkAllProjectsList` - Check that the `all-projects.txt` file is correct
   * Verifies alphabetic sorting
   * Verifies that `settings.gradle(.kts)` does not have any `include`s
-* `./gradlew :sortAllProjectsList` - Sort the `all-projects.txt` file
+  * Validates that all listed projects have build files
+  * Ensures all projects discovered via dependency graph are listed
+* `./gradlew :fixAllProjectsList` - Auto-fix issues in the `all-projects.txt` file
+  * Removes invalid projects (those without build files)
+  * Adds missing projects discovered via dependency graph
+  * Sorts the file alphabetically
 
 ## Differences from Focus
 Unlike [Focus][focus], which configures your gradle project to select which projects get synced using the `:createFocusSettings` task provided by the plugin, Spotlight relies on parsing of your buildscripts with regexes to compute the dependency graph, which is much faster.
