@@ -54,7 +54,6 @@ class ProjectStaleNotificationProvider(project: Project) : EditorNotificationPro
 
 
   private fun createNotificationPanel(project: Project, gradlePath: GradlePath): EditorNotificationPanel {
-    val spotlightService = project.spotlightService
     val panel = EditorNotificationPanel()
     panel.text = SpotlightBundle.message("notification.project.not.indexed", gradlePath.path)
 
@@ -66,7 +65,7 @@ class ProjectStaleNotificationProvider(project: Project) : EditorNotificationPro
       EditorNotifications.getInstance(project).updateAllNotifications()
 
       // Open the ide-projects
-      project.spotlightService.openIdeProjectsInEditor()
+      spotlightService.openIdeProjectsInEditor()
     }
 
     panel.createActionLabel(SpotlightBundle.message("notification.action.add.addAndSync")) {
