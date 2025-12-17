@@ -20,7 +20,8 @@ jobs:
       - uses: actions/checkout@v4
       - id: check_version
         run: |
-          if grep -q 'VERSION_NAME=.*-SNAPSHOT$' gradle.properties; then
+          VERSION_VALUE=$(grep '^VERSION_NAME=' gradle.properties | cut -d'=' -f2 | xargs)
+          if [[ "$VERSION_VALUE" == *"-SNAPSHOT" ]]; then
             echo "is_snapshot=true" >> "$GITHUB_OUTPUT"
           else
             echo "is_snapshot=false" >> "$GITHUB_OUTPUT"
