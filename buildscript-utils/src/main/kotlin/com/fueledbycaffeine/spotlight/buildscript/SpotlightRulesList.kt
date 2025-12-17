@@ -1,9 +1,8 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.FullModeTypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.StrictModeTypeSafeProjectAccessorRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightRules
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.JsonDataException
@@ -72,24 +71,17 @@ private class GradlePathAdapter(private val root: Path) {
 
 /**
  * Computes the set of all [DependencyRule] that should be applied to a given project.
+ *
+ * Always enables full type-safe project accessor inference.
  */
 public fun computeSpotlightRules(
   rootDir: Path,
   projectName: String,
   implicitRules: Set<ImplicitDependencyRule> = emptySet(),
-  typeSafeInferenceLevel: TypeSafeAccessorInference = TypeSafeAccessorInference.DISABLED,
   allProjects: () -> Set<GradlePath> = { emptySet() },
 ): Set<DependencyRule> {
-  return if (typeSafeInferenceLevel != TypeSafeAccessorInference.DISABLED) {
-    val rootProjectTypeSafeAccessor = GradlePath(rootDir, projectName).typeSafeAccessorName
-    val typeSafeAccessorRule = if (typeSafeInferenceLevel == TypeSafeAccessorInference.FULL) {
-      val mapping = allProjects().associateBy { it.typeSafeAccessorName }
-      FullModeTypeSafeProjectAccessorRule(rootProjectTypeSafeAccessor, mapping)
-    } else {
-      StrictModeTypeSafeProjectAccessorRule(rootProjectTypeSafeAccessor)
-    }
-    implicitRules + typeSafeAccessorRule
-  } else {
-    implicitRules
-  }
+  val rootProjectTypeSafeAccessor = GradlePath(rootDir, projectName).typeSafeAccessorName
+  val mapping = allProjects().associateBy { it.typeSafeAccessorName }
+  val typeSafeAccessorRule = TypeSafeProjectAccessorRule(rootProjectTypeSafeAccessor, mapping)
+  return implicitRules + typeSafeAccessorRule
 }
