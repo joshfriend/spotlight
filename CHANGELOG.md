@@ -6,7 +6,7 @@
 * `:checkAllProjectsList` now ensures all projects discovered via dependency graph are listed
 * `:checkAllProjectsList` now validates that all listed projects have build files
 * Renamed task `:sortAllProjectsList` to `:fixAllProjectsList`
-* Auto-fixe more issues with `:fixAllProjectsList` (removes invalid projects, adds missing projects, and sorts alphabetically)
+* Auto-fix more issues with `:fixAllProjectsList` (removes invalid projects, adds missing projects, and sorts alphabetically)
 * IDE plugin add/remove project actions have better path handling and validation
 
 ### 1.4.1
