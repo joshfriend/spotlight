@@ -62,7 +62,7 @@ It is not uncommon for a conventions plugin setup to add a default set of utilit
 
 A config file option is provided to configure some pattern matching rules based on project paths or buildscript contents to implicitly add other projects:
 
-```json
+```json5
 // gradle/spotlight-rules.json
 {
   "implicitRules": [
