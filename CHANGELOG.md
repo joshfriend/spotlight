@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.5.2
+* Add custom fields to Develocity build scans ("Spotlight Enabled" and "Spotlight Project Count")
+
 ### 1.5.1
 * Fixed the IDE plugin editor notification not showing on files from unloaded projects
 
