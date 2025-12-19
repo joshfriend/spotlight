@@ -21,7 +21,7 @@ public sealed interface SpotlightProjectList {
       AllProjects(buildRoot, buildRoot.resolve(ALL_PROJECTS_LOCATION))
 
     @JvmStatic
-    public fun ideProjects(buildRoot: Path, allProjects: (() -> Set<GradlePath>)? = null): IdeProjects =
+    public fun ideProjects(buildRoot: Path, allProjects: (() -> Set<GradlePath>)): IdeProjects =
       IdeProjects(buildRoot, buildRoot.resolve(IDE_PROJECTS_LOCATION), allProjects)
   }
 

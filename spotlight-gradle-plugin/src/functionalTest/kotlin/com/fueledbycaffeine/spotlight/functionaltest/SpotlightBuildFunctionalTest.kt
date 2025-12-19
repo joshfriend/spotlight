@@ -559,4 +559,51 @@ class SpotlightBuildFunctionalTest {
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(SPOTLIGHT_INPUTS)
   }
+
+  @Test
+  fun `develocity integration does not cause configuration cache violations`() {
+    // Given
+    val project = SpiritboxProject().build()
+    val develocityVersion = System.getProperty("develocityVersion")
+
+    // Configure Develocity plugin in settings
+    val settingsFile = project.rootDir.resolve("settings.gradle")
+    val settingsContent = settingsFile.readText()
+    val updatedSettings = settingsContent.replace(
+      "plugins {",
+      """
+      plugins {
+        id('com.gradle.develocity') version '$develocityVersion'
+      """.trimIndent()
+    )
+    settingsFile.writeText(updatedSettings)
+
+    // Add minimal Develocity configuration
+    settingsFile.appendText(
+      """
+
+      develocity {
+        buildScan {
+          publishing.onlyIf { false }
+        }
+      }
+      """.trimIndent()
+    )
+
+    val result1 = project.build(":rotoscope:assemble")
+    assertThat(result1.configurationCacheStored).isTrue()
+    assertThat(result1).task(":rotoscope:assemble").succeeded()
+
+    val includedProjects = result1.includedProjects()
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result1.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(SPOTLIGHT_INPUTS)
+  }
 }

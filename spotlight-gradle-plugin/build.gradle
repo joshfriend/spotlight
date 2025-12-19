@@ -103,6 +103,8 @@ functionalTestSourceSet.runtimeClasspath += functionalTestSourceSet.output + fun
 dependencies {
   api project(':buildscript-utils')
 
+  compileOnly(libs.develocity)
+
   lintChecks(libs.lint.gradle)
 
   functionalTestImplementation libs.truth
@@ -120,5 +122,6 @@ tasks.withType(ValidatePlugins).configureEach {
 
 tasks.withType(Test).configureEach {
   systemProperty("gradleVersion", System.getProperty("gradleVersion"))
+  systemProperty("develocityVersion", libs.versions.develocity.get())
   useJUnitPlatform()
 }
