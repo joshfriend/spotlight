@@ -13,7 +13,6 @@ import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
-import org.gradle.api.provider.Provider
 
 /**
  * A [Settings] plugin to ease management of projects included in large builds.
