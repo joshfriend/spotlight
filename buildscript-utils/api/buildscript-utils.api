@@ -107,7 +107,6 @@ public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightProjectLi
 	public static final field IDE_PROJECTS_LOCATION Ljava/lang/String;
 	public final fun allProjects (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/AllProjects;
 	public final fun ideProjects (Ljava/nio/file/Path;Lkotlin/jvm/functions/Function0;)Lcom/fueledbycaffeine/spotlight/buildscript/IdeProjects;
-	public static synthetic fun ideProjects$default (Lcom/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList$Companion;Ljava/nio/file/Path;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/IdeProjects;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightProjectList$DefaultImpls {

@@ -2,14 +2,18 @@
 
 package com.fueledbycaffeine.spotlight
 
+import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.dsl.SpotlightExtension.Companion.getSpotlightExtension
 import com.fueledbycaffeine.spotlight.tasks.CheckSpotlightProjectListTask
 import com.fueledbycaffeine.spotlight.tasks.FixSpotlightProjectListTask
 import com.fueledbycaffeine.spotlight.utils.include
+import com.fueledbycaffeine.spotlight.utils.isSpotlightEnabled
+import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.provider.Provider
 
 /**
  * A [Settings] plugin to ease management of projects included in large builds.
@@ -24,8 +28,11 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
     val extension = extensions.getSpotlightExtension()
     // DSL is not available until then
     gradle.settingsEvaluated {
-      val includedProjects = SpotlightIncludedProjectsValueSource.of(this, extension)
-      include(includedProjects.get())
+      val includedProjects = SpotlightIncludedProjectsValueSource.of(this, extension).get()
+      include(includedProjects)
+
+      // Report Spotlight metrics to Develocity if available
+      reportToDevelocity(includedProjects)
     }
     gradle.rootProject {
       registerSpotlightLintTasks(it)
@@ -53,6 +60,21 @@ public class SpotlightSettingsPlugin: Plugin<Settings> {
       project.tasks.named("check") {
         it.dependsOn(checkSpotlightSort)
       }
+    }
+  }
+
+  private fun Settings.reportToDevelocity(includedProjects: Set<GradlePath>) {
+    val isSpotlightEnabled = isSpotlightEnabled
+    pluginManager.withPlugin("com.gradle.develocity") {
+      extensions.getByType(DevelocityConfiguration::class.java)
+        .buildScan { scan ->
+          // Report values in buildFinished {} so the properties aren't captured as part of configuration cache inputs
+          scan.buildFinished {
+            scan.value("Spotlight Enabled", isSpotlightEnabled.toString())
+            val leafProjects = includedProjects.filter { it.hasBuildFile }
+            scan.value("Spotlight Project Count", leafProjects.size.toString())
+          }
+        }
     }
   }
 }
