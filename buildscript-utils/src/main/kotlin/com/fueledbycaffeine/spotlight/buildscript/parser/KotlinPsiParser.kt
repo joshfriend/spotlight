@@ -73,6 +73,12 @@ public object KotlinPsiParser : BuildScriptParser {
       throw BuildScriptParser.ParserException("Could not parse buildscript ${project.buildFilePath}", e)
     }
     
+    // Add implicit dependencies based on project path
+    val projectPathRules = rules.filterIsInstance<ImplicitDependencyRule.ProjectPathMatchRule>()
+    projectPathRules
+      .filter { it.regex.containsMatchIn(project.path) }
+      .flatMapTo(dependencies) { it.includedProjects }
+    
     return dependencies + computeImplicitParentProjects(project)
   }
   
@@ -100,15 +106,32 @@ public object KotlinPsiParser : BuildScriptParser {
       }
     }
     
-    // Check for type-safe project accessors (projects.foo.bar)
+    // Check for type-safe project accessors in call arguments (e.g., implementation(projects.foo.bar))
     val typeSafeRule = rules.filterIsInstance<TypeSafeProjectAccessorRule>().firstOrNull()
     if (typeSafeRule != null) {
+      // Check arguments for type-safe accessors
+      expression.valueArguments.forEach { arg ->
+        val argExpr = arg.getArgumentExpression()
+        if (argExpr is KtDotQualifiedExpression) {
+          val accessor = extractTypeSafeAccessor(argExpr)
+          if (accessor != null) {
+            val cleanAccessor = accessor.removeTypeSafeAccessorJunk(typeSafeRule.rootProjectAccessor)
+            val resolvedProject = typeSafeRule.typeSafeAccessorMap[cleanAccessor]
+              ?: throw NoSuchElementException("Unknown type-safe project accessor: $cleanAccessor")
+            dependencies.add(resolvedProject)
+          }
+        }
+      }
+      
+      // Also check if this call expression itself is part of a type-safe accessor chain
       val parent = expression.parent
       if (parent is KtDotQualifiedExpression) {
         val accessor = extractTypeSafeAccessor(parent)
         if (accessor != null) {
           val cleanAccessor = accessor.removeTypeSafeAccessorJunk(typeSafeRule.rootProjectAccessor)
-          typeSafeRule.typeSafeAccessorMap[cleanAccessor]?.let { dependencies.add(it) }
+          val resolvedProject = typeSafeRule.typeSafeAccessorMap[cleanAccessor]
+            ?: throw NoSuchElementException("Unknown type-safe project accessor: $cleanAccessor")
+          dependencies.add(resolvedProject)
         }
       }
     }

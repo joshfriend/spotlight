@@ -8,11 +8,14 @@ public final class com/fueledbycaffeine/spotlight/buildscript/AllProjects : com/
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/BuildFile {
-	public fun <init> (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)V
+	public fun <init> (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;)V
+	public synthetic fun <init> (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;
-	public final fun copy (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildFile;
-	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/BuildFile;Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildFile;
+	public final fun component2 ()Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;
+	public final fun copy (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildFile;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/BuildFile;Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildFile;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getConfig ()Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;
 	public final fun getProject ()Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;
 	public fun hashCode ()I
 	public final fun parseDependencies (Ljava/util/Set;)Ljava/util/Set;
@@ -45,7 +48,7 @@ public final class com/fueledbycaffeine/spotlight/buildscript/GradlePath : com/f
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun expandChildProjects (Ljava/util/List;)Ljava/util/Set;
 	public static synthetic fun expandChildProjects$default (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/List;ILjava/lang/Object;)Ljava/util/Set;
-	public fun findSuccessors (Ljava/util/Set;)Ljava/util/Set;
+	public fun findSuccessors (Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;)Ljava/util/Set;
 	public final fun getBuildFilePath ()Ljava/nio/file/Path;
 	public final fun getHasBuildFile ()Z
 	public final fun getHasSettingsFile ()Z
@@ -141,10 +144,10 @@ public final class com/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorIn
 
 public final class com/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch {
 	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;
-	public final fun flatten (Ljava/lang/Iterable;Ljava/util/Set;)Ljava/util/Set;
-	public static synthetic fun flatten$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/lang/Iterable;Ljava/util/Set;ILjava/lang/Object;)Ljava/util/Set;
-	public final fun run (Ljava/lang/Iterable;Ljava/util/Set;)Ljava/util/Map;
-	public static synthetic fun run$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/lang/Iterable;Ljava/util/Set;ILjava/lang/Object;)Ljava/util/Map;
+	public final fun flatten (Ljava/lang/Iterable;Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;)Ljava/util/Set;
+	public static synthetic fun flatten$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/lang/Iterable;Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;ILjava/lang/Object;)Ljava/util/Set;
+	public final fun run (Ljava/lang/Iterable;Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;)Ljava/util/Map;
+	public static synthetic fun run$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/lang/Iterable;Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;ILjava/lang/Object;)Ljava/util/Map;
 }
 
 public abstract interface class com/fueledbycaffeine/spotlight/buildscript/graph/DependencyRule {
@@ -172,7 +175,12 @@ public abstract class com/fueledbycaffeine/spotlight/buildscript/graph/Graph {
 }
 
 public abstract interface class com/fueledbycaffeine/spotlight/buildscript/graph/GraphNode {
-	public abstract fun findSuccessors (Ljava/util/Set;)Ljava/util/Set;
+	public abstract fun findSuccessors (Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;)Ljava/util/Set;
+	public static synthetic fun findSuccessors$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/GraphNode;Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;ILjava/lang/Object;)Ljava/util/Set;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/graph/GraphNode$DefaultImpls {
+	public static synthetic fun findSuccessors$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/GraphNode;Ljava/util/Set;Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;ILjava/lang/Object;)Ljava/util/Set;
 }
 
 public abstract interface class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule : com/fueledbycaffeine/spotlight/buildscript/graph/DependencyRule {
@@ -205,6 +213,20 @@ public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDepe
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration : java/lang/Enum {
+	public static final field AST Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;
+	public static final field Companion Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration$Companion;
+	public static final field REGEX Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public final fun getUseRegex ()Z
+	public static fun valueOf (Ljava/lang/String;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;
+	public static fun values ()[Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration$Companion {
+	public final fun getDEFAULT ()Lcom/fueledbycaffeine/spotlight/buildscript/graph/ParsingConfiguration;
+}
+
 public final class com/fueledbycaffeine/spotlight/buildscript/graph/TypeSafeProjectAccessorRule : com/fueledbycaffeine/spotlight/buildscript/graph/DependencyRule {
 	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -234,5 +256,29 @@ public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRu
 
 public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules$Companion {
 	public final fun getEMPTY ()Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
+}
+
+public abstract interface class com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser {
+	public abstract fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser$ParserException : java/lang/Exception {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/GroovyAstParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser {
+	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/parser/GroovyAstParser;
+	public final fun clearCache ()V
+	public fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/KotlinPsiParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser {
+	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/parser/KotlinPsiParser;
+	public fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/RegexBuildScriptParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser {
+	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/parser/RegexBuildScriptParser;
+	public fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
 }
 
