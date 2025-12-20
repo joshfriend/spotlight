@@ -1,15 +1,29 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ParsingConfiguration
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
-import kotlin.io.path.readText
+import com.fueledbycaffeine.spotlight.buildscript.parser.BuildScriptParser
+import com.fueledbycaffeine.spotlight.buildscript.parser.GroovyAstParser
+import com.fueledbycaffeine.spotlight.buildscript.parser.KotlinPsiParser
+import com.fueledbycaffeine.spotlight.buildscript.parser.RegexBuildScriptParser
+import java.text.ParseException
+import kotlin.io.path.name
+import kotlin.io.path.readLines
 
-public data class BuildFile(public val project: GradlePath) {
+public data class BuildFile(
+  public val project: GradlePath,
+  public val config: ParsingConfiguration = ParsingConfiguration.DEFAULT,
+) {
+  /**
+   * Parse dependencies from the build file.
+   */
   public fun parseDependencies(
     rules: Set<DependencyRule> = emptySet(),
-  ): Set<GradlePath> = parseBuildFile(project, rules)
+  ): Set<GradlePath> = parseBuildFile(project, rules, config)
 }
 
 private val PROJECT_DEP_PATTERN = Regex("""project\s*\((['"])(.*?)\1\)""")
@@ -21,24 +35,31 @@ private val BLOCK_COMMENT_PATTERN = Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES
 internal fun parseBuildFile(
   project: GradlePath,
   rules: Set<DependencyRule>,
+  config: ParsingConfiguration = ParsingConfiguration.DEFAULT,
 ): Set<GradlePath> {
-  val fileContent = project.buildFilePath.readText()
-  val contentWithoutBlockComments = BLOCK_COMMENT_PATTERN.replace(fileContent, "")
-  val buildscriptContents = contentWithoutBlockComments.lines()
-    .map { it.substringBefore("//") }
-
-  return computeDirectDependencies(project, buildscriptContents) +
-    computeTypeSafeProjectDependencies(project, buildscriptContents, rules) +
-    computeImplicitDependencies(project, buildscriptContents, rules) +
-    computeImplicitParentProjects(project)
+  return if (config == ParsingConfiguration.AST) {
+    // Try AST/PSI parsing first
+    val parser: BuildScriptParser = when (project.buildFilePath.name) {
+      GRADLE_SCRIPT -> GroovyAstParser
+      else -> KotlinPsiParser
+    }
+    
+    try {
+      parser.parse(project, rules)
+    } catch (_: BuildScriptParser.ParserException) {
+      // Fall through to regex parsing if AST/PSI parsing fails
+      RegexBuildScriptParser.parse(project, rules)
+    }
+  } else {
+    RegexBuildScriptParser.parse(project, rules)
+  }
 }
 
 /**
  * Read dependencies declared as `project(':path:to:project')`
  */
 private fun computeDirectDependencies(project: GradlePath, buildscriptContents: List<String>): Set<GradlePath> {
-  return buildscriptContents
-    .flatMap { PROJECT_DEP_PATTERN.findAll(it) }
+  return buildscriptContents.mapNotNull { PROJECT_DEP_PATTERN.find(it) }
     .map { matchResult ->
       val (_, projectPath) = matchResult.destructured
       GradlePath(project.root, projectPath)
@@ -57,12 +78,9 @@ private fun computeTypeSafeProjectDependencies(
   val rule = rules.filterIsInstance<TypeSafeProjectAccessorRule>().firstOrNull()
     ?: return emptySet()
 
-  return buildscriptContents
-    .asSequence()
-    .map { it.replace(STRING_LITERAL_PATTERN, "") } // Pre-filter strings
-    .flatMap { line -> TYPESAFE_PROJECT_DEP_PATTERN.findAll(line) }
+  return buildscriptContents.mapNotNull { TYPESAFE_PROJECT_DEP_PATTERN.find(it) }
     .map { matchResult ->
-      val (typeSafeAccessor) = matchResult.destructured
+      val (_, typeSafeAccessor) = matchResult.destructured
       val cleanTypeSafeAccessor = typeSafeAccessor.removeTypeSafeAccessorJunk(rule.rootProjectAccessor)
       // Look up project in the accessor mapping
       rule.typeSafeAccessorMap[cleanTypeSafeAccessor] ?: throw NoSuchElementException(
@@ -81,36 +99,15 @@ private fun computeImplicitDependencies(
   buildscriptContents: List<String>,
   rules: Set<DependencyRule>,
 ): Set<GradlePath> {
-  val implicitDependencies = mutableSetOf<GradlePath>()
-
-  val projectPathRules = rules.filterIsInstance<ProjectPathMatchRule>()
-  projectPathRules
-    .filter { it.regex.containsMatchIn(project.path) }
-    .flatMapTo(implicitDependencies) { it.includedProjects }
-
-  val remainingRules = rules.filterIsInstance<BuildscriptMatchRule>().toMutableSet()
-  if (remainingRules.isEmpty()) {
-    return implicitDependencies
-  }
-
-  // For each line, iterate through the *remaining* rules
-  buildscriptContents.forEach { line ->
-    if (remainingRules.isEmpty()) {
-      // short circuit if we've found a match for all rules.
-      return@forEach
-    }
-    val matchedRules = mutableSetOf<BuildscriptMatchRule>()
-    remainingRules.forEach { rule ->
-      if (rule.regex.containsMatchIn(line)) {
-        implicitDependencies.addAll(rule.includedProjects)
-        // We found a match for this rule, we don't need to check it against subsequent lines.
-        matchedRules.add(rule)
+  return rules
+    .filterIsInstance<ImplicitDependencyRule>()
+    .filter { rule ->
+      when (rule) {
+        is BuildscriptMatchRule -> buildscriptContents.any { rule.regex.containsMatchIn(it) }
+        is ProjectPathMatchRule -> rule.regex.containsMatchIn(project.path)
       }
     }
-    remainingRules.removeAll(matchedRules)
-  }
-
-  return implicitDependencies
+    .flatMapTo(mutableSetOf()) { rule -> rule.includedProjects }
 }
 
 /**

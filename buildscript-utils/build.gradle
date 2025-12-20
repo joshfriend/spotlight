@@ -48,6 +48,14 @@ dependencies {
   implementation(libs.moshi.kotlin)
   implementation(libs.moshix.sealedReflect)
   implementation(libs.okio)
+  
+  // Groovy AST parsing
+  implementation(libs.groovy)
+  
+  // Kotlin PSI parsing with K2 Analysis API
+  implementation(libs.kotlin.compiler.embeddable)
+  // TODO: kotlin-analysis-api-standalone not yet available in Maven Central
+  // implementation(libs.kotlin.analysis.api.standalone)
 
   testImplementation gradleApi()
   testImplementation libs.assertk

@@ -13,17 +13,22 @@ lint-gradle = "1.0.0-alpha05"
 moshi = "1.15.2"
 moshix = "0.25.1"
 okio = "3.16.2"
+groovy = "4.0.24"
+kotlin-compiler = "2.3.0"
 
 [libraries]
 assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
 autonomousapps-testkit = { module = "com.autonomousapps:gradle-testkit", version.ref = "testkit" }
 autonomousapps-testkit-support = { module = "com.autonomousapps:gradle-testkit-support", version.ref = "testkit" }
 develocity = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }
+groovy = { module = "org.apache.groovy:groovy", version.ref = "groovy" }
 jmh-core = { module = "org.openjdk.jmh:jmh-core", version.ref = "jmh" }
 jmh-generator = { module = "org.openjdk.jmh:jmh-generator-annprocess", version.ref = "jmh" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit-platform = { module = "org.junit:junit-bom", version.ref = "junit" }
+kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin-compiler" }
+kotlin-analysis-api-standalone = { module = "org.jetbrains.kotlin:kotlin-analysis-api-standalone", version.ref = "kotlin-compiler" }
 lint-gradle = { module = "androidx.lint:lint-gradle", version.ref = "lint-gradle" }
 moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
