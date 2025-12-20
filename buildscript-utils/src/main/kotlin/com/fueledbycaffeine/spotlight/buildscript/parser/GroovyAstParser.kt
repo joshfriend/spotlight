@@ -39,10 +39,14 @@ public object GroovyAstParser : BuildScriptParser {
     try {
       val fileContent = project.buildFilePath.readText()
       
+      // CompilePhase.CONVERSION is the earliest phase that produces a usable AST
+      // Later phases like SEMANTIC_ANALYSIS do more work and would be slower
       val nodes = astBuilder.buildFromString(CompilePhase.CONVERSION, false, fileContent)
       
+      // Create a single visitor for all nodes instead of one per node
+      val visitor = createVisitor(project, rules, dependencies)
       nodes.forEach { node ->
-        visitNode(node, project, rules, dependencies)
+        node.visit(visitor)
       }
     } catch (e: Exception) {
       // If AST parsing fails, return empty and let the fallback handle it
@@ -52,13 +56,12 @@ public object GroovyAstParser : BuildScriptParser {
     return dependencies + computeImplicitParentProjects(project)
   }
   
-  private fun visitNode(
-    node: ASTNode,
+  private fun createVisitor(
     project: GradlePath,
     rules: Set<DependencyRule>,
     dependencies: MutableSet<GradlePath>,
-  ) {
-    node.visit(object : CodeVisitorSupport() {
+  ): CodeVisitorSupport {
+    return object : CodeVisitorSupport() {
       override fun visitMethodCallExpression(call: MethodCallExpression) {
         handleMethodCall(call, project, rules, dependencies)
         super.visitMethodCallExpression(call)
@@ -68,7 +71,7 @@ public object GroovyAstParser : BuildScriptParser {
         handlePropertyExpression(expression, project, rules, dependencies)
         super.visitPropertyExpression(expression)
       }
-    })
+    }
   }
   
   @Suppress("UNCHECKED_CAST")

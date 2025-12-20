@@ -124,7 +124,9 @@ open class BreadthFirstSearchBenchmark {
       emptySet()
     }
     val result = BreadthFirstSearch.flatten(listOf(app), rules, config)
-    check(result.size == 301) { "expected 301 projects in result set but there were ${result.size}" }
+    check(result.size == originalProjectFiles.size) { 
+      "expected ${originalProjectFiles.size} projects in result set but there were ${result.size}"
+    }
     blackhole.consume(result)
   }
 

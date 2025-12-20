@@ -62,6 +62,11 @@ public object KotlinPsiParser : BuildScriptParser {
           handleCallExpression(expression, project, rules, dependencies)
           super.visitCallExpression(expression)
         }
+        
+        override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
+          handleDotQualifiedExpression(expression, project, rules, dependencies)
+          super.visitDotQualifiedExpression(expression)
+        }
       })
     } catch (e: Exception) {
       // If AST parsing fails, return empty and let the fallback handle it
@@ -118,26 +123,29 @@ public object KotlinPsiParser : BuildScriptParser {
     }
   }
   
+  private fun handleDotQualifiedExpression(
+    expression: KtDotQualifiedExpression,
+    project: GradlePath,
+    rules: Set<DependencyRule>,
+    dependencies: MutableSet<GradlePath>,
+  ) {
+    val typeSafeRule = rules.filterIsInstance<TypeSafeProjectAccessorRule>().firstOrNull()
+      ?: return
+    
+    val accessor = extractTypeSafeAccessor(expression)
+    if (accessor != null) {
+      val cleanAccessor = accessor.removeTypeSafeAccessorJunk(typeSafeRule.rootProjectAccessor)
+      typeSafeRule.typeSafeAccessorMap[cleanAccessor]?.let { dependencies.add(it) }
+    }
+  }
+  
   private fun extractTypeSafeAccessor(dotExpr: KtDotQualifiedExpression): String? {
-    val parts = mutableListOf<String>()
-    var current: Any = dotExpr
+    // Build the full accessor chain from the expression
+    val fullText = dotExpr.text
     
-    while (current is KtDotQualifiedExpression) {
-      val selector = current.selectorExpression?.text
-      if (selector != null) {
-        parts.add(0, selector)
-      }
-      current = current.receiverExpression
-    }
-    
-    // Check if the base is "projects"
-    val baseText = when (current) {
-      is KtDotQualifiedExpression -> current.text
-      else -> current.toString()
-    }
-    
-    if (baseText.startsWith("projects")) {
-      return baseText + if (parts.isNotEmpty()) ".${parts.joinToString(".")}" else ""
+    // Check if it starts with "projects."
+    if (fullText.startsWith("projects.")) {
+      return fullText
     }
     
     return null
