@@ -49,11 +49,6 @@ public object RegexBuildScriptParser : BuildScriptParser {
     buildscriptContents: List<String>,
     rules: Set<DependencyRule>,
   ): Set<GradlePath> {
-    // Type-safe project accessors are Kotlin-only, skip for Groovy files
-    if (project.buildFilePath.name != GRADLE_SCRIPT_KOTLIN) {
-      return emptySet()
-    }
-    
     val rule = rules.filterIsInstance<TypeSafeProjectAccessorRule>().firstOrNull()
       ?: return emptySet()
 
