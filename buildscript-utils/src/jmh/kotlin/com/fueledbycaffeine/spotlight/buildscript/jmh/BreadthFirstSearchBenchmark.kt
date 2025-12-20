@@ -9,6 +9,7 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ParsingConfiguration
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
+import com.fueledbycaffeine.spotlight.buildscript.parser.GroovyAstParser
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Fork
@@ -100,6 +101,9 @@ open class BreadthFirstSearchBenchmark {
 
   @Setup(Level.Iteration)
   fun setupIteration() {
+    // Clear parser caches to ensure fresh parsing
+    GroovyAstParser.clearCache()
+    
     // Restore original files before each iteration
     originalProjectFiles.forEach { (path, content) ->
       Files.write(path, content)
