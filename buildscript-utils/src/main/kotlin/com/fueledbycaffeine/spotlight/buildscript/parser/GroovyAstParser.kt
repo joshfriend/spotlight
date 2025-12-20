@@ -15,7 +15,11 @@ import org.codehaus.groovy.ast.expr.MethodCallExpression
 import org.codehaus.groovy.ast.expr.PropertyExpression
 import org.codehaus.groovy.ast.expr.VariableExpression
 import org.codehaus.groovy.control.CompilePhase
+import org.codehaus.groovy.control.CompilerConfiguration
+import java.nio.file.Path
 import java.text.ParseException
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.name
 import kotlin.io.path.readText
 
@@ -24,6 +28,14 @@ import kotlin.io.path.readText
  * Provides more accurate parsing than regex by understanding the actual structure of the code.
  */
 public object GroovyAstParser : BuildScriptParser {
+  // Cache parsed AST nodes by file path and modification time
+  private data class CacheKey(val path: Path, val lastModified: Long)
+  private val astCache = ConcurrentHashMap<CacheKey, List<ASTNode>>()
+  
+  private val compilerConfig = CompilerConfiguration().apply {
+    // Optimize for parsing only - skip unnecessary phases
+    optimizationOptions = mapOf("indy" to false, "int" to false)
+  }
   private val astBuilder = AstBuilder()
 
   override fun parse(
@@ -37,11 +49,15 @@ public object GroovyAstParser : BuildScriptParser {
     val dependencies = mutableSetOf<GradlePath>()
     
     try {
-      val fileContent = project.buildFilePath.readText()
-      
-      // CompilePhase.CONVERSION is the earliest phase that produces a usable AST
-      // Later phases like SEMANTIC_ANALYSIS do more work and would be slower
-      val nodes = astBuilder.buildFromString(CompilePhase.CONVERSION, false, fileContent)
+      // Check cache first
+      val cacheKey = CacheKey(project.buildFilePath, project.buildFilePath.getLastModifiedTime().toMillis())
+      val nodes = astCache.getOrPut(cacheKey) {
+        val fileContent = project.buildFilePath.readText()
+        // CompilePhase.CONVERSION is the earliest phase that produces a usable AST
+        // Later phases like SEMANTIC_ANALYSIS do more work and would be slower
+        // statementsOnly=true skips package/import nodes which speeds up parsing
+        astBuilder.buildFromString(CompilePhase.CONVERSION, true, fileContent)
+      }
       
       // Create a single visitor for all nodes instead of one per node
       val visitor = createVisitor(project, rules, dependencies)
@@ -161,5 +177,12 @@ public object GroovyAstParser : BuildScriptParser {
     }
     
     return null
+  }
+  
+  /**
+   * Clears the AST cache. Useful for benchmarking scenarios where files are modified.
+   */
+  public fun clearCache() {
+    astCache.clear()
   }
 }
