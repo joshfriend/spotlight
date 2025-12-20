@@ -5,7 +5,7 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
-import kotlin.io.path.readLines
+import kotlin.io.path.readText
 
 public data class BuildFile(public val project: GradlePath) {
   public fun parseDependencies(
@@ -13,16 +13,20 @@ public data class BuildFile(public val project: GradlePath) {
   ): Set<GradlePath> = parseBuildFile(project, rules)
 }
 
-private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+(?:\\w+\\()*project\\([\"'](.*)[\"']\\)+")
+private val PROJECT_DEP_PATTERN = Regex("""project\s*\((['"])(.*?)\1\)""")
 // This regex is intentionally simple for performance. Comments are filtered out before matching.
 private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("""\b(projects\.[\w.]+)\b""")
 private val STRING_LITERAL_PATTERN = Regex("\"[^\"]*\"|'[^']*'")
+private val BLOCK_COMMENT_PATTERN = Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL)
 
 internal fun parseBuildFile(
   project: GradlePath,
   rules: Set<DependencyRule>,
 ): Set<GradlePath> {
-  val buildscriptContents = project.buildFilePath.readLines()
+  val fileContent = project.buildFilePath.readText()
+  val contentWithoutBlockComments = BLOCK_COMMENT_PATTERN.replace(fileContent, "")
+  val buildscriptContents = contentWithoutBlockComments.lines()
+    .map { it.substringBefore("//") }
 
   return computeDirectDependencies(project, buildscriptContents) +
     computeTypeSafeProjectDependencies(project, buildscriptContents, rules) +
@@ -56,7 +60,6 @@ private fun computeTypeSafeProjectDependencies(
 
   return buildscriptContents
     .asSequence()
-    .map { it.substringBefore("//") } // Pre-filter comments
     .map { it.replace(STRING_LITERAL_PATTERN, "") } // Pre-filter strings
     .flatMap { line -> TYPESAFE_PROJECT_DEP_PATTERN.findAll(line) }
     .map { matchResult ->

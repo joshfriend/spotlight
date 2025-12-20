@@ -359,6 +359,46 @@ class BuildFileTest {
     )
   }
 
+  @Test
+  fun `strips all comments before parsing`() {
+    // given
+    val project = buildRoot.createProject(":foo")
+    project.buildFilePath.writeText(
+      """
+      /**
+       * This is a block comment
+       */
+      plugins {
+        id("java") // plugin
+      }
+
+      dependencies {
+        /* tricky */ implementation(project(":foo"))
+        // implementation(project(":not:this:one"))
+        /* implementation(project(":also:not:this:one")) */
+      }
+
+      /* 
+       * Another block comment 
+       * implementation(project(":baz"))
+       */
+
+      dependencies {
+        implementation(project(":bar")) // implementation(project(":baz"))
+      }
+      """
+    )
+
+    // when
+    val dependencies = BuildFile(project).parseDependencies()
+
+    // then
+    assertThat(dependencies).containsExactlyInAnyOrder(
+        GradlePath(project.root, ":foo"),
+        GradlePath(project.root, ":bar")
+    )
+  }
+
   private fun Path.createProject(path: String, extension: String = ".gradle"): GradlePath {
     return GradlePath(this, path).apply {
       projectDir.createDirectories()
