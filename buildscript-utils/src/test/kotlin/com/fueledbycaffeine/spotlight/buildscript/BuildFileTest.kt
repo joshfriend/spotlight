@@ -258,6 +258,7 @@ class BuildFileTest {
     project.buildFilePath.writeText("""
       android {
         namespace = "com.example.projects.foo.bar"
+        namespace2 = 'com.example.projects.foo.bar'
       }
       """.trimIndent()
     )

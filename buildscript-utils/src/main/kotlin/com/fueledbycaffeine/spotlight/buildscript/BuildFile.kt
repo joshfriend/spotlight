@@ -14,7 +14,9 @@ public data class BuildFile(public val project: GradlePath) {
 }
 
 private val PROJECT_DEP_PATTERN = Regex("^(?:\\s+)?(\\w+)\\W+(?:\\w+\\()*project\\([\"'](.*)[\"']\\)+")
-private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("^(?!\\s*//)(?:(?![\"']).)*?(?:^|\\b|\\s)(\\w+)?\\(?\\s*(\\bprojects\\.[\\w.]+)")
+// This regex is intentionally simple for performance. Comments are filtered out before matching.
+private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("""\b(projects\.[\w.]+)\b""")
+private val STRING_LITERAL_PATTERN = Regex("\"[^\"]*\"|'[^']*'")
 
 internal fun parseBuildFile(
   project: GradlePath,
@@ -32,7 +34,8 @@ internal fun parseBuildFile(
  * Read dependencies declared as `project(':path:to:project')`
  */
 private fun computeDirectDependencies(project: GradlePath, buildscriptContents: List<String>): Set<GradlePath> {
-  return buildscriptContents.mapNotNull { PROJECT_DEP_PATTERN.find(it) }
+  return buildscriptContents
+    .flatMap { PROJECT_DEP_PATTERN.findAll(it) }
     .map { matchResult ->
       val (_, projectPath) = matchResult.destructured
       GradlePath(project.root, projectPath)
@@ -51,9 +54,13 @@ private fun computeTypeSafeProjectDependencies(
   val rule = rules.filterIsInstance<TypeSafeProjectAccessorRule>().firstOrNull()
     ?: return emptySet()
 
-  return buildscriptContents.mapNotNull { TYPESAFE_PROJECT_DEP_PATTERN.find(it) }
+  return buildscriptContents
+    .asSequence()
+    .map { it.substringBefore("//") } // Pre-filter comments
+    .map { it.replace(STRING_LITERAL_PATTERN, "") } // Pre-filter strings
+    .flatMap { line -> TYPESAFE_PROJECT_DEP_PATTERN.findAll(line) }
     .map { matchResult ->
-      val (_, typeSafeAccessor) = matchResult.destructured
+      val (typeSafeAccessor) = matchResult.destructured
       val cleanTypeSafeAccessor = typeSafeAccessor.removeTypeSafeAccessorJunk(rule.rootProjectAccessor)
       // Look up project in the accessor mapping
       rule.typeSafeAccessorMap[cleanTypeSafeAccessor] ?: throw NoSuchElementException(
