@@ -9,7 +9,7 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ParsingConfiguration
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
-import com.fueledbycaffeine.spotlight.buildscript.parser.GroovyAstParser
+import com.fueledbycaffeine.spotlight.buildscript.parser.groovy.GroovyAstParser
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Fork

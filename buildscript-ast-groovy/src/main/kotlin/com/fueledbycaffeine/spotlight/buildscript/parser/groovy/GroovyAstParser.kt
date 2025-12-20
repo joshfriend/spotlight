@@ -1,10 +1,13 @@
-package com.fueledbycaffeine.spotlight.buildscript.parser
+package com.fueledbycaffeine.spotlight.buildscript.parser.groovy
 
 import com.fueledbycaffeine.spotlight.buildscript.GRADLE_SCRIPT
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
+import com.fueledbycaffeine.spotlight.buildscript.parser.BuildScriptParser
+import com.fueledbycaffeine.spotlight.buildscript.parser.computeImplicitParentProjects
+import com.fueledbycaffeine.spotlight.buildscript.parser.removeTypeSafeAccessorJunk
 import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.ast.CodeVisitorSupport
 import org.codehaus.groovy.ast.builder.AstBuilder
@@ -17,7 +20,6 @@ import org.codehaus.groovy.ast.expr.VariableExpression
 import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.CompilerConfiguration
 import java.nio.file.Path
-import java.text.ParseException
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.name

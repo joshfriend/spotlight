@@ -1,14 +1,16 @@
-package com.fueledbycaffeine.spotlight.buildscript.parser
+package com.fueledbycaffeine.spotlight.buildscript.parser.kotlin
 
 import com.fueledbycaffeine.spotlight.buildscript.GRADLE_SCRIPT_KOTLIN
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
+import com.fueledbycaffeine.spotlight.buildscript.parser.BuildScriptParser
+import com.fueledbycaffeine.spotlight.buildscript.parser.computeImplicitParentProjects
+import com.fueledbycaffeine.spotlight.buildscript.parser.removeTypeSafeAccessorJunk
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.KtCallExpression
