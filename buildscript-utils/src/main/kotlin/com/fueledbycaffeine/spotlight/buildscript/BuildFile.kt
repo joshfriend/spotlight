@@ -1,7 +1,6 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
@@ -82,15 +81,36 @@ private fun computeImplicitDependencies(
   buildscriptContents: List<String>,
   rules: Set<DependencyRule>,
 ): Set<GradlePath> {
-  return rules
-    .filterIsInstance<ImplicitDependencyRule>()
-    .filter { rule ->
-      when (rule) {
-        is BuildscriptMatchRule -> buildscriptContents.any { rule.regex.containsMatchIn(it) }
-        is ProjectPathMatchRule -> rule.regex.containsMatchIn(project.path)
+  val implicitDependencies = mutableSetOf<GradlePath>()
+
+  val projectPathRules = rules.filterIsInstance<ProjectPathMatchRule>()
+  projectPathRules
+    .filter { it.regex.containsMatchIn(project.path) }
+    .flatMapTo(implicitDependencies) { it.includedProjects }
+
+  val remainingRules = rules.filterIsInstance<BuildscriptMatchRule>().toMutableSet()
+  if (remainingRules.isEmpty()) {
+    return implicitDependencies
+  }
+
+  // For each line, iterate through the *remaining* rules
+  buildscriptContents.forEach { line ->
+    if (remainingRules.isEmpty()) {
+      // short circuit if we've found a match for all rules.
+      return@forEach
+    }
+    val matchedRules = mutableSetOf<BuildscriptMatchRule>()
+    remainingRules.forEach { rule ->
+      if (rule.regex.containsMatchIn(line)) {
+        implicitDependencies.addAll(rule.includedProjects)
+        // We found a match for this rule, we don't need to check it against subsequent lines.
+        matchedRules.add(rule)
       }
     }
-    .flatMapTo(mutableSetOf()) { rule -> rule.includedProjects }
+    remainingRules.removeAll(matchedRules)
+  }
+
+  return implicitDependencies
 }
 
 /**
