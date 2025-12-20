@@ -44,9 +44,8 @@ class BuildFileTest {
   fun `reads dependencies`(mode: ParsingConfiguration, extension: String) {
     val project = buildRoot.createProject(":foo", extension)
     
-    // Use syntax that works in both Groovy and Kotlin
     val content = if (extension == ".gradle") {
-      // Groovy syntax - supports both with and without parentheses
+      // Groovy syntax - supports both with and without outer parentheses, and single or double quotes
       """
       dependencies {
         implementation  project(":multiple-spaces-double-quotes")
@@ -68,17 +67,14 @@ class BuildFileTest {
       }
       """.trimIndent()
     } else {
-      // Kotlin syntax - requires parentheses
+      // Kotlin syntax - requires outer parentheses, only supports double quotes
       """
       dependencies {
-        implementation(project(":multiple-spaces-double-quotes"))
-        implementation(project(":multiple-spaces-single-quotes"))
+        implementation(  project(":multiple-spaces"))
 
-        implementation(project(":one-space-double-quotes"))
-        implementation(project(":one-space-single-quotes"))
+        implementation(project(":one-space"))
 
-        implementation(project(":parentheses-double-quotes"))
-        implementation(project(":parentheses-single-quotes"))
+        implementation(project(":parentheses"))
 
         api(project(":other-configuration")) {
           because("reason")
@@ -94,16 +90,28 @@ class BuildFileTest {
 
     val buildFile = BuildFile(project, mode)
 
-    assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(
-      GradlePath(buildRoot, ":multiple-spaces-double-quotes"),
-      GradlePath(buildRoot, ":multiple-spaces-single-quotes"),
-      GradlePath(buildRoot, ":one-space-double-quotes"),
-      GradlePath(buildRoot, ":one-space-single-quotes"),
-      GradlePath(buildRoot, ":parentheses-double-quotes"),
-      GradlePath(buildRoot, ":parentheses-single-quotes"),
-      GradlePath(buildRoot, ":other-configuration"),
-      GradlePath(buildRoot, ":bad-indentation"),
-    )
+    val expected = if (extension == ".gradle") {
+      setOf(
+        GradlePath(buildRoot, ":multiple-spaces-double-quotes"),
+        GradlePath(buildRoot, ":multiple-spaces-single-quotes"),
+        GradlePath(buildRoot, ":one-space-double-quotes"),
+        GradlePath(buildRoot, ":one-space-single-quotes"),
+        GradlePath(buildRoot, ":parentheses-double-quotes"),
+        GradlePath(buildRoot, ":parentheses-single-quotes"),
+        GradlePath(buildRoot, ":other-configuration"),
+        GradlePath(buildRoot, ":bad-indentation"),
+      )
+    } else {
+      setOf(
+        GradlePath(buildRoot, ":multiple-spaces"),
+        GradlePath(buildRoot, ":one-space"),
+        GradlePath(buildRoot, ":parentheses"),
+        GradlePath(buildRoot, ":other-configuration"),
+        GradlePath(buildRoot, ":bad-indentation"),
+      )
+    }
+    
+    assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(*expected.toTypedArray())
   }
 
   @ParameterizedTest

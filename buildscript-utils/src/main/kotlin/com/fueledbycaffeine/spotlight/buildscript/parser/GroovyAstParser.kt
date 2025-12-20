@@ -32,19 +32,19 @@ public object GroovyAstParser : BuildScriptParser {
   private data class CacheKey(val path: Path, val lastModified: Long)
   private val astCache = ConcurrentHashMap<CacheKey, List<ASTNode>>()
   
-  // Aggressive compiler configuration - minimize all work
+  // Minimal compiler configuration - skip all unnecessary work
   private val compilerConfig = CompilerConfiguration().apply {
     optimizationOptions = mapOf(
-      "indy" to false,      // No invokedynamic
-      "int" to false,        // No primitive optimizations
-      "asmResolving" to false // Skip ASM resolution
+      "indy" to false,
+      "int" to false,
+      "asmResolving" to false
     )
     debug = false
     verbose = false
     warningLevel = 0
-    targetDirectory = null  // Don't write anything to disk
+    tolerance = 999  // Continue on errors
+    targetDirectory = null
   }
-  private val astBuilder = AstBuilder()
 
   override fun parse(
     project: GradlePath,
@@ -61,16 +61,18 @@ public object GroovyAstParser : BuildScriptParser {
       val cacheKey = CacheKey(project.buildFilePath, project.buildFilePath.getLastModifiedTime().toMillis())
       val nodes = astCache.getOrPut(cacheKey) {
         val fileContent = project.buildFilePath.readText()
-        
-        // Use CONVERSION phase for reliable AST
-        // statementsOnly=true skips package/import nodes
-        astBuilder.buildFromString(CompilePhase.CONVERSION, true, fileContent)
+        // Use AstBuilder with CONVERSION phase - fastest reliable AST generation
+        AstBuilder().buildFromString(CompilePhase.CONVERSION, true, fileContent)
       }
       
-      // Optimized visitor with pre-computed rule checks
-      val visitor = createOptimizedVisitor(project, rules, dependencies)
-      nodes.forEach { node ->
-        node.visit(visitor)
+      // Pre-filter rules to avoid repeated instanceof checks in visitor
+      val typeSafeRule = rules.find { it is TypeSafeProjectAccessorRule } as? TypeSafeProjectAccessorRule
+      val buildscriptRules = rules.filterIsInstance<ImplicitDependencyRule.BuildscriptMatchRule>()
+      
+      // Only create visitor if there's work to do
+      if (nodes.isNotEmpty()) {
+        val visitor = createOptimizedVisitor(project, dependencies, typeSafeRule, buildscriptRules)
+        nodes.forEach { node -> node.visit(visitor) }
       }
     } catch (e: Exception) {
       // If AST parsing fails, return empty and let the fallback handle it
@@ -88,12 +90,10 @@ public object GroovyAstParser : BuildScriptParser {
   
   private fun createOptimizedVisitor(
     project: GradlePath,
-    rules: Set<DependencyRule>,
     dependencies: MutableSet<GradlePath>,
+    typeSafeRule: TypeSafeProjectAccessorRule?,
+    buildscriptRules: List<ImplicitDependencyRule.BuildscriptMatchRule>,
   ): CodeVisitorSupport {
-    // Pre-compute rule checks outside visitor for efficiency
-    val typeSafeRule = rules.filterIsInstance<TypeSafeProjectAccessorRule>().firstOrNull()
-    val buildscriptRules = rules.filterIsInstance<ImplicitDependencyRule.BuildscriptMatchRule>()
     val hasTypeSafeRule = typeSafeRule != null
     val hasBuildscriptRules = buildscriptRules.isNotEmpty()
     
@@ -113,7 +113,6 @@ public object GroovyAstParser : BuildScriptParser {
     }
   }
   
-  @Suppress("UNCHECKED_CAST")
   private fun handleMethodCall(
     call: MethodCallExpression,
     project: GradlePath,
@@ -128,32 +127,35 @@ public object GroovyAstParser : BuildScriptParser {
     if (methodName == "project") {
       val args = call.arguments
       if (args is ArgumentListExpression) {
-        val expressions = args.expressions as List<Expression>
+        val expressions = args.expressions
         if (expressions.isNotEmpty()) {
           val firstArg = expressions[0]
-          if (firstArg is ConstantExpression && firstArg.value is String) {
-            dependencies.add(GradlePath(project.root, firstArg.value as String))
+          if (firstArg is ConstantExpression) {
+            val value = firstArg.value
+            if (value is String) {
+              dependencies.add(GradlePath(project.root, value))
+              return  // Early return to avoid checking other rules
+            }
           }
         }
       }
     }
     
     // Check for type-safe project accessors (projects.foo.bar)
-    if (hasTypeSafeRule) {
+    if (hasTypeSafeRule && typeSafeRule != null) {
       val accessor = extractTypeSafeAccessor(call)
       if (accessor != null) {
-        val cleanAccessor = accessor.removeTypeSafeAccessorJunk(typeSafeRule!!.rootProjectAccessor)
-        val project = typeSafeRule.typeSafeAccessorMap[cleanAccessor]
+        val cleanAccessor = accessor.removeTypeSafeAccessorJunk(typeSafeRule.rootProjectAccessor)
+        typeSafeRule.typeSafeAccessorMap[cleanAccessor]?.let { dependencies.add(it) }
           ?: throw NoSuchElementException("Unknown type-safe project accessor: $cleanAccessor")
-        dependencies.add(project)
       }
     }
     
-    // Check implicit dependency rules
+    // Check implicit dependency rules - only compute text if needed
     if (hasBuildscriptRules) {
-      val callText = call.text
-      buildscriptRules.forEach { rule ->
-        if (callText.contains(rule.regex)) {
+      val callText by lazy { call.text }  // Lazy evaluation
+      for (rule in buildscriptRules) {
+        if (rule.regex.containsMatchIn(callText)) {
           dependencies.addAll(rule.includedProjects)
         }
       }
@@ -183,20 +185,28 @@ public object GroovyAstParser : BuildScriptParser {
   }
   
   private fun buildPropertyAccessorChain(prop: PropertyExpression): String? {
-    val parts = mutableListOf<String>()
+    // Build chain from right to left, avoiding list allocations
+    val parts = StringBuilder()
     var current: Expression = prop
+    var depth = 0
     
+    // First pass: collect parts
+    val stack = ArrayDeque<String>(8)  // Pre-allocate for typical depth
     while (current is PropertyExpression) {
       val propName = current.propertyAsString ?: return null
-      parts.add(0, propName)
+      stack.addFirst(propName)
       current = current.objectExpression
+      depth++
+      if (depth > 20) return null  // Avoid excessive nesting
     }
     
-    if (current is VariableExpression) {
-      val varName = current.name
-      if (varName == "projects") {
-        return "projects." + parts.joinToString(".")
+    // Check if it starts with "projects"
+    if (current is VariableExpression && current.name == "projects") {
+      parts.append("projects")
+      for (part in stack) {
+        parts.append('.').append(part)
       }
+      return parts.toString()
     }
     
     return null
