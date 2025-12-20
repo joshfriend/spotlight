@@ -55,6 +55,8 @@ develocity {
 rootProject.name = 'spotlight'
 
 include ':buildscript-utils'
+include ':buildscript-ast-groovy'
+include ':buildscript-ast-kotlin'
 include ':spotlight-gradle-plugin'
 
 // only include the IDE plugin for sync, or if it was requested via flag for builds

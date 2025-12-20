@@ -2,9 +2,7 @@
 plugins {
   id 'org.jetbrains.kotlin.jvm'
   id 'com.vanniktech.maven.publish'
-  id 'com.autonomousapps.testkit'
   id 'org.jetbrains.kotlinx.binary-compatibility-validator'
-  id 'me.champeau.jmh'
 }
 
 group = 'com.fueledbycaffeine.spotlight'
@@ -17,8 +15,8 @@ mavenPublishing {
   }
 
   pom {
-    name = "Spotlight buildscript utils"
-    description = "Parse and build a DAG of your gradle projects"
+    name = "Spotlight buildscript AST parser for Kotlin"
+    description = "Kotlin PSI parser for Spotlight buildscript utilities"
     inceptionYear = "2025"
     url = "https://github.com/joshfriend/spotlight/"
     licenses {
@@ -44,24 +42,15 @@ mavenPublishing {
 }
 
 dependencies {
-  api(libs.moshix.sealedRuntime)
-  implementation(libs.moshi.kotlin)
-  implementation(libs.moshix.sealedReflect)
-  implementation(libs.okio)
-  implementation(libs.kotlinx.coroutines.core)
+  api(project(':buildscript-utils'))
+  
+  // Kotlin PSI parsing
+  implementation(libs.kotlin.compiler.embeddable)
 
-  testImplementation gradleApi()
   testImplementation libs.assertk
   testImplementation platform(libs.junit.platform)
   testImplementation libs.junit.jupiter
   testRuntimeOnly libs.junit.launcher
-
-  jmhImplementation(libs.jmh.core)
-  jmhImplementation(libs.jmh.generator)
-  
-  // Optional AST parsers for JMH benchmarks
-  jmhImplementation(project(':buildscript-ast-groovy'))
-  jmhImplementation(project(':buildscript-ast-kotlin'))
 }
 
 kotlin {
@@ -76,12 +65,4 @@ java {
 
 test {
   useJUnitPlatform()
-}
-
-jmh {
-  jmhVersion = libs.versions.jmh.get()
-  resultFormat = "json"
-//  humanOutputFile = layout.buildDirectory.file("results/jmh/human.txt")
-  zip64 = true
-  timeUnit = 'ms'
 }
