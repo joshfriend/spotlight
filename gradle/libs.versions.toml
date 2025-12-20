@@ -15,6 +15,7 @@ moshix = "0.25.1"
 okio = "3.16.2"
 groovy = "4.0.24"
 kotlin-compiler = "2.3.0"
+kotlinx-coroutines = "1.10.1"
 
 [libraries]
 assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
@@ -29,6 +30,7 @@ junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 junit-platform = { module = "org.junit:junit-bom", version.ref = "junit" }
 kotlin-compiler-embeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin-compiler" }
 kotlin-analysis-api-standalone = { module = "org.jetbrains.kotlin:kotlin-analysis-api-standalone", version.ref = "kotlin-compiler" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 lint-gradle = { module = "androidx.lint:lint-gradle", version.ref = "lint-gradle" }
 moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
