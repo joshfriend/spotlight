@@ -7,6 +7,7 @@ plugins {
   id 'com.vanniktech.maven.publish' apply false
   id 'com.android.lint' apply false
   id 'org.jetbrains.intellij.platform' apply false
+  id 'me.champeau.jmh' apply false
 }
 
 group = 'com.fueledbycaffeine'
