@@ -36,7 +36,7 @@ import kotlin.io.path.outputStream
 @BenchmarkMode(Mode.AverageTime)
 @State(Scope.Benchmark)
 @Warmup(iterations = 10, time = 1, timeUnit = TimeUnit.MICROSECONDS)
-@Measurement(iterations = 100, time = 1, timeUnit = TimeUnit.MICROSECONDS)
+@Measurement(iterations = 30, time = 1, timeUnit = TimeUnit.MICROSECONDS)
 @Fork(1)
 @Suppress("unused")
 open class BreadthFirstSearchBenchmark {
@@ -105,8 +105,8 @@ open class BreadthFirstSearchBenchmark {
       Files.write(path, content)
     }
     
-    // Type-safe accessors are Kotlin-only, skip for Groovy
-    if (useTypeSafeAccessors && buildFileType == "kts") {
+    // Convert to type-safe accessors only when needed
+    if (useTypeSafeAccessors) {
       typeSafeAccessorMapping = convertToTypeSafeAccessors(root)
     }
   }
@@ -118,13 +118,13 @@ open class BreadthFirstSearchBenchmark {
 
   @Benchmark
   fun BreadthFirstSearch_flatten(blackhole: Blackhole) {
-    // Type-safe accessors are Kotlin-only
-    val rules = if (useTypeSafeAccessors && buildFileType == "kts") {
+    val rules = if (useTypeSafeAccessors) {
       setOf(TypeSafeProjectAccessorRule("", typeSafeAccessorMapping))
     } else {
       emptySet()
     }
     val result = BreadthFirstSearch.flatten(listOf(app), rules, config)
+    check(result.size == 301) { "expected 301 projects in result set but there were ${result.size}" }
     blackhole.consume(result)
   }
 
