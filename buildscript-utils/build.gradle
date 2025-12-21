@@ -1,6 +1,7 @@
 
 plugins {
   id 'org.jetbrains.kotlin.jvm'
+  id 'java-test-fixtures'
   id 'com.vanniktech.maven.publish'
   id 'com.autonomousapps.testkit'
   id 'org.jetbrains.kotlinx.binary-compatibility-validator'
@@ -58,10 +59,7 @@ dependencies {
 
   jmhImplementation(libs.jmh.core)
   jmhImplementation(libs.jmh.generator)
-  
-  // Optional AST parsers for JMH benchmarks
-  jmhImplementation(project(':buildscript-ast-groovy'))
-  jmhImplementation(project(':buildscript-ast-kotlin'))
+  jmhImplementation(testFixtures(project(':buildscript-utils')))
 }
 
 kotlin {

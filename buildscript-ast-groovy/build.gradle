@@ -3,6 +3,7 @@ plugins {
   id 'org.jetbrains.kotlin.jvm'
   id 'com.vanniktech.maven.publish'
   id 'org.jetbrains.kotlinx.binary-compatibility-validator'
+  id 'me.champeau.jmh'
 }
 
 group = 'com.fueledbycaffeine.spotlight'
@@ -51,6 +52,10 @@ dependencies {
   testImplementation platform(libs.junit.platform)
   testImplementation libs.junit.jupiter
   testRuntimeOnly libs.junit.launcher
+  
+  jmhImplementation(libs.jmh.core)
+  jmhImplementation(libs.jmh.generator)
+  jmhImplementation(testFixtures(project(':buildscript-utils')))
 }
 
 kotlin {
@@ -65,4 +70,11 @@ java {
 
 test {
   useJUnitPlatform()
+}
+
+jmh {
+  jmhVersion = libs.versions.jmh.get()
+  resultFormat = "json"
+  zip64 = true
+  timeUnit = 'ms'
 }

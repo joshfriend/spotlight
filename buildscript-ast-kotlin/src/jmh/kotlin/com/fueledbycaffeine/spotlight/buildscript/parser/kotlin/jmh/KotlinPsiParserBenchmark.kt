@@ -1,9 +1,8 @@
-package com.fueledbycaffeine.spotlight.buildscript.jmh
+package com.fueledbycaffeine.spotlight.buildscript.parser.kotlin.jmh
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.fixtures.ProjectFixture
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
@@ -19,49 +18,34 @@ import org.openjdk.jmh.annotations.TearDown
 import org.openjdk.jmh.annotations.Warmup
 import java.util.concurrent.TimeUnit
 
+/**
+ * Benchmark for the Kotlin PSI parser.
+ * This benchmarks only the Kotlin parser performance on Kotlin build scripts.
+ */
 @BenchmarkMode(Mode.AverageTime)
 @State(Scope.Benchmark)
 @Warmup(iterations = 10, time = 1, timeUnit = TimeUnit.MICROSECONDS)
 @Measurement(iterations = 30, time = 1, timeUnit = TimeUnit.MICROSECONDS)
 @Fork(1)
 @Suppress("unused")
-open class BreadthFirstSearchBenchmark {
-  // Note: With SPI, all parsers on the classpath are available.
-  // To benchmark REGEX-only mode, remove AST parser dependencies from jmhImplementation.
-  // To benchmark AST mode, include AST parser dependencies (already included).
-  
-  @Param("kts", "groovy")
-  lateinit var buildFileType: String
-  
+open class KotlinPsiParserBenchmark {
   @Param("false", "true")
   var useTypeSafeAccessors: Boolean = false
   
   private lateinit var fixture: ProjectFixture
   private var typeSafeAccessorMapping: Map<String, GradlePath> = emptyMap()
   private lateinit var app: GradlePath
-  private lateinit var buildscriptMatchRules: Set<ImplicitDependencyRule>
 
   @Setup
   fun setup() {
-    fixture = ProjectFixture(buildFileType)
+    fixture = ProjectFixture(buildFileType = "kts")
     fixture.setup()
-    
     app = fixture.app
-
-    buildscriptMatchRules = (0..10).map {
-      ImplicitDependencyRule.BuildscriptMatchRule(
-        "id(\"plugins.conventions.$it\")",
-        setOf(app),
-      )
-    }.toSet()
   }
 
-  @Setup(Level.Iteration)
-  fun setupIteration() {
-    // Note: Parser caches are managed internally by the AST parsers
-    // No need to clear them here as they're in separate modules
-    
-    // Restore original files before each iteration
+  @Setup(Level.Invocation)
+  fun setupInvocation() {
+    // Restore original files before each invocation
     fixture.restoreFiles()
     
     // Convert to type-safe accessors only when needed
@@ -76,12 +60,13 @@ open class BreadthFirstSearchBenchmark {
   }
 
   @Benchmark
-  fun BreadthFirstSearch_flatten() {
+  fun parseKotlinBuildScripts() {
     val rules = if (useTypeSafeAccessors) {
       setOf(TypeSafeProjectAccessorRule("", typeSafeAccessorMapping))
     } else {
       emptySet()
     }
+    
     val result = BreadthFirstSearch.flatten(listOf(app), rules)
     check(result.size == fixture.originalProjectFiles.size) { 
       "expected ${fixture.originalProjectFiles.size} projects in result set but there were ${result.size}"
