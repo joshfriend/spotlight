@@ -196,6 +196,7 @@ public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDepe
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getIncludedProjects ()Ljava/util/Set;
 	public final fun getPattern ()Ljava/lang/String;
+	public final fun getRegex ()Lkotlin/text/Regex;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -209,6 +210,7 @@ public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDepe
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getIncludedProjects ()Ljava/util/Set;
 	public final fun getPattern ()Ljava/lang/String;
+	public final fun getRegex ()Lkotlin/text/Regex;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -266,15 +268,18 @@ public final class com/fueledbycaffeine/spotlight/buildscript/parser/BuildScript
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 }
 
-public final class com/fueledbycaffeine/spotlight/buildscript/parser/GroovyAstParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser {
-	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/parser/GroovyAstParser;
-	public final fun clearCache ()V
-	public fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
+public abstract interface class com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParserProvider {
+	public abstract fun getParser (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser;
+	public fun getPriority ()I
 }
 
-public final class com/fueledbycaffeine/spotlight/buildscript/parser/KotlinPsiParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser {
-	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/parser/KotlinPsiParser;
-	public fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParserProvider$DefaultImpls {
+	public static fun getPriority (Lcom/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParserProvider;)I
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/ParserUtilsKt {
+	public static final fun computeImplicitParentProjects (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Ljava/util/Set;
+	public static final fun removeTypeSafeAccessorJunk (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/parser/RegexBuildScriptParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser {

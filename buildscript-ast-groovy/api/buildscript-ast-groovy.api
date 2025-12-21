@@ -1,1 +1,11 @@
-// Signature format: 4.0
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/groovy/GroovyAstParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser {
+	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/parser/groovy/GroovyAstParser;
+	public fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/groovy/GroovyAstParserProvider : com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParserProvider {
+	public fun <init> ()V
+	public fun getParser (Ljava/nio/file/Path;)Lcom/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser;
+	public fun getPriority ()I
+}
+

@@ -2,9 +2,7 @@ package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ParsingConfiguration
-import com.fueledbycaffeine.spotlight.buildscript.parser.AstParserRegistry
-import com.fueledbycaffeine.spotlight.buildscript.parser.BuildScriptParser
-import com.fueledbycaffeine.spotlight.buildscript.parser.RegexBuildScriptParser
+import com.fueledbycaffeine.spotlight.buildscript.parser.ParserRegistry
 import kotlin.io.path.name
 
 public data class BuildFile(
@@ -24,21 +22,9 @@ internal fun parseBuildFile(
   rules: Set<DependencyRule>,
   config: ParsingConfiguration = ParsingConfiguration.DEFAULT,
 ): Set<GradlePath> {
-  return if (config == ParsingConfiguration.AST) {
-    // Try to find an AST/PSI parser via ServiceLoader
-    val parser = AstParserRegistry.findParser(project.buildFilePath.name)
-    
-    if (parser != null) {
-      try {
-        return parser.parse(project, rules)
-      } catch (_: BuildScriptParser.ParserException) {
-        // Fall through to regex parsing if AST/PSI parsing fails
-      }
-    }
-    
-    // Fall back to regex parsing if no AST parser available or it failed
-    RegexBuildScriptParser.parse(project, rules)
-  } else {
-    RegexBuildScriptParser.parse(project, rules)
-  }
+  // Find a parser via ServiceLoader - will return highest priority parser that supports the file type
+  val parser = ParserRegistry.findParser(project.buildFilePath)
+    ?: error("No parser available for ${project.buildFilePath}")
+  
+  return parser.parse(project, rules)
 }

@@ -18,10 +18,6 @@ import org.codehaus.groovy.ast.expr.MethodCallExpression
 import org.codehaus.groovy.ast.expr.PropertyExpression
 import org.codehaus.groovy.ast.expr.VariableExpression
 import org.codehaus.groovy.control.CompilePhase
-import org.codehaus.groovy.control.CompilerConfiguration
-import java.nio.file.Path
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.io.path.getLastModifiedTime
 import kotlin.io.path.name
 import kotlin.io.path.readText
 
@@ -30,23 +26,6 @@ import kotlin.io.path.readText
  * Provides more accurate parsing than regex by understanding the actual structure of the code.
  */
 public object GroovyAstParser : BuildScriptParser {
-  // Cache parsed AST nodes by file path and modification time
-  private data class CacheKey(val path: Path, val lastModified: Long)
-  private val astCache = ConcurrentHashMap<CacheKey, List<ASTNode>>()
-  
-  // Minimal compiler configuration - skip all unnecessary work
-  private val compilerConfig = CompilerConfiguration().apply {
-    optimizationOptions = mapOf(
-      "indy" to false,
-      "int" to false,
-      "asmResolving" to false
-    )
-    debug = false
-    verbose = false
-    warningLevel = 0
-    tolerance = 999  // Continue on errors
-    targetDirectory = null
-  }
 
   override fun parse(
     project: GradlePath,
@@ -59,13 +38,9 @@ public object GroovyAstParser : BuildScriptParser {
     val dependencies = mutableSetOf<GradlePath>()
     
     try {
-      // Check cache first
-      val cacheKey = CacheKey(project.buildFilePath, project.buildFilePath.getLastModifiedTime().toMillis())
-      val nodes = astCache.getOrPut(cacheKey) {
-        val fileContent = project.buildFilePath.readText()
-        // Use AstBuilder with CONVERSION phase - fastest reliable AST generation
-        AstBuilder().buildFromString(CompilePhase.CONVERSION, true, fileContent)
-      }
+      val fileContent = project.buildFilePath.readText()
+      // Use AstBuilder with CONVERSION phase - fastest reliable AST generation
+      val nodes = AstBuilder().buildFromString(CompilePhase.CONVERSION, true, fileContent)
       
       // Pre-filter rules to avoid repeated instanceof checks in visitor
       val typeSafeRule = rules.find { it is TypeSafeProjectAccessorRule } as? TypeSafeProjectAccessorRule
@@ -77,7 +52,6 @@ public object GroovyAstParser : BuildScriptParser {
         nodes.forEach { node -> node.visit(visitor) }
       }
     } catch (e: Exception) {
-      // If AST parsing fails, return empty and let the fallback handle it
       throw BuildScriptParser.ParserException("Could not parse buildscript ${project.buildFilePath}", e)
     }
     
@@ -172,9 +146,11 @@ public object GroovyAstParser : BuildScriptParser {
     val accessor = buildPropertyAccessorChain(expression)
     if (accessor != null) {
       val cleanAccessor = accessor.removeTypeSafeAccessorJunk(typeSafeRule.rootProjectAccessor)
-      val project = typeSafeRule.typeSafeAccessorMap[cleanAccessor]
-        ?: throw NoSuchElementException("Unknown type-safe project accessor: $cleanAccessor")
-      dependencies.add(project)
+      // Only add if it exists - this handles both complete chains and ignores intermediate partial chains
+      // For example, when parsing "projects.domain.forecastLogin", we visit both:
+      // - "projects.domain.forecastLogin" (complete, exists in map) -> add it
+      // - "projects.domain" (intermediate, doesn't exist) -> ignore it
+      typeSafeRule.typeSafeAccessorMap[cleanAccessor]?.let { dependencies.add(it) }
     }
   }
   
@@ -199,7 +175,6 @@ public object GroovyAstParser : BuildScriptParser {
       stack.addFirst(propName)
       current = current.objectExpression
       depth++
-      if (depth > 20) return null  // Avoid excessive nesting
     }
     
     // Check if it starts with "projects"
@@ -212,12 +187,5 @@ public object GroovyAstParser : BuildScriptParser {
     }
     
     return null
-  }
-  
-  /**
-   * Clears the AST cache. Useful for benchmarking scenarios where files are modified.
-   */
-  public fun clearCache() {
-    astCache.clear()
   }
 }

@@ -93,6 +93,30 @@ Implicit rules apply to all Gradle invocations (sync and task execution).
 
 If you are using the `buildscript-utils` package by itself, you can read this rules list using the `SpotlightRulesList` class.
 
+### AST Parsing (Optional)
+By default, Spotlight uses fast regex-based parsing to extract dependencies from your build files. For more accurate parsing, you can optionally include AST parsers:
+
+**For Groovy build scripts (`build.gradle`):**
+```kotlin
+dependencies {
+    implementation("com.fueledbycaffeine.spotlight:buildscript-ast-groovy:VERSION")
+}
+```
+
+**For Kotlin build scripts (`build.gradle.kts`):**
+```kotlin
+dependencies {
+    implementation("com.fueledbycaffeine.spotlight:buildscript-ast-kotlin:VERSION")
+}
+```
+
+These parsers use the Groovy AST compiler and Kotlin PSI respectively for more accurate parsing. They are discovered automatically via Java's ServiceLoader mechanism when present on the classpath. This means you can avoid pulling in the Groovy or Kotlin compilers as transitive dependencies unless you specifically need the more accurate parsing.
+
+All parsers (regex, Groovy AST, Kotlin PSI) are registered via the same SPI mechanism and are automatically selected based on priority. AST parsers have priority 100, while the regex parser has priority 0, ensuring AST parsers are used when available.
+
+> [!NOTE]
+> AST parsing is only used when `ParsingConfiguration.AST` is specified. When no AST parser is available, the regex parser is used as a fallback.
+
 ### Type-safe Project Accessors
 Spotlight automatically parses [type-safe project accessors][typesafe-project-accessors] in your buildscripts and maps them to the corresponding project paths. This works with any project naming convention.
 

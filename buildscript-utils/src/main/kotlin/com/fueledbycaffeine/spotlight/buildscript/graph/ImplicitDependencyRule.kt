@@ -15,7 +15,7 @@ public sealed interface ImplicitDependencyRule : DependencyRule {
     val pattern: String,
     override val includedProjects: Set<GradlePath>,
   ) : ImplicitDependencyRule {
-    internal val regex = pattern.toRegex()
+    public val regex: Regex = pattern.toRegex()
   }
 
   @TypeLabel("project-path-match-rule")
@@ -23,7 +23,7 @@ public sealed interface ImplicitDependencyRule : DependencyRule {
     val pattern: String,
     override val includedProjects: Set<GradlePath>,
   ) : ImplicitDependencyRule {
-    internal val regex = pattern.toRegex()
+    public val regex: Regex = pattern.toRegex()
   }
 }
 
