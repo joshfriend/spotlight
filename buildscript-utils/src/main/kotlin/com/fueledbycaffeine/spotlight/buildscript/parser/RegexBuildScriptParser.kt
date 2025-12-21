@@ -1,11 +1,8 @@
 package com.fueledbycaffeine.spotlight.buildscript.parser
 
-import com.fueledbycaffeine.spotlight.buildscript.GRADLE_SCRIPT_KOTLIN
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
-import kotlin.io.path.name
 import kotlin.io.path.readText
 
 // Regex patterns for parsing
@@ -30,7 +27,6 @@ public object RegexBuildScriptParser : BuildScriptParser {
 
     return computeDirectDependencies(project, buildscriptContents) +
       computeTypeSafeProjectDependencies(project, buildscriptContents, rules) +
-      computeImplicitDependencies(project, buildscriptContents, rules) +
       computeImplicitParentProjects(project)
   }
 
@@ -65,39 +61,5 @@ public object RegexBuildScriptParser : BuildScriptParser {
         )
       }
       .toSet()
-  }
-
-  private fun computeImplicitDependencies(
-    project: GradlePath,
-    buildscriptContents: List<String>,
-    rules: Set<DependencyRule>,
-  ): Set<GradlePath> {
-    val implicitDependencies = mutableSetOf<GradlePath>()
-
-    val projectPathRules = rules.filterIsInstance<ImplicitDependencyRule.ProjectPathMatchRule>()
-    projectPathRules
-      .filter { it.regex.containsMatchIn(project.path) }
-      .flatMapTo(implicitDependencies) { it.includedProjects }
-
-    val remainingRules = rules.filterIsInstance<ImplicitDependencyRule.BuildscriptMatchRule>().toMutableSet()
-    if (remainingRules.isEmpty()) {
-      return implicitDependencies
-    }
-
-    buildscriptContents.forEach { line ->
-      if (remainingRules.isEmpty()) {
-        return@forEach
-      }
-      val matchedRules = mutableSetOf<ImplicitDependencyRule.BuildscriptMatchRule>()
-      remainingRules.forEach { rule ->
-        if (rule.regex.containsMatchIn(line)) {
-          implicitDependencies.addAll(rule.includedProjects)
-          matchedRules.add(rule)
-        }
-      }
-      remainingRules.removeAll(matchedRules)
-    }
-
-    return implicitDependencies
   }
 }
