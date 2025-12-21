@@ -1,5 +1,10 @@
 package com.fueledbycaffeine.spotlight.buildscript.graph
 
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.ForkJoinTask
+
 public object BreadthFirstSearch {
   // Initialize with generously sized capacities to avoid resizing as we grow
   private const val INITIAL_CAPACITY = 4096
@@ -22,19 +27,38 @@ public object BreadthFirstSearch {
     nodes: Iterable<T>,
     rules: Set<DependencyRule> = emptySet(),
   ): Map<T, Set<T>> {
-    // Simple collections - no need for thread-safe since we're running synchronously
-    val seen = mutableSetOf<T>()
-    val dependenciesMap = mutableMapOf<T, Set<T>>()
+    // Thread-safe collections for concurrent execution
+    val seen = Collections.newSetFromMap(ConcurrentHashMap<T, Boolean>(INITIAL_CAPACITY))
+    val dependenciesMap = ConcurrentHashMap<T, Set<T>>(INITIAL_CAPACITY)
     val queue = ArrayDeque<T>(INITIAL_CAPACITY)
 
     queue.addAll(nodes)
     seen += nodes
 
     while (queue.isNotEmpty()) {
-      val node = queue.removeFirst()
-      val successors = node.findSuccessors(rules)
-      dependenciesMap[node] = successors
-      successors.filter(seen::add).forEach(queue::addLast)
+      // Collect current level
+      val currentLevel = mutableListOf<T>()
+      while (queue.isNotEmpty()) {
+        currentLevel.add(queue.removeFirst())
+      }
+
+      if (currentLevel.isEmpty()) break
+
+      // Process all nodes at this level in parallel using ForkJoinTask
+      val tasks = currentLevel.map { node ->
+        val task = ForkJoinTask.adapt<Pair<T, Set<T>>> {
+          node to node.findSuccessors(rules)
+        }
+        task.fork() // Submit for parallel execution
+        task
+      }
+
+      // Collect results and update queue for next level
+      for (task in tasks) {
+        val (node, successors) = task.join() // Wait for completion
+        dependenciesMap[node] = successors
+        successors.filter(seen::add).forEach(queue::addLast)
+      }
     }
 
     return dependenciesMap
