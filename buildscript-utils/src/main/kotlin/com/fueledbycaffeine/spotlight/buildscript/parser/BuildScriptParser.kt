@@ -18,6 +18,4 @@ public interface BuildScriptParser {
     project: GradlePath,
     rules: Set<DependencyRule>,
   ): Set<GradlePath>
-
-  public class ParserException(message: String, e: Throwable) : Exception(message, e)
 }

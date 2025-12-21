@@ -2,7 +2,6 @@ package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.GraphNode
-import com.fueledbycaffeine.spotlight.buildscript.graph.ParsingConfiguration
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.Serializable
@@ -104,9 +103,8 @@ public data class GradlePath(
 
   public override fun findSuccessors(
     rules: Set<DependencyRule>,
-    config: ParsingConfiguration,
   ): Set<GradlePath> {
-    return BuildFile(this, config).parseDependencies(rules)
+    return BuildFile(this).parseDependencies(rules)
   }
 }
 

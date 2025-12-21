@@ -2,68 +2,96 @@ package com.fueledbycaffeine.spotlight.buildscript.parser
 
 import com.fueledbycaffeine.spotlight.buildscript.GRADLE_SCRIPT
 import com.fueledbycaffeine.spotlight.buildscript.GRADLE_SCRIPT_KOTLIN
+import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import java.util.ServiceLoader
+import kotlin.io.path.createDirectories
+import kotlin.io.path.createFile
 
 /**
- * Tests that BuildScriptParserProvider implementations are correctly loaded via SPI.
+ * Tests that BuildscriptParserProvider implementations are correctly loaded via SPI.
  */
-class BuildScriptParserProviderSpiTest {
-  
+class BuildscriptParserProviderSpiTest {
+
+  @TempDir
+  lateinit var tempDir: Path
+
   @Test
-  fun `ServiceLoader discovers RegexBuildScriptParserProvider`() {
-    val providers = ServiceLoader.load(BuildScriptParserProvider::class.java).toList()
+  fun `ServiceLoader discovers RegexBuildscriptParserProvider`() {
+    val providers = ServiceLoader.load(BuildscriptParserProvider::class.java).toList()
     
     assertTrue(providers.isNotEmpty(), "Expected at least one parser provider to be loaded via SPI")
     
-    val regexProvider = providers.find { it.javaClass.simpleName == "RegexBuildScriptParserProvider" }
-    assertNotNull(regexProvider, "RegexBuildScriptParserProvider should be loaded via SPI")
+    val regexProvider = providers.find { it.javaClass.simpleName == "RegexBuildscriptParserProvider" }
+    assertNotNull(regexProvider, "RegexBuildscriptParserProvider should be loaded via SPI")
   }
   
   @Test
-  fun `RegexBuildScriptParserProvider has lowest priority`() {
-    val providers = ServiceLoader.load(BuildScriptParserProvider::class.java).toList()
-    val regexProvider = providers.find { it.javaClass.simpleName == "RegexBuildScriptParserProvider" }
-    
+  fun `RegexBuildscriptParserProvider has lowest priority`() {
+    val providers = ServiceLoader.load(BuildscriptParserProvider::class.java).toList()
+    val regexProvider = providers.find { it.javaClass.simpleName == "RegexBuildscriptParserProvider" }
+
     assertNotNull(regexProvider)
-    assertEquals(0, regexProvider!!.getPriority(), "RegexBuildScriptParserProvider should have priority 0")
+    assertEquals(0, regexProvider!!.priority, "RegexBuildscriptParserProvider should have priority 0")
   }
   
   @Test
-  fun `RegexBuildScriptParserProvider returns RegexBuildScriptParser for Groovy files`() {
-    val providers = ServiceLoader.load(BuildScriptParserProvider::class.java).toList()
-    val regexProvider = providers.find { it.javaClass.simpleName == "RegexBuildScriptParserProvider" }
-    
+  fun `RegexBuildscriptParserProvider returns RegexBuildScriptParser for Groovy files`() {
+    val providers = ServiceLoader.load(BuildscriptParserProvider::class.java).toList()
+    val regexProvider = providers.find { it.javaClass.simpleName == "RegexBuildscriptParserProvider" }
+
     assertNotNull(regexProvider)
-    val parser = regexProvider!!.getParser(Path.of(GRADLE_SCRIPT))
+
+    // Create a temp project with a Groovy build file
+    val projectDir = tempDir.resolve("test-project").createDirectories()
+    projectDir.resolve(GRADLE_SCRIPT).createFile()
+    val project = GradlePath(tempDir, ":test-project")
+
+    val parser = regexProvider!!.getParser(project)
     assertEquals(RegexBuildScriptParser, parser, "Should return RegexBuildScriptParser for .gradle files")
   }
   
   @Test
-  fun `RegexBuildScriptParserProvider returns RegexBuildScriptParser for Kotlin files`() {
-    val providers = ServiceLoader.load(BuildScriptParserProvider::class.java).toList()
-    val regexProvider = providers.find { it.javaClass.simpleName == "RegexBuildScriptParserProvider" }
-    
+  fun `RegexBuildscriptParserProvider returns RegexBuildScriptParser for Kotlin files`() {
+    val providers = ServiceLoader.load(BuildscriptParserProvider::class.java).toList()
+    val regexProvider = providers.find { it.javaClass.simpleName == "RegexBuildscriptParserProvider" }
+
     assertNotNull(regexProvider)
-    val parser = regexProvider!!.getParser(Path.of(GRADLE_SCRIPT_KOTLIN))
+
+    // Create a temp project with a Kotlin build file
+    val projectDir = tempDir.resolve("test-project").createDirectories()
+    projectDir.resolve(GRADLE_SCRIPT_KOTLIN).createFile()
+    val project = GradlePath(tempDir, ":test-project")
+
+    val parser = regexProvider!!.getParser(project)
     assertEquals(RegexBuildScriptParser, parser, "Should return RegexBuildScriptParser for .gradle.kts files")
   }
   
   @Test
   fun `ParserRegistry uses highest priority provider`() {
-    val providers = ServiceLoader.load(BuildScriptParserProvider::class.java).toList()
-    val sortedByPriority = providers.sortedByDescending { it.getPriority() }
+    val providers = ServiceLoader.load(BuildscriptParserProvider::class.java).toList()
+    val sortedByPriority = providers.sortedByDescending { it.priority }
     
     assertTrue(sortedByPriority.isNotEmpty(), "Expected at least one provider")
     
     // If only regex provider is present, it should be selected
-    // If AST providers are on classpath, they should have higher priority (100 vs 0)
+    // If AST parsers are on classpath, they should have higher priority (100 vs 0)
     val highestPriorityProvider = sortedByPriority.first()
     assertTrue(
-      highestPriorityProvider.getPriority() >= 0,
+      highestPriorityProvider.priority >= 0,
       "Highest priority provider should have non-negative priority"
     )
+  }
+  
+  @Test
+  fun `RegexBuildscriptParserProvider defaults to REPLACE mode`() {
+    val providers = ServiceLoader.load(BuildscriptParserProvider::class.java).toList()
+    val regexProvider = providers.find { it.javaClass.simpleName == "RegexBuildscriptParserProvider" }
+
+    assertNotNull(regexProvider)
+    assertEquals(ParserMode.REPLACE, regexProvider!!.mode, "Default mode should be REPLACE")
   }
 }

@@ -7,9 +7,9 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.ParsingConfiguration
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
@@ -31,22 +31,18 @@ class BuildFileTest {
 
   companion object {
     @JvmStatic
-    fun parsingModes(): Stream<Arguments> = Stream.of(
-      Arguments.of(ParsingConfiguration.REGEX, ".gradle"),
-      Arguments.of(ParsingConfiguration.REGEX, ".gradle.kts"),
-      Arguments.of(ParsingConfiguration.AST, ".gradle"),
-      Arguments.of(ParsingConfiguration.AST, ".gradle.kts"),
+    fun buildFileNames(): Stream<Arguments> = Stream.of(
+      Arguments.of(GRADLE_SCRIPT),
+      Arguments.of(GRADLE_SCRIPT_KOTLIN),
     )
   }
 
-  @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `reads dependencies`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
+  @Test
+  fun `reads dependencies in groovy with flexible syntax`() {
+    val project = buildRoot.createProject(":foo")
     
-    val content = if (extension == ".gradle") {
-      // Groovy syntax - supports both with and without outer parentheses, and single or double quotes
-      """
+    // Groovy syntax - supports both with and without outer parentheses, and single or double quotes
+    project.buildFilePath.writeText("""
       dependencies {
         implementation  project(":multiple-spaces-double-quotes")
         implementation  project(':multiple-spaces-single-quotes')
@@ -66,15 +62,32 @@ class BuildFileTest {
         // implementation(project(':commented'))
       }
       """.trimIndent()
-    } else {
-      // Kotlin syntax - requires outer parentheses, only supports double quotes
-      """
+    )
+
+    val buildFile = BuildFile(project)
+
+    assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(
+      GradlePath(buildRoot, ":multiple-spaces-double-quotes"),
+      GradlePath(buildRoot, ":multiple-spaces-single-quotes"),
+      GradlePath(buildRoot, ":one-space-double-quotes"),
+      GradlePath(buildRoot, ":one-space-single-quotes"),
+      GradlePath(buildRoot, ":parentheses-double-quotes"),
+      GradlePath(buildRoot, ":parentheses-single-quotes"),
+      GradlePath(buildRoot, ":other-configuration"),
+      GradlePath(buildRoot, ":bad-indentation"),
+    )
+  }
+
+  @Test
+  fun `reads dependencies in kotlin`() {
+    val project = buildRoot.createProject(":foo", GRADLE_SCRIPT_KOTLIN)
+    
+    // Kotlin syntax - requires outer parentheses, only supports double quotes
+    project.buildFilePath.writeText("""
       dependencies {
-        implementation(  project(":multiple-spaces"))
+        implementation ( project(":multiple-spaces"))
 
-        implementation(project(":one-space"))
-
-        implementation(project(":parentheses"))
+        implementation( project(":one-space"))
 
         api(project(":other-configuration")) {
           because("reason")
@@ -85,57 +98,28 @@ class BuildFileTest {
         // implementation(project(":commented"))
       }
       """.trimIndent()
-    }
-    project.buildFilePath.writeText(content)
+    )
 
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
 
-    val expected = if (extension == ".gradle") {
-      setOf(
-        GradlePath(buildRoot, ":multiple-spaces-double-quotes"),
-        GradlePath(buildRoot, ":multiple-spaces-single-quotes"),
-        GradlePath(buildRoot, ":one-space-double-quotes"),
-        GradlePath(buildRoot, ":one-space-single-quotes"),
-        GradlePath(buildRoot, ":parentheses-double-quotes"),
-        GradlePath(buildRoot, ":parentheses-single-quotes"),
-        GradlePath(buildRoot, ":other-configuration"),
-        GradlePath(buildRoot, ":bad-indentation"),
-      )
-    } else {
-      setOf(
-        GradlePath(buildRoot, ":multiple-spaces"),
-        GradlePath(buildRoot, ":one-space"),
-        GradlePath(buildRoot, ":parentheses"),
-        GradlePath(buildRoot, ":other-configuration"),
-        GradlePath(buildRoot, ":bad-indentation"),
-      )
-    }
-    
-    assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(*expected.toTypedArray())
+    assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(
+      GradlePath(buildRoot, ":multiple-spaces"),
+      GradlePath(buildRoot, ":one-space"),
+      GradlePath(buildRoot, ":other-configuration"),
+      GradlePath(buildRoot, ":bad-indentation"),
+    )
   }
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `reads known type-safe project accessor dependencies`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
+  @MethodSource("buildFileNames")
+  fun `reads known type-safe project accessor dependencies`(buildFileName: String) {
+    val project = buildRoot.createProject(":foo", buildFileName)
     // A project path which does not conform to the default expected naming of lowercase kebab
-    val typeSafeProject1 = buildRoot.createProject(":type-safe:a-B_c_d_E", extension)
-    val typeSafeProject2 = buildRoot.createProject(":type-safe:project-2", extension)
-    val typeSafeProjectC = buildRoot.createProject(":type-safe:project-c", extension)
+    val typeSafeProject1 = buildRoot.createProject(":type-safe:a-B_c_d_E", buildFileName)
+    val typeSafeProject2 = buildRoot.createProject(":type-safe:project-2", buildFileName)
+    val typeSafeProjectC = buildRoot.createProject(":type-safe:project-c", buildFileName)
     
-    val content = if (extension == ".gradle") {
-      """
-      dependencies {
-        implementation projects.typeSafe.aBCDE
-        implementation projects.typeSafe.project2 // reason
-        implementation(projects.typeSafe.projectC) {
-          exclude group: 'com.example'
-        }
-        // implementation projects.typeSafe.projectD
-      }
-      """.trimIndent()
-    } else {
-      """
+    project.buildFilePath.writeText("""
       dependencies {
         implementation(projects.typeSafe.aBCDE)
         implementation(projects.typeSafe.project2) // reason
@@ -144,11 +128,9 @@ class BuildFileTest {
         }
         // implementation(projects.typeSafe.projectD)
       }
-      """.trimIndent()
-    }
-    project.buildFilePath.writeText(content)
+      """.trimIndent())
     
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
     val accessorMap = mapOf(
       "typeSafe.aBCDE" to typeSafeProject1,
       "typeSafe.project2" to typeSafeProject2,
@@ -159,30 +141,44 @@ class BuildFileTest {
       .containsExactlyInAnyOrder(typeSafeProject1, typeSafeProject2, typeSafeProjectC)
   }
 
+  @Test
+  fun `reads type-safe project accessor dependencies without parentheses in groovy`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject1 = buildRoot.createProject(":type-safe:a-B_c_d_E")
+    val typeSafeProject2 = buildRoot.createProject(":type-safe:project-2")
+    
+    project.buildFilePath.writeText("""
+      dependencies {
+        implementation projects.typeSafe.aBCDE
+        implementation projects.typeSafe.project2 // reason
+      }
+      """.trimIndent())
+    
+    val buildFile = BuildFile(project)
+    val accessorMap = mapOf(
+      "typeSafe.aBCDE" to typeSafeProject1,
+      "typeSafe.project2" to typeSafeProject2,
+    )
+    val rule = TypeSafeProjectAccessorRule("spotlight", accessorMap)
+    assertThat(buildFile.parseDependencies(setOf(rule)))
+      .containsExactlyInAnyOrder(typeSafeProject1, typeSafeProject2)
+  }
+
 
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `reads type-safe project accessor dependencies that use explicit root project`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
-    val typeSafeProject = buildRoot.createProject(":type-safe:project", extension)
+  @MethodSource("buildFileNames")
+  fun `reads type-safe project accessor dependencies that use explicit root project`(buildFileName: String) {
+    val project = buildRoot.createProject(":foo", buildFileName)
+    val typeSafeProject = buildRoot.createProject(":type-safe:project", buildFileName)
     
-    val content = if (extension == ".gradle") {
-      """
-      dependencies {
-        implementation projects.spotlight.typeSafe.project
-      }
-      """.trimIndent()
-    } else {
-      """
+    project.buildFilePath.writeText("""
       dependencies {
         implementation(projects.spotlight.typeSafe.project)
       }
-      """.trimIndent()
-    }
-    project.buildFilePath.writeText(content)
+      """.trimIndent())
     
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
     val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
     assertThat(buildFile.parseDependencies(setOf(rule)))
       .containsExactlyInAnyOrder(typeSafeProject)
@@ -191,54 +187,36 @@ class BuildFileTest {
 
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `reads type-safe project accessor dependencies that have trailing text`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
-    val typeSafeProject = buildRoot.createProject(":type-safe:project", extension)
+  @MethodSource("buildFileNames")
+  fun `reads type-safe project accessor dependencies that have trailing text`(buildFileName: String) {
+    val project = buildRoot.createProject(":foo", buildFileName)
+    val typeSafeProject = buildRoot.createProject(":type-safe:project", buildFileName)
     
-    val content = if (extension == ".gradle") {
-      """
-      dependencies {
-        implementation projects.typeSafe.project // because
-      }
-      """.trimIndent()
-    } else {
-      """
+    project.buildFilePath.writeText("""
       dependencies {
         implementation(projects.typeSafe.project) // because
       }
-      """.trimIndent()
-    }
-    project.buildFilePath.writeText(content)
+      """.trimIndent())
     
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
     val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
     assertThat(buildFile.parseDependencies(setOf(rule)))
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `throws error when type-safe accessor is unknown`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
-    val typeSafeProjectA = buildRoot.createProject(":type-safe:project-a", extension)
+  @MethodSource("buildFileNames")
+  fun `throws error when type-safe accessor is unknown`(buildFileName: String) {
+    val project = buildRoot.createProject(":foo", buildFileName)
+    val typeSafeProjectA = buildRoot.createProject(":type-safe:project-a", buildFileName)
     
-    val content = if (extension == ".gradle") {
-      """
-      dependencies {
-        implementation projects.typeSafe.project
-      }
-      """.trimIndent()
-    } else {
-      """
+    project.buildFilePath.writeText("""
       dependencies {
         implementation(projects.typeSafe.project)
       }
-      """.trimIndent()
-    }
-    project.buildFilePath.writeText(content)
+      """.trimIndent())
     
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
     val accessorMap = mapOf(
       "typeSafe.projectA" to typeSafeProjectA,
     )
@@ -251,37 +229,28 @@ class BuildFileTest {
 
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `ignores type-safe accessor if inference disabled`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
+  @MethodSource("buildFileNames")
+  fun `ignores type-safe accessor if inference disabled`(buildFileName: String) {
+    val project = buildRoot.createProject(":foo", buildFileName)
     
-    val content = if (extension == ".gradle") {
-      """
-      dependencies {
-        implementation projects.typeSafe.project
-      }
-      """.trimIndent()
-    } else {
-      """
+    project.buildFilePath.writeText("""
       dependencies {
         implementation(projects.typeSafe.project)
       }
-      """.trimIndent()
-    }
-    project.buildFilePath.writeText(content)
+      """.trimIndent())
     
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
     val dependencies = buildFile.parseDependencies(setOf())
     assertThat(dependencies).isEmpty()
   }
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `parses implicit dependencies based on project path`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":features:something", extension)
+  @MethodSource("buildFileNames")
+  fun `parses implicit dependencies based on project path`(buildFileName: String) {
+    val project = buildRoot.createProject(":features:something", buildFileName)
     // Create the projects that will be dependencies
-    buildRoot.createProject(":foo", extension)
-    buildRoot.createProject(":bar", extension)
+    buildRoot.createProject(":foo", buildFileName)
+    buildRoot.createProject(":bar", buildFileName)
     
     // Use consistent syntax that works in both Groovy and Kotlin
     project.buildFilePath.writeText(
@@ -292,7 +261,7 @@ class BuildFileTest {
       """.trimIndent()
     )
 
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
 
     val rules = setOf<ImplicitDependencyRule>(
       ProjectPathMatchRule(":features:.*", setOf(GradlePath(buildRoot, ":bar"))),
@@ -305,25 +274,14 @@ class BuildFileTest {
   }
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `parses implicit dependencies based on buildscript contents`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":features:something", extension)
+  @MethodSource("buildFileNames")
+  fun `parses implicit dependencies based on buildscript contents`(buildFileName: String) {
+    val project = buildRoot.createProject(":features:something", buildFileName)
     // Create the projects that will be dependencies
-    buildRoot.createProject(":foo", extension)
-    buildRoot.createProject(":bar", extension)
+    buildRoot.createProject(":foo", buildFileName)
+    buildRoot.createProject(":bar", buildFileName)
     
-    val content = if (extension == ".gradle") {
-      """
-      plugins {
-        id 'com.example.feature'
-      }
-
-      dependencies {
-        debugImplementation project(":foo")
-      }
-      """.trimIndent()
-    } else {
-      """
+    project.buildFilePath.writeText("""
       plugins {
         id("com.example.feature")
       }
@@ -331,11 +289,37 @@ class BuildFileTest {
       dependencies {
         debugImplementation(project(":foo"))
       }
-      """.trimIndent()
-    }
-    project.buildFilePath.writeText(content)
+      """.trimIndent())
 
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
+
+    val rules = setOf<DependencyRule>(
+      BuildscriptMatchRule("id.*com\\.example\\.feature", setOf(GradlePath(buildRoot, ":bar"))),
+    )
+    assertThat(buildFile.parseDependencies(rules))
+      .containsExactlyInAnyOrder(
+        GradlePath(buildRoot, ":foo"),
+        GradlePath(buildRoot, ":bar"),
+      )
+  }
+
+  @Test
+  fun `parses implicit dependencies based on buildscript contents with groovy syntax`() {
+    val project = buildRoot.createProject(":features:something")
+    buildRoot.createProject(":foo")
+    buildRoot.createProject(":bar")
+    
+    project.buildFilePath.writeText("""
+      plugins {
+        id 'com.example.feature'
+      }
+
+      dependencies {
+        debugImplementation project(":foo")
+      }
+      """.trimIndent())
+
+    val buildFile = BuildFile(project)
 
     val rules = setOf<DependencyRule>(
       BuildscriptMatchRule("id.*com\\.example\\.feature", setOf(GradlePath(buildRoot, ":bar"))),
@@ -348,9 +332,9 @@ class BuildFileTest {
   }
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `ignores duplicates`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
+  @MethodSource("buildFileNames")
+  fun `ignores duplicates`(buildFileName: String) {
+    val project = buildRoot.createProject(":foo", buildFileName)
     project.buildFilePath.writeText(
       """
       dependencies {
@@ -360,7 +344,7 @@ class BuildFileTest {
       """.trimIndent()
     )
 
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
 
     assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(
       GradlePath(buildRoot, ":foo")
@@ -368,23 +352,12 @@ class BuildFileTest {
   }
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `ignores type-safe project accessor's trailing dependencyProject API`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
-    val typeSafeProject = buildRoot.createProject(":type-safe:project", extension)
+  @MethodSource("buildFileNames")
+  fun `ignores type-safe project accessor's trailing dependencyProject API`(buildFileName: String) {
+    val project = buildRoot.createProject(":foo", buildFileName)
+    val typeSafeProject = buildRoot.createProject(":type-safe:project", buildFileName)
     
-    val content = if (extension == ".gradle") {
-      """
-      sqldelight {
-        databases {
-          create("ExampleDB") {
-            dependency projects.typeSafe.project.dependencyProject
-          }
-        }
-      }
-      """.trimIndent()
-    } else {
-      """
+    project.buildFilePath.writeText("""
       sqldelight {
         databases {
           create("ExampleDB") {
@@ -392,62 +365,55 @@ class BuildFileTest {
           }
         }
       }
-      """.trimIndent()
-    }
-    project.buildFilePath.writeText(content)
+      """.trimIndent())
     
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
     val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
     assertThat(buildFile.parseDependencies(setOf(rule)))
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `ignores other DSL that can look like a type-safe project accessor`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
-    val typeSafeProject = buildRoot.createProject(":type-safe:project", extension)
+  @MethodSource("buildFileNames")
+  fun `ignores other DSL that can look like a type-safe project accessor`(buildFileName: String) {
+    val project = buildRoot.createProject(":foo", buildFileName)
+    val typeSafeProject = buildRoot.createProject(":type-safe:project", buildFileName)
     
-    val content = if (extension == ".gradle") {
-      """
-      android {
-        namespace = "com.example.projects.foo.bar"
-        namespace2 = 'com.example.projects.foo.bar'
-      }
-      """.trimIndent()
-    } else {
-      """
+    project.buildFilePath.writeText("""
       android {
         namespace = "com.example.projects.foo.bar"
       }
-      """.trimIndent()
-    }
-    project.buildFilePath.writeText(content)
+      """.trimIndent())
     
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
+    val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
+    assertThat(buildFile.parseDependencies(setOf(rule))).isEmpty()
+  }
+
+  @Test
+  fun `ignores other DSL with single quotes in groovy`() {
+    val project = buildRoot.createProject(":foo")
+    val typeSafeProject = buildRoot.createProject(":type-safe:project")
+    
+    project.buildFilePath.writeText("""
+      android {
+        namespace = 'com.example.projects.foo.bar'
+        namespace2 = "com.example.projects.foo.bar"
+      }
+      """.trimIndent())
+    
+    val buildFile = BuildFile(project)
     val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
     assertThat(buildFile.parseDependencies(setOf(rule))).isEmpty()
   }
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `type-safe accessor support ignores projects as part of compound words like subprojects`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
-    val typeSafeProjectA = buildRoot.createProject(":type-safe:project-a", extension)
+  @MethodSource("buildFileNames")
+  fun `type-safe accessor support ignores projects as part of compound words like subprojects`(buildFileName: String) {
+    val project = buildRoot.createProject(":foo", buildFileName)
+    val typeSafeProjectA = buildRoot.createProject(":type-safe:project-a", buildFileName)
     
-    val content = if (extension == ".gradle") {
-      """
-      dependencies {
-        implementation projects.typeSafe.projectA
-      }
-
-      tasks.named("foo") {
-        val allTestTasks = rootProject.subprojects.mapNotNull { it.tasks.findByPath("test") }
-        mustRunAfter(allTestTasks)
-      }
-      """.trimIndent()
-    } else {
-      """
+    project.buildFilePath.writeText("""
       dependencies {
         implementation(projects.typeSafe.projectA)
       }
@@ -456,11 +422,9 @@ class BuildFileTest {
         val allTestTasks = rootProject.subprojects.mapNotNull { it.tasks.findByPath("test") }
         mustRunAfter(allTestTasks)
       }
-      """.trimIndent()
-    }
-    project.buildFilePath.writeText(content)
+      """.trimIndent())
     
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
     val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.projectA" to typeSafeProjectA))
 
     // Should only find the legitimate typeSafe.projectA reference, not the compound words
@@ -469,10 +433,10 @@ class BuildFileTest {
   }
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `ignores type-safe project accessor's trailing path API`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
-    val typeSafeProject = buildRoot.createProject(":type-safe:project", extension)
+  @MethodSource("buildFileNames")
+  fun `ignores type-safe project accessor's trailing path API`(buildFileName: String) {
+    val project = buildRoot.createProject(":foo", buildFileName)
+    val typeSafeProject = buildRoot.createProject(":type-safe:project", buildFileName)
     
     project.buildFilePath.writeText("""
       baselineProfile {
@@ -481,20 +445,20 @@ class BuildFileTest {
       """.trimIndent()
     )
     
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
     val rule = TypeSafeProjectAccessorRule("spotlight", mapOf("typeSafe.project" to typeSafeProject))
     assertThat(buildFile.parseDependencies(setOf(rule)))
       .containsExactlyInAnyOrder(typeSafeProject)
   }
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `projects include all intermediate directories that also have build files in them`(mode: ParsingConfiguration, extension: String) {
+  @MethodSource("buildFileNames")
+  fun `projects include all intermediate directories that also have build files in them`(buildFileName: String) {
     // Create a nested :foo:bar:baz that explicitly depends on nothing but implicitly requires its
     // parent dirs.
-    val project = buildRoot.createProject(":foo:bar:baz", extension)
-    buildRoot.createProject(":foo", extension)
-    buildRoot.createProject(":foo:bar", extension)
+    val project = buildRoot.createProject(":foo:bar:baz", buildFileName)
+    buildRoot.createProject(":foo", buildFileName)
+    buildRoot.createProject(":foo:bar", buildFileName)
     project.buildFilePath.writeText(
       """
       dependencies {
@@ -502,7 +466,7 @@ class BuildFileTest {
       """.trimIndent()
     )
 
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
 
     assertThat(buildFile.parseDependencies())
       .containsExactlyInAnyOrder(
@@ -512,46 +476,26 @@ class BuildFileTest {
   }
 
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `reads dependencies inside any wrapper functions`(mode: ParsingConfiguration, extension: String) {
-    val project = buildRoot.createProject(":foo", extension)
+  @MethodSource("buildFileNames")
+  fun `reads dependencies inside any wrapper functions`(buildFileName: String) {
+    val project = buildRoot.createProject(":foo", buildFileName)
     
-    val content = if (extension == ".gradle") {
-      """
+    project.buildFilePath.writeText("""
       dependencies {
         // Common DependencyHandler "wrappers"
         implementation(platform(project(":platform:bom")))
         implementation(enforcedPlatform(project(":enforced:platform")))
         testImplementation(testFixtures(project(":test:fixtures")))
 
-        // With spaces (groovy)
-        implementation platform(project(":platform:bom2"))
-        testImplementation testFixtures(project(":test:fixtures2"))
-
-        // Deep nesting, not sure how this would happen, but just in case!
-        implementation(first(second(third(project(":deeply:nested")))))
-      }
-      """.trimIndent()
-    } else {
-      """
-      dependencies {
-        // Common DependencyHandler "wrappers"
-        implementation(platform(project(":platform:bom")))
-        implementation(enforcedPlatform(project(":enforced:platform")))
-        testImplementation(testFixtures(project(":test:fixtures")))
-
-        // Kotlin requires parentheses
         implementation(platform(project(":platform:bom2")))
         testImplementation(testFixtures(project(":test:fixtures2")))
 
         // Deep nesting, not sure how this would happen, but just in case!
         implementation(first(second(third(project(":deeply:nested")))))
       }
-      """.trimIndent()
-    }
-    project.buildFilePath.writeText(content)
+      """.trimIndent())
 
-    val buildFile = BuildFile(project, mode)
+    val buildFile = BuildFile(project)
 
     assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(
       GradlePath(buildRoot, ":platform:bom"),
@@ -563,11 +507,31 @@ class BuildFileTest {
     )
   }
 
+  @Test
+  fun `reads dependencies inside wrapper functions without outer parentheses in groovy`() {
+    val project = buildRoot.createProject(":foo")
+    
+    project.buildFilePath.writeText("""
+      dependencies {
+        // Groovy allows omitting outer parentheses
+        implementation platform(project(":platform:bom"))
+        testImplementation testFixtures(project(":test:fixtures"))
+      }
+      """.trimIndent())
+
+    val buildFile = BuildFile(project)
+
+    assertThat(buildFile.parseDependencies()).containsExactlyInAnyOrder(
+      GradlePath(buildRoot, ":platform:bom"),
+      GradlePath(buildRoot, ":test:fixtures")
+    )
+  }
+
   @ParameterizedTest
-  @MethodSource("parsingModes")
-  fun `strips all comments before parsing`(mode: ParsingConfiguration, extension: String) {
+  @MethodSource("buildFileNames")
+  fun `strips all comments before parsing`(buildFileName: String) {
     // given
-    val project = buildRoot.createProject(":foo", extension)
+    val project = buildRoot.createProject(":foo", buildFileName)
     project.buildFilePath.writeText(
       """
       /**
@@ -595,7 +559,7 @@ class BuildFileTest {
     )
 
     // when
-    val dependencies = BuildFile(project, mode).parseDependencies()
+    val dependencies = BuildFile(project).parseDependencies()
 
     // then
     assertThat(dependencies).containsExactlyInAnyOrder(
@@ -604,10 +568,10 @@ class BuildFileTest {
     )
   }
 
-  private fun Path.createProject(path: String, extension: String = ".gradle"): GradlePath {
+  private fun Path.createProject(path: String, buildFileName: String = GRADLE_SCRIPT): GradlePath {
     return GradlePath(this, path).apply {
       projectDir.createDirectories()
-      projectDir.resolve("build$extension").createFile()
+      projectDir.resolve(buildFileName).createFile()
     }
   }
 }

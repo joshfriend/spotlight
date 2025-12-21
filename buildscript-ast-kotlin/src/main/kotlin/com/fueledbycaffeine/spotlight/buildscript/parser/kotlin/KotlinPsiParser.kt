@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
-import kotlin.io.path.name
+import kotlin.io.path.exists
 import kotlin.io.path.readText
 
 /**
@@ -30,8 +30,6 @@ public object KotlinPsiParser : BuildScriptParser {
   private val disposable = Disposer.newDisposable(KotlinPsiParser::class.java.name)
 
   // Using createForProduction which is part of K1 API (deprecated in favor of K2 Analysis API).
-  // When kotlin-analysis-api-standalone becomes available in Maven Central, migrate to:
-  // buildStandaloneAnalysisAPISession with buildKtSourceModule
   @OptIn(K1Deprecation::class)
   private val environment by lazy {
     KotlinCoreEnvironment.createForProduction(
@@ -49,37 +47,28 @@ public object KotlinPsiParser : BuildScriptParser {
     project: GradlePath,
     rules: Set<DependencyRule>,
   ): Set<GradlePath> {
-    check(project.buildFilePath.name == GRADLE_SCRIPT_KOTLIN) {
-      "Not a Kotlin build script: ${project.buildFilePath}"
+    // Check if Kotlin build file exists - file I/O is OK here because we're inside parse() which is called from ValueSource
+    val kotlinBuildFile = project.projectDir.resolve(GRADLE_SCRIPT_KOTLIN)
+    if (!kotlinBuildFile.exists()) {
+      // No Kotlin build file, return empty (Groovy parser or Regex parser will handle it)
+      return emptySet()
     }
 
     val dependencies = mutableSetOf<GradlePath>()
-    
-    try {
-      val fileContent = project.buildFilePath.readText()
-      val ktFile = parseKotlinFile(fileContent, project.buildFilePath.fileName.toString())
-      
-      ktFile.accept(object : KtTreeVisitorVoid() {
-        override fun visitCallExpression(expression: KtCallExpression) {
-          handleCallExpression(expression, project, rules, dependencies)
-          super.visitCallExpression(expression)
-        }
-        
-        override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
-          handleDotQualifiedExpression(expression, project, rules, dependencies)
-          super.visitDotQualifiedExpression(expression)
-        }
-      })
-    } catch (e: Exception) {
-      // If AST parsing fails, return empty and let the fallback handle it
-      throw BuildScriptParser.ParserException("Could not parse buildscript ${project.buildFilePath}", e)
-    }
-    
-    // Add implicit dependencies based on project path
-    val projectPathRules = rules.filterIsInstance<ImplicitDependencyRule.ProjectPathMatchRule>()
-    projectPathRules
-      .filter { it.regex.containsMatchIn(project.path) }
-      .flatMapTo(dependencies) { it.includedProjects }
+    val fileContent = kotlinBuildFile.readText()
+    val ktFile = parseKotlinFile(fileContent, kotlinBuildFile.fileName.toString())
+
+    ktFile.accept(object : KtTreeVisitorVoid() {
+      override fun visitCallExpression(expression: KtCallExpression) {
+        handleCallExpression(expression, project, rules, dependencies)
+        super.visitCallExpression(expression)
+      }
+
+      override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
+        handleDotQualifiedExpression(expression, rules, dependencies)
+        super.visitDotQualifiedExpression(expression)
+      }
+    })
     
     return dependencies + computeImplicitParentProjects(project)
   }
@@ -150,7 +139,6 @@ public object KotlinPsiParser : BuildScriptParser {
   
   private fun handleDotQualifiedExpression(
     expression: KtDotQualifiedExpression,
-    project: GradlePath,
     rules: Set<DependencyRule>,
     dependencies: MutableSet<GradlePath>,
   ) {
