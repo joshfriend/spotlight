@@ -1,9 +1,11 @@
 package com.fueledbycaffeine.spotlight.buildscript.graph
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ForkJoinPool
-import java.util.concurrent.ForkJoinTask
 
 public object BreadthFirstSearch {
   // Initialize with generously sized capacities to avoid resizing as we grow
@@ -12,8 +14,9 @@ public object BreadthFirstSearch {
   public fun <T : GraphNode<T>> flatten(
     nodes: Iterable<T>,
     rules: Set<DependencyRule> = emptySet(),
+    parallel: Boolean = false,
   ): Set<T> {
-    val deps = run(nodes, rules)
+    val deps = run(nodes, rules, parallel)
     // In lieu of a flattenTo() option, this creates an intermediate
     // set to avoid the intermediate list + distinct()
     return buildSet(INITIAL_CAPACITY) {
@@ -26,6 +29,7 @@ public object BreadthFirstSearch {
   public fun <T : GraphNode<T>> run(
     nodes: Iterable<T>,
     rules: Set<DependencyRule> = emptySet(),
+    parallel: Boolean = false,
   ): Map<T, Set<T>> {
     // Thread-safe collections for concurrent execution
     val seen = Collections.newSetFromMap(ConcurrentHashMap<T, Boolean>(INITIAL_CAPACITY))
@@ -44,18 +48,18 @@ public object BreadthFirstSearch {
 
       if (currentLevel.isEmpty()) break
 
-      // Process all nodes at this level in parallel using ForkJoinTask
-      val tasks = currentLevel.map { node ->
-        val task = ForkJoinTask.adapt<Pair<T, Set<T>>> {
-          node to node.findSuccessors(rules)
+      val results = if (parallel) {
+        runBlocking(Dispatchers.IO) {
+          currentLevel.map { node ->
+            async { node to node.findSuccessors(rules) }
+          }.awaitAll()
         }
-        task.fork() // Submit for parallel execution
-        task
+      } else {
+        currentLevel.map { node -> node to node.findSuccessors(rules) }
       }
 
       // Collect results and update queue for next level
-      for (task in tasks) {
-        val (node, successors) = task.join() // Wait for completion
+      for ((node, successors) in results) {
         dependenciesMap[node] = successors
         successors.filter(seen::add).forEach(queue::addLast)
       }

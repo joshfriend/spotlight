@@ -90,9 +90,12 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
     val implicitRules = getSpotlightRules().implicitRules
     val projectName = parameters.rootProjectName.get()
     val rules = computeSpotlightRules(rootDirectory, projectName, implicitRules) { getAllProjects() }
+    val parallel = parameters.parallel.getOrElse(false)
 
-    val (targetsAndTransitives, duration) = measureTimedValue { BreadthFirstSearch.flatten(targets, rules) }
-    logger.info("BFS search of project graph took {}ms", duration.inWholeMilliseconds)
+    val (targetsAndTransitives, duration) = measureTimedValue {
+      BreadthFirstSearch.flatten(targets, rules, parallel)
+    }
+    logger.info("BFS search of project graph took {}ms (parallel={})", duration.inWholeMilliseconds, parallel)
     logger.info("Requested targets include {} projects transitively", targetsAndTransitives.size - targets.size)
     return targetsAndTransitives
   }
@@ -119,6 +122,7 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
     val taskRequests: ListProperty<TaskExecutionRequest>
     val rootProjectName: Property<String>
     val targetsOverride: Property<String>
+    val parallel: Property<Boolean>
   }
 
   companion object {
@@ -134,6 +138,11 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
         it.parameters.targetsOverride.set(spotlightOptions.targetsOverride)
         it.parameters.ideSync.set(settings.isIdeSync)
         it.parameters.spotlightEnabled.set(settings.isSpotlightEnabled)
+        it.parameters.parallel.set(
+          settings.providers.gradleProperty("spotlight.parallel")
+            .map { it.toBoolean() }
+            .orElse(false)
+        )
       }
     }
   }

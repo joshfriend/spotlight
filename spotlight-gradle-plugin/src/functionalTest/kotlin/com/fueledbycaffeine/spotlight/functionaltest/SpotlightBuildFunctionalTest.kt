@@ -17,16 +17,28 @@ import com.fueledbycaffeine.spotlight.functionaltest.fixtures.setGradlePropertie
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.MethodSource
 import kotlin.io.path.*
 
 
 class SpotlightBuildFunctionalTest {
-  @ParameterizedTest
-  @EnumSource(GradleProject.DslKind::class)
-  fun `computes explicit dependencies correctly`(dslKind: GradleProject.DslKind) {
+  companion object {
+    @JvmStatic
+    fun dslAndParallelCombinations() = GradleProject.DslKind.entries.flatMap { dslKind ->
+      listOf(true, false).map { parallel ->
+        Arguments.of(dslKind, parallel)
+      }
+    }
+  }
+
+  @ParameterizedTest(name = "dsl={0}, parallel={1}")
+  @MethodSource("dslAndParallelCombinations")
+  fun `computes explicit dependencies correctly`(dslKind: GradleProject.DslKind, parallel: Boolean) {
     // Given
     val project = SpiritboxProject().build(dslKind = dslKind)
+    project.setGradleProperties("spotlight.parallel" to parallel.toString())
 
     // When
     val result = project.build(":rotoscope:assemble")
@@ -45,6 +57,10 @@ class SpotlightBuildFunctionalTest {
       ":rotoscope:sew-me-up",
     )
     assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+
+    // Verify the parallel setting was logged
+    assertThat(result.output).contains("parallel=$parallel")
+
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(SPOTLIGHT_INPUTS)
   }

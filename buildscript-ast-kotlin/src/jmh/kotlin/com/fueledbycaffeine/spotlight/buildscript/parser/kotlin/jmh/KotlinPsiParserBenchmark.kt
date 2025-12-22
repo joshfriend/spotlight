@@ -32,6 +32,9 @@ open class KotlinPsiParserBenchmark {
   @Param("false", "true")
   var useTypeSafeAccessors: Boolean = false
   
+  @Param("false", "true")
+  var parallel: Boolean = false
+
   private lateinit var fixture: ProjectFixture
   private var typeSafeAccessorMapping: Map<String, GradlePath> = emptyMap()
   private lateinit var app: GradlePath
@@ -67,8 +70,8 @@ open class KotlinPsiParserBenchmark {
       emptySet()
     }
     
-    val result = BreadthFirstSearch.flatten(listOf(app), rules)
-    check(result.size == fixture.originalProjectFiles.size) { 
+    val result = BreadthFirstSearch.flatten(listOf(app), rules, parallel)
+    check(result.size == fixture.originalProjectFiles.size) {
       "expected ${fixture.originalProjectFiles.size} projects in result set but there were ${result.size}"
     }
   }

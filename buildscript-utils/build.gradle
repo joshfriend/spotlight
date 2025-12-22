@@ -46,10 +46,10 @@ mavenPublishing {
 
 dependencies {
   api(libs.moshix.sealedRuntime)
+  api(libs.kotlinx.coroutines.core)
   implementation(libs.moshi.kotlin)
   implementation(libs.moshix.sealedReflect)
   implementation(libs.okio)
-  implementation(libs.kotlinx.coroutines.core)
 
   testImplementation gradleApi()
   testImplementation libs.assertk
@@ -79,7 +79,6 @@ test {
 jmh {
   jmhVersion = libs.versions.jmh.get()
   resultFormat = "json"
-//  humanOutputFile = layout.buildDirectory.file("results/jmh/human.txt")
   zip64 = true
   timeUnit = 'ms'
 }

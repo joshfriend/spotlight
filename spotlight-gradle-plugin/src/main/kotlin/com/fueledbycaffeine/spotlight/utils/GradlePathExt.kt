@@ -3,7 +3,6 @@ package com.fueledbycaffeine.spotlight.utils
 import com.fueledbycaffeine.spotlight.SpotlightBuildService
 import com.fueledbycaffeine.spotlight.SpotlightBuildService.Companion.NAME
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
-import org.gradle.StartParameter
 import org.gradle.TaskExecutionRequest
 import org.gradle.api.initialization.Settings
 import java.nio.file.Path
