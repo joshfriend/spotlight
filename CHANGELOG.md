@@ -1,5 +1,8 @@
 # Changelog
 
+### Unreleased
+* Removed `SpotlightBuildService`
+
 ### 1.5.2
 * Add custom fields to Develocity build scans ("Spotlight Enabled" and "Spotlight Project Count")
 

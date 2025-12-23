@@ -1,9 +1,6 @@
 package com.fueledbycaffeine.spotlight.utils
 
-import com.fueledbycaffeine.spotlight.SpotlightBuildService
-import com.fueledbycaffeine.spotlight.SpotlightBuildService.Companion.NAME
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
-import org.gradle.StartParameter
 import org.gradle.TaskExecutionRequest
 import org.gradle.api.initialization.Settings
 import java.nio.file.Path
@@ -24,10 +21,5 @@ internal fun guessProjectsFromTaskRequests(
 private val String.projectPathGuess get() = this.replace(Regex("\\w+$"), "")
 
 internal fun Settings.include(paths: Iterable<GradlePath>) {
-  gradle.sharedServices.registerIfAbsent(NAME, SpotlightBuildService::class.java) {
-    it.parameters.enabled.set(isSpotlightEnabled)
-    it.parameters.spotlightProjects.set(paths)
-  }
-
   include(paths.map { it.path })
 }
