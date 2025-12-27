@@ -2,7 +2,7 @@ package com.fueledbycaffeine.spotlight.buildscript.parser
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
 
 /**
  * Parser that adds dependencies based on project path pattern matching.
@@ -11,9 +11,9 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
  * 
  * @param pathMatchRules The set of [ProjectPathMatchRule] instances to evaluate
  */
-internal class PathMatchingParser(
-  private val pathMatchRules: Set<ImplicitDependencyRule.ProjectPathMatchRule>
-) : BuildScriptParser {
+public class PathMatchingParser(
+  private val pathMatchRules: Set<ProjectPathMatchRule>
+) : BuildscriptParser {
   override fun parse(project: GradlePath, rules: Set<DependencyRule>): Set<GradlePath> {
     return pathMatchRules
       .filter { it.regex.containsMatchIn(project.path) }

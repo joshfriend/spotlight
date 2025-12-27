@@ -1,4 +1,4 @@
-public final class com/fueledbycaffeine/spotlight/buildscript/parser/groovy/GroovyAstParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser {
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/groovy/GroovyAstParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParser {
 	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/parser/groovy/GroovyAstParser;
 	public fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
 }
@@ -6,7 +6,7 @@ public final class com/fueledbycaffeine/spotlight/buildscript/parser/groovy/Groo
 public final class com/fueledbycaffeine/spotlight/buildscript/parser/groovy/GroovyAstParserProvider : com/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParserProvider {
 	public fun <init> ()V
 	public fun getMode ()Lcom/fueledbycaffeine/spotlight/buildscript/parser/ParserMode;
-	public fun getParser (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Lcom/fueledbycaffeine/spotlight/buildscript/parser/BuildScriptParser;
+	public fun getParser ()Lcom/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParser;
 	public fun getPriority ()I
 }
 

@@ -17,7 +17,13 @@ repositories {
 def intellijTarget = "2025.3.1"
 
 dependencies {
-  implementation project(":buildscript-utils")
+  implementation(project(":buildscript-utils")) {
+    exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-core"
+    exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-core-jvm"
+  }
+  implementation(project(":spotlight-gradle-plugin")) {
+    because("Uses Spotlight's Gradle model builders")
+  }
 
   intellijPlatform {
     intellijIdea(intellijTarget)

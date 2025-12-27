@@ -2,6 +2,7 @@ package com.fueledbycaffeine.spotlight.functionaltest.fixtures
 
 import com.autonomousapps.kit.GradleBuilder
 import com.autonomousapps.kit.GradleProject
+import com.fueledbycaffeine.spotlight.tooling.BuildscriptParsersModel
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.gradle.BasicGradleProject
@@ -29,11 +30,16 @@ fun GradleProject.setGradleProperties(vararg props: Pair<String, String>) {
     })
 }
 
+interface ToolingResult {
+  val stdout: String
+  val stderr: String
+}
+
 data class SyncResult(
   val projects: List<BasicGradleProject>,
-  val stdout: String,
-  val stderr: String,
-)
+  override val stdout: String,
+  override val stderr: String,
+): ToolingResult
 
 fun GradleProject.sync(): SyncResult = sync(gradleVersion)
 
@@ -54,3 +60,28 @@ fun GradleProject.sync(gradleVersion: GradleVersion): SyncResult =
       stderr.close()
       SyncResult(projects, stdout.output, stderr.output)
     }
+
+data class ParsersModelSyncResult(
+  val parsersModel: BuildscriptParsersModel,
+  override val stdout: String,
+  override val stderr: String,
+): ToolingResult
+
+fun GradleProject.syncWithParsersModel(): ParsersModelSyncResult =
+  GradleConnector.newConnector()
+    .useGradleVersion(gradleVersion.version)
+    .forProjectDirectory(rootDir)
+    .connect().use {
+      val stdout = TeeOutputStream(System.out)
+      val stderr = TeeOutputStream(System.err)
+      val model = it.model(BuildscriptParsersModel::class.java)
+        .setStandardOutput(stdout)
+        .setStandardError(stderr)
+        .addArguments("--info")
+        .addJvmArguments("-Didea.sync.active=true")
+        .get()
+      stdout.close()
+      stderr.close()
+      ParsersModelSyncResult(model, stdout.output, stderr.output)
+    }
+

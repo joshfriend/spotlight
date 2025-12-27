@@ -1,7 +1,7 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
-import com.fueledbycaffeine.spotlight.buildscript.parser.ParserRegistry
+import com.fueledbycaffeine.spotlight.buildscript.parser.ParserContext
 
 public data class BuildFile(
   public val project: GradlePath,
@@ -18,8 +18,8 @@ internal fun parseBuildFile(
   project: GradlePath,
   rules: Set<DependencyRule>,
 ): Set<GradlePath> {
-  // Find a parser via ServiceLoader - will return highest priority parser that supports the file type
-  val parser = ParserRegistry.findParser(project, rules)
+  // ParserContext handles both SPI discovery and IDE overrides
+  val parser = ParserContext.findParser(project, rules)
     ?: error("No parser available for ${project.path}")
 
   return parser.parse(project, rules)

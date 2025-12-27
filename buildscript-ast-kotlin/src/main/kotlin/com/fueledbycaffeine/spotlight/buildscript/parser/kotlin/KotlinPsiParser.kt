@@ -5,9 +5,9 @@ import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
-import com.fueledbycaffeine.spotlight.buildscript.parser.BuildScriptParser
-import com.fueledbycaffeine.spotlight.buildscript.parser.computeImplicitParentProjects
-import com.fueledbycaffeine.spotlight.buildscript.parser.removeTypeSafeAccessorJunk
+import com.fueledbycaffeine.spotlight.buildscript.parser.BuildscriptParser
+import com.fueledbycaffeine.spotlight.buildscript.parser.internal.computeImplicitParentProjects
+import com.fueledbycaffeine.spotlight.buildscript.parser.internal.removeTypeSafeAccessorJunk
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
@@ -26,7 +26,7 @@ import kotlin.io.path.readText
  * PSI-based parser for Kotlin build scripts (build.gradle.kts).
  * Provides accurate parsing by using the Kotlin compiler's PSI (Program Structure Interface).
  */
-public object KotlinPsiParser : BuildScriptParser {
+public object KotlinPsiParser : BuildscriptParser {
   private val disposable = Disposer.newDisposable(KotlinPsiParser::class.java.name)
 
   // Using createForProduction which is part of K1 API (deprecated in favor of K2 Analysis API).

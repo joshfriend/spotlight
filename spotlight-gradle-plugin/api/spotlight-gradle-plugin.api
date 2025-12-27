@@ -1,5 +1,11 @@
+public final class com/fueledbycaffeine/spotlight/BuildscriptParsersModelBuilder : org/gradle/tooling/provider/model/ToolingModelBuilder {
+	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/BuildscriptParsersModelBuilder;
+	public fun buildAll (Ljava/lang/String;Lorg/gradle/api/Project;)Ljava/lang/Object;
+	public fun canBuild (Ljava/lang/String;)Z
+}
+
 public final class com/fueledbycaffeine/spotlight/SpotlightSettingsPlugin : org/gradle/api/Plugin {
-	public fun <init> ()V
+	public fun <init> (Lorg/gradle/tooling/provider/model/ToolingModelBuilderRegistry;)V
 	public synthetic fun apply (Ljava/lang/Object;)V
 	public fun apply (Lorg/gradle/api/initialization/Settings;)V
 }
@@ -32,6 +38,25 @@ public abstract class com/fueledbycaffeine/spotlight/tasks/FixSpotlightProjectLi
 }
 
 public final class com/fueledbycaffeine/spotlight/tasks/FixSpotlightProjectListTask$Companion {
+}
+
+public final class com/fueledbycaffeine/spotlight/tooling/BuildscriptParserProviderInfo : java/io/Serializable {
+	public fun <init> (Ljava/lang/String;ILjava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;ILjava/lang/String;)Lcom/fueledbycaffeine/spotlight/tooling/BuildscriptParserProviderInfo;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/tooling/BuildscriptParserProviderInfo;Ljava/lang/String;ILjava/lang/String;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/tooling/BuildscriptParserProviderInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getImplementationClassName ()Ljava/lang/String;
+	public final fun getMode ()Ljava/lang/String;
+	public final fun getPriority ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class com/fueledbycaffeine/spotlight/tooling/BuildscriptParsersModel : java/io/Serializable {
+	public abstract fun getProviders ()Ljava/util/List;
 }
 
 public final class com/fueledbycaffeine/spotlight/utils/SpotlightProperties {

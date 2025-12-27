@@ -13,6 +13,8 @@ import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import javax.inject.Inject
 
 /**
  * A [Settings] plugin to ease management of projects included in large builds.
@@ -21,8 +23,13 @@ import org.gradle.api.initialization.Settings
  *   id 'com.fueledbycaffeine.spotlight'
  * }
  */
-public class SpotlightSettingsPlugin: Plugin<Settings> {
+public class SpotlightSettingsPlugin @Inject constructor(
+  private val registry: ToolingModelBuilderRegistry
+) : Plugin<Settings> {
   public override fun apply(settings: Settings): Unit = settings.run {
+    // Register the tooling model builder for IDE sync
+    registry.register(BuildscriptParsersModelBuilder)
+
     // Create the extension
     val extension = extensions.getSpotlightExtension()
     // DSL is not available until then

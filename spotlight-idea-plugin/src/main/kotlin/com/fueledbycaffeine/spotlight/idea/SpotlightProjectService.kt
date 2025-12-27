@@ -9,6 +9,9 @@ import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList.Companion.S
 import com.fueledbycaffeine.spotlight.buildscript.computeSpotlightRules
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightRules
+import com.fueledbycaffeine.spotlight.buildscript.parser.ParserContext.parserContext
+import com.fueledbycaffeine.spotlight.idea.gradle.IdeParserRegistry
+import com.fueledbycaffeine.spotlight.idea.gradle.SpotlightParsersService
 import com.fueledbycaffeine.spotlight.idea.utils.vfsEventsFlow
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -83,7 +86,18 @@ class SpotlightProjectService(
           val implicitRules = currentRules.implicitRules
           val ruleSet =
             computeSpotlightRules(rootDir, project.name, implicitRules) { allProjects.value }
-          val allPaths = BreadthFirstSearch.flatten(paths, ruleSet)
+
+          // Use IDE parsers if available from sync, otherwise fall back to ServiceLoader
+          val parsersService = SpotlightParsersService.getInstance(project)
+          val allPaths = if (parsersService.hasProviders()) {
+            parserContext(IdeParserRegistry(parsersService)) {
+              BreadthFirstSearch.flatten(paths, ruleSet)
+            }
+          } else {
+            // No parsers from sync yet, use default ServiceLoader-based discovery
+            BreadthFirstSearch.flatten(paths, ruleSet)
+          }
+
           _ideProjects.emit(allPaths)
         }
 

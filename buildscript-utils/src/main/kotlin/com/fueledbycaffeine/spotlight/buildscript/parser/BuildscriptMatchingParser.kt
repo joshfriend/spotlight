@@ -12,9 +12,9 @@ import kotlin.io.path.readText
  * 
  * @param buildscriptMatchRules The set of BuildscriptMatchRule instances to evaluate
  */
-internal class BuildscriptMatchingParser(
+public class BuildscriptMatchingParser(
   private val buildscriptMatchRules: Set<ImplicitDependencyRule.BuildscriptMatchRule>
-) : BuildScriptParser {
+) : BuildscriptParser {
   override fun parse(project: GradlePath, rules: Set<DependencyRule>): Set<GradlePath> {
     val implicitDependencies = mutableSetOf<GradlePath>()
     val fileContent = project.buildFilePath.readText()

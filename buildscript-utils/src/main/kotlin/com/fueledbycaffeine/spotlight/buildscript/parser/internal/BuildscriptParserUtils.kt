@@ -1,4 +1,4 @@
-package com.fueledbycaffeine.spotlight.buildscript.parser
+package com.fueledbycaffeine.spotlight.buildscript.parser.internal
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 
@@ -20,3 +20,4 @@ public fun String.removeTypeSafeAccessorJunk(rootProjectAccessor: String): Strin
     .removePrefix("$rootProjectAccessor.")
     .removeSuffix(".dependencyProject")
     .removeSuffix(".path")
+

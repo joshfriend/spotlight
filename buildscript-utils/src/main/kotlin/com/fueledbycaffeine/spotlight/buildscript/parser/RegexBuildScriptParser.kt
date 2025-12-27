@@ -3,6 +3,8 @@ package com.fueledbycaffeine.spotlight.buildscript.parser
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
+import com.fueledbycaffeine.spotlight.buildscript.parser.internal.computeImplicitParentProjects
+import com.fueledbycaffeine.spotlight.buildscript.parser.internal.removeTypeSafeAccessorJunk
 import kotlin.io.path.readText
 
 // Regex patterns for parsing
@@ -15,7 +17,7 @@ private val BLOCK_COMMENT_PATTERN = Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES
  * Fast regex-based parser for extracting dependencies from build scripts.
  * This is the legacy parsing approach that uses simple regex patterns.
  */
-public object RegexBuildScriptParser : BuildScriptParser {
+public object RegexBuildscriptParser : BuildscriptParser {
   override fun parse(
     project: GradlePath,
     rules: Set<DependencyRule>,

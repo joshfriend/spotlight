@@ -5,9 +5,9 @@ import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
-import com.fueledbycaffeine.spotlight.buildscript.parser.BuildScriptParser
-import com.fueledbycaffeine.spotlight.buildscript.parser.computeImplicitParentProjects
-import com.fueledbycaffeine.spotlight.buildscript.parser.removeTypeSafeAccessorJunk
+import com.fueledbycaffeine.spotlight.buildscript.parser.BuildscriptParser
+import com.fueledbycaffeine.spotlight.buildscript.parser.internal.computeImplicitParentProjects
+import com.fueledbycaffeine.spotlight.buildscript.parser.internal.removeTypeSafeAccessorJunk
 import org.codehaus.groovy.ast.CodeVisitorSupport
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.ArgumentListExpression
@@ -24,7 +24,7 @@ import kotlin.io.path.readText
  * AST-based parser for Groovy build scripts.
  * Provides more accurate parsing than regex by understanding the actual structure of the code.
  */
-public object GroovyAstParser : BuildScriptParser {
+public object GroovyAstParser : BuildscriptParser {
 
   override fun parse(
     project: GradlePath,

@@ -50,15 +50,14 @@ class CompositeParserTest {
   @Test
   fun `ParserRegistry returns single parser when only one matches`() {
     val provider = TestProvider(ParserMode.REPLACE, 100)
-    val project = GradlePath(Path.of("."), ":test")
 
     // In real scenario, would use ServiceLoader, but testing logic directly
-    val parser = provider.getParser(project)
+    val parser = provider.getParser()
     assertNotNull(parser)
   }
   
   // Test helper classes
-  private class TestParser(private val dependencies: Set<GradlePath>) : BuildScriptParser {
+  private class TestParser(private val dependencies: Set<GradlePath>) : BuildscriptParser {
     override fun parse(project: GradlePath, rules: Set<DependencyRule>): Set<GradlePath> {
       return dependencies
     }
@@ -68,7 +67,7 @@ class CompositeParserTest {
     override val mode: ParserMode,
     override val priority: Int
   ) : BuildscriptParserProvider {
-    override fun getParser(project: GradlePath): BuildScriptParser {
+    override fun getParser(): BuildscriptParser {
       return TestParser(emptySet())
     }
   }
