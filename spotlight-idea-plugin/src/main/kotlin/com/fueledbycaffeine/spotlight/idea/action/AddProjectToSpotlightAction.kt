@@ -22,20 +22,21 @@ class AddProjectToSpotlightAction : AnAction() {
   override fun actionPerformed(action: AnActionEvent) {
     val projectService = action.project?.spotlightService ?: return
     val allProjects = projectService.allProjects.value
-    
-    // Convert parent directories with child projects to wildcard paths
-    val pathsToAdd = action.gradlePathsSelected.mapNotNull { selectedPath ->
-      val pattern = selectedPath.toSpotlightPattern()
-      when {
-        // If directory contains child Gradle projects, use the wildcard pattern
-        pattern.isWildcardPattern -> pattern
-        // If this is a direct project in allProjects, add it as-is
-        selectedPath in allProjects -> selectedPath
-        // Otherwise, skip it
-        else -> null
+
+    val pathsToAdd = action.gradlePathsSelected
+      .filter { !it.isRootProject }
+      .mapNotNull { selectedPath ->
+        val pattern = selectedPath.toSpotlightPattern()
+        when {
+          // If directory contains child Gradle projects, use the wildcard pattern
+          pattern.isWildcardPattern -> pattern
+          // If this is a direct project in allProjects, add it as-is
+          selectedPath in allProjects -> selectedPath
+          // Otherwise, skip it
+          else -> null
+        }
       }
-    }
-    
+
     if (pathsToAdd.isNotEmpty()) {
       logger.info("Add projects to IDE Spotlight: ${pathsToAdd.joinToString { it.path }}")
       projectService.addIdeProjects(pathsToAdd)
@@ -56,14 +57,13 @@ class AddProjectToSpotlightAction : AnAction() {
       val projectService = e.project?.spotlightService
       isVisible = if (projectService != null) {
         val allProjects = projectService.allProjects.value
-        // Show action if any selected path would add a pattern not already in the file
-        e.gradlePathsSelected.any { selectedPath ->
-          val pattern = selectedPath.toSpotlightPattern()
-          val isValidProject = selectedPath in allProjects
-          
-          // Show add if we would add something valid and it's not already in the file
-          (pattern.isWildcardPattern || isValidProject) && !projectService.isInIdeProjectsFile(pattern)
-        }
+        e.gradlePathsSelected
+          .filter { !it.isRootProject }
+          .any { selectedPath ->
+            val pattern = selectedPath.toSpotlightPattern()
+            val isValidProject = selectedPath in allProjects
+            (pattern.isWildcardPattern || isValidProject) && !projectService.isInIdeProjectsFile(pattern)
+          }
       } else {
         false
       }
