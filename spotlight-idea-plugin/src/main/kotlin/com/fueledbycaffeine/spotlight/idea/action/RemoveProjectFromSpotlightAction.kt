@@ -19,19 +19,17 @@ class RemoveProjectFromSpotlightAction : AnAction() {
   override fun actionPerformed(action: AnActionEvent) {
     val spotlightService = action.project?.spotlightService ?: return
     val selectedPaths = action.gradlePathsSelected
-    
-    // Determine what pattern each selected path would map to, and check if that exists
+      .filter { !it.isRootProject }
+
     val pathsToRemove = selectedPaths.mapNotNull { selectedPath ->
       val pattern = selectedPath.toSpotlightPattern()
-      
-      // Only remove if this exact pattern exists in the file
       if (spotlightService.isInIdeProjectsFile(pattern)) {
         pattern
       } else {
         null
       }
     }
-    
+
     logger.info("Remove projects from IDE Spotlight: ${pathsToRemove.joinToString { it.path }}")
     spotlightService.removeIdeProjects(pathsToRemove)
   }
@@ -47,10 +45,11 @@ class RemoveProjectFromSpotlightAction : AnAction() {
       icon = AllIcons.General.Remove
       val spotlightService = e.project?.spotlightService
       isVisible = if (spotlightService != null) {
-        e.gradlePathsSelected.any { selectedPath ->
-          // Show remove if this exact pattern exists
-          spotlightService.isInIdeProjectsFile(selectedPath.toSpotlightPattern())
-        }
+        e.gradlePathsSelected
+          .filter { !it.isRootProject }
+          .any { selectedPath ->
+            spotlightService.isInIdeProjectsFile(selectedPath.toSpotlightPattern())
+          }
       } else {
         false
       }
