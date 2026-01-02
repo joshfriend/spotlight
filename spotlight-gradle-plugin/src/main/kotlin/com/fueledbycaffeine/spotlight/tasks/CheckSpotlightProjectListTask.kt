@@ -1,6 +1,5 @@
 package com.fueledbycaffeine.spotlight.tasks
 
-import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT
 import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT_KOTLIN
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
@@ -15,13 +14,11 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
-import java.io.File
 
 @DisableCachingByDefault(because = "Has no outputs")
 public abstract class CheckSpotlightProjectListTask : DefaultTask() {
   public companion object {
     public const val NAME: String = "checkAllProjectsList"
-    private val INCLUDE_PATTERN = Regex("""^\s*include[ \t(]""")
   }
 
   @get:InputFile
@@ -63,7 +60,7 @@ public abstract class CheckSpotlightProjectListTask : DefaultTask() {
 
     val includeLines = settingsFile.readLines()
       .withIndex()
-      .filter { (_, line) -> INCLUDE_PATTERN.containsMatchIn(line) }
+      .filter { (_, line) -> INCLUDE_PROJECT_PATH.containsMatchIn(line) }
 
     if (includeLines.isNotEmpty()) {
       val errorMessage = buildString {
