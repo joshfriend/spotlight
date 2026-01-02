@@ -22,15 +22,7 @@ plugins {
 }
 ```
 
-Remove any `include` statements:
-
-```groovy
-// get rid of these!
-include ':app'
-include ':feature'
-```
-
-Move the included project declarations to `gradle/all-projects.txt`
+Create `gradle/all-projects.txt` with your project declarations:
 
 ```
 :app
@@ -38,6 +30,9 @@ Move the included project declarations to `gradle/all-projects.txt`
 :feature-b
 # items may be commented out like this
 ```
+
+> [!TIP]
+> If you have an existing project with `include` statements in `settings.gradle(.kts)`, you can run `./gradlew :fixAllProjectsList` to automatically migrate them to `all-projects.txt` and remove them from your settings file.
 
 ### IDE Sync
 
@@ -107,6 +102,7 @@ Spotlight provides several tasks for managing its config files:
   * Validates that all listed projects have build files
   * Ensures all projects discovered via dependency graph are listed
 * `./gradlew :fixAllProjectsList` - Auto-fix issues in the `all-projects.txt` file
+  * Migrates any `include` statements from `settings.gradle(.kts)` to `all-projects.txt`
   * Removes invalid projects (those without build files)
   * Adds missing projects discovered via dependency graph
   * Sorts the file alphabetically

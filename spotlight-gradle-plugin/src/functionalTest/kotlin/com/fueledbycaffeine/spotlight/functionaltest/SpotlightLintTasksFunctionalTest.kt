@@ -298,4 +298,53 @@ class SpotlightLintTasksFunctionalTest {
     val checkResult = project.build(":${CheckSpotlightProjectListTask.NAME}")
     assertThat(checkResult).task(":${CheckSpotlightProjectListTask.NAME}").succeeded()
   }
+
+  @Test
+  fun `fix migrates include statements from settings to all-projects`() {
+    // Given
+    val project = SpiritboxProject().build()
+    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
+    val settingsFile = project.rootDir.resolve("settings.gradle")
+
+    // Create test projects with build files
+    val testProject1 = project.rootDir.resolve("test-project-1")
+    testProject1.mkdirs()
+    testProject1.resolve("build.gradle").createNewFile()
+
+    val testProject2 = project.rootDir.resolve("test-project-2")
+    testProject2.mkdirs()
+    testProject2.resolve("build.gradle").createNewFile()
+
+    // Add include statements to settings file
+    val currentContent = settingsFile.readText()
+    val includeStatements = """
+        |
+        |include ':test-project-1'
+        |include(":test-project-2")
+      """.trimMargin()
+    settingsFile.writeText(currentContent + includeStatements)
+
+    // When
+    val result = project.build(":${FixSpotlightProjectListTask.NAME}")
+
+    // Then
+    assertThat(result).task(":${FixSpotlightProjectListTask.NAME}").succeeded()
+
+    // Verify projects were added to all-projects.txt
+    val updatedProjectsList = allProjects.readLines()
+    assertThat(updatedProjectsList).contains(":test-project-1")
+    assertThat(updatedProjectsList).contains(":test-project-2")
+    assertThat(updatedProjectsList).isEqualTo(updatedProjectsList.sorted())
+
+    // Verify include statements were removed from settings
+    val updatedSettingsContent = settingsFile.readText()
+    val hasIncludeStatements = updatedSettingsContent.lines()
+      .any { line -> line.trim().startsWith("include(") || line.trim().startsWith("include ") }
+    assertThat(hasIncludeStatements).isFalse()
+
+    // Verify check passes after fix
+    val checkResult = project.build(":${CheckSpotlightProjectListTask.NAME}")
+    assertThat(checkResult).task(":${CheckSpotlightProjectListTask.NAME}").succeeded()
+  }
 }

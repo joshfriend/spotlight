@@ -1,6 +1,8 @@
 package com.fueledbycaffeine.spotlight.tasks
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
+import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT
+import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT_KOTLIN
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import org.gradle.api.DefaultTask
@@ -13,9 +15,14 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
 import org.gradle.work.DisableCachingByDefault
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.readLines
+import kotlin.io.path.writeText
 
 /**
  * Task to automatically fix issues in the all-projects.txt file by:
+ * - Migrating any include statements from settings.gradle(.kts) to all-projects.txt
  * - Removing invalid projects (those without build files)
  * - Adding missing projects discovered via BFS
  * - Sorting the result
@@ -37,26 +44,60 @@ public abstract class FixSpotlightProjectListTask : DefaultTask() {
 
   @TaskAction
   internal fun action() {
-    val rootDir = rootDirectory.asFile.get()
-    val allProjects = SpotlightProjectList.allProjects(rootDir.toPath())
-    val listedProjects = allProjects.read()
+    val rootDir = rootDirectory.asFile.get().toPath()
+    val migratedProjects = migrateIncludeStatementsFromSettings(rootDir)
+    val allProjects = SpotlightProjectList.allProjects(rootDir).read() + migratedProjects
+    val validProjects = removeInvalidProjects(allProjects)
+    val finalProjects = addMissingProjects(validProjects)
+    writeSortedProjects(finalProjects)
+    logResults(
+      allProjects.size - validProjects.size,
+      finalProjects.size - validProjects.size + migratedProjects.size,
+    )
+  }
 
-    // Filter out invalid projects (those without build files)
-    val validProjects = listedProjects.filter { it.hasBuildFile }
-    val removedCount = listedProjects.size - validProjects.size
+  /**
+   * Migrates include statements from settings.gradle(.kts) to all-projects.txt.
+   * Returns the list of migrated project paths and removes the include lines from
+   * settings.gradle(.kts).
+   */
+  private fun migrateIncludeStatementsFromSettings(rootDir: Path): Set<GradlePath> {
+    val settingsFile = rootDir.resolve(SETTINGS_SCRIPT).takeIf { it.exists() }
+      ?: rootDir.resolve(SETTINGS_SCRIPT_KOTLIN).takeIf { it.exists() }
+      ?: return emptySet()
 
-    // Use BFS to discover all projects
+    // Split out the include lines from the rest of the settings file
+    val (includeLines, cleanedLines) = settingsFile.readLines()
+      .partition { line -> INCLUDE_PROJECT_PATH.containsMatchIn(line) }
+
+    // Extract project paths from removed include lines
+    val migratedProjects = includeLines.flatMap { line ->
+      INCLUDE_PROJECT_PATH.findAll(line)
+        .map { match -> GradlePath(rootDir, match.groupValues[1]) }
+    }.toSet()
+
+    // Rewrite settings.gradle(.kts) with include lines removed
+    settingsFile.writeText(cleanedLines.joinToString("\n"))
+
+    return migratedProjects
+  }
+
+  private fun removeInvalidProjects(allProjects: Set<GradlePath>): Set<GradlePath> {
+    val validProjects = allProjects.filter { it.hasBuildFile }.toSet()
+    return validProjects
+  }
+
+  private fun addMissingProjects(validProjects: Set<GradlePath>): Set<GradlePath> {
     val discoveredProjects = BreadthFirstSearch.flatten(validProjects)
+    return validProjects + discoveredProjects
+  }
 
-    // Combine valid listed projects with newly discovered projects
-    val allValidProjects = (validProjects + discoveredProjects).toSet()
-
-    // Sort and write back to file
-    val sortedProjectPaths = allValidProjects.map { it.path }.sorted()
+  private fun writeSortedProjects(projects: Set<GradlePath>) {
+    val sortedProjectPaths = projects.map { it.path }.sorted()
     projectsFile.asFile.get().writeText(sortedProjectPaths.joinToString("\n"))
+  }
 
-    // Log what was done
-    val addedCount = allValidProjects.size - validProjects.size
+  private fun logResults(removedCount: Int, addedCount: Int) {
     if (removedCount > 0 || addedCount > 0) {
       logger.lifecycle(
         "Updated ${SpotlightProjectList.ALL_PROJECTS_LOCATION}: " +
