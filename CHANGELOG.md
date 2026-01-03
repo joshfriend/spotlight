@@ -3,7 +3,7 @@
 ### 1.5.3
 * Removed `SpotlightBuildService`
 * IDE plugin add/remove actions now work in the "Project Files" view
-* `:fixAllProjectsFile` task now moves `include`s from `settings.gradle(.kts)` to `all-projects.txt`
+* `:fixAllProjectsFiles` task now moves `include`s from `settings.gradle(.kts)` to `all-projects.txt`
 
 ### 1.5.2
 * Add custom fields to Develocity build scans ("Spotlight Enabled" and "Spotlight Project Count")
