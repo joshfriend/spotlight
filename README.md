@@ -79,6 +79,14 @@ A config file option is provided to configure some pattern matching rules based 
         ":singles-collection"
         // multiple includes can be given for a pattern
       ]
+    },
+    // Extract project paths dynamically using regex capture groups
+    // This example captures the targetProjectPath from `com.android.test` projects
+    // The projectTemplate value can also transform the captured values if needed.
+    {
+      "type": "buildscript-capture-rule",
+      "pattern": "targetProjectPath\\s*=\\s*[\"']([^\"']+)[\"']",
+      "projectTemplate": "$1"
     }
   ]
 }
