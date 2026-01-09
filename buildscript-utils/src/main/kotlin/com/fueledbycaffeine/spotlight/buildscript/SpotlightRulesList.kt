@@ -50,6 +50,7 @@ public class SpotlightRulesList(private val root: Path) {
     Moshi.Builder()
       .add(MoshiSealedJsonAdapterFactory())
       .add(GradlePathAdapter(root))
+      .add(RegexAdapter)
       .addLast(KotlinJsonAdapterFactory())
       .build()
   }
@@ -67,6 +68,12 @@ public class InvalidSpotlightRules(message: String, cause: Throwable) : Exceptio
 private class GradlePathAdapter(private val root: Path) {
   @ToJson fun gradlePathToJson(path: GradlePath): String = path.path
   @FromJson fun gradlePathFromJson(pathString: String): GradlePath = GradlePath(root, pathString)
+}
+
+@Suppress("unused")
+private object RegexAdapter {
+  @ToJson fun regexToJson(regex: Regex): String = regex.pattern
+  @FromJson fun regexFromJson(pattern: String): Regex = pattern.toRegex()
 }
 
 /**

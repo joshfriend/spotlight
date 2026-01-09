@@ -176,31 +176,47 @@ public abstract interface class com/fueledbycaffeine/spotlight/buildscript/graph
 }
 
 public abstract interface class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule : com/fueledbycaffeine/spotlight/buildscript/graph/DependencyRule {
-	public abstract fun getIncludedProjects ()Ljava/util/Set;
+	public abstract fun findMatchingProjects (Ljava/lang/String;Ljava/util/List;Ljava/nio/file/Path;)Ljava/util/Set;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$BuildscriptCaptureRule : com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule {
+	public fun <init> (Lkotlin/text/Regex;Ljava/lang/String;)V
+	public final fun component1 ()Lkotlin/text/Regex;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Lkotlin/text/Regex;Ljava/lang/String;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$BuildscriptCaptureRule;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$BuildscriptCaptureRule;Lkotlin/text/Regex;Ljava/lang/String;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$BuildscriptCaptureRule;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun findMatchingProjects (Ljava/lang/String;Ljava/util/List;Ljava/nio/file/Path;)Ljava/util/Set;
+	public final fun getPattern ()Lkotlin/text/Regex;
+	public final fun getProjectTemplate ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$BuildscriptMatchRule : com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule {
-	public fun <init> (Ljava/lang/String;Ljava/util/Set;)V
-	public final fun component1 ()Ljava/lang/String;
+	public fun <init> (Lkotlin/text/Regex;Ljava/util/Set;)V
+	public final fun component1 ()Lkotlin/text/Regex;
 	public final fun component2 ()Ljava/util/Set;
-	public final fun copy (Ljava/lang/String;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$BuildscriptMatchRule;
-	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$BuildscriptMatchRule;Ljava/lang/String;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$BuildscriptMatchRule;
+	public final fun copy (Lkotlin/text/Regex;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$BuildscriptMatchRule;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$BuildscriptMatchRule;Lkotlin/text/Regex;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$BuildscriptMatchRule;
 	public fun equals (Ljava/lang/Object;)Z
-	public fun getIncludedProjects ()Ljava/util/Set;
-	public final fun getPattern ()Ljava/lang/String;
+	public fun findMatchingProjects (Ljava/lang/String;Ljava/util/List;Ljava/nio/file/Path;)Ljava/util/Set;
+	public final fun getIncludedProjects ()Ljava/util/Set;
+	public final fun getPattern ()Lkotlin/text/Regex;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$ProjectPathMatchRule : com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule {
-	public fun <init> (Ljava/lang/String;Ljava/util/Set;)V
-	public final fun component1 ()Ljava/lang/String;
+	public fun <init> (Lkotlin/text/Regex;Ljava/util/Set;)V
+	public final fun component1 ()Lkotlin/text/Regex;
 	public final fun component2 ()Ljava/util/Set;
-	public final fun copy (Ljava/lang/String;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$ProjectPathMatchRule;
-	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$ProjectPathMatchRule;Ljava/lang/String;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$ProjectPathMatchRule;
+	public final fun copy (Lkotlin/text/Regex;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$ProjectPathMatchRule;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$ProjectPathMatchRule;Lkotlin/text/Regex;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule$ProjectPathMatchRule;
 	public fun equals (Ljava/lang/Object;)Z
-	public fun getIncludedProjects ()Ljava/util/Set;
-	public final fun getPattern ()Ljava/lang/String;
+	public fun findMatchingProjects (Ljava/lang/String;Ljava/util/List;Ljava/nio/file/Path;)Ljava/util/Set;
+	public final fun getIncludedProjects ()Ljava/util/Set;
+	public final fun getPattern ()Lkotlin/text/Regex;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }

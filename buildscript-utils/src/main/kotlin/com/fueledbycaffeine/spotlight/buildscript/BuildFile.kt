@@ -2,8 +2,6 @@ package com.fueledbycaffeine.spotlight.buildscript
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
-import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
 import kotlin.io.path.readLines
 
@@ -72,15 +70,9 @@ private fun computeImplicitDependencies(
   buildscriptContents: List<String>,
   rules: Set<DependencyRule>,
 ): Set<GradlePath> {
-  return rules
-    .filterIsInstance<ImplicitDependencyRule>()
-    .filter { rule ->
-      when (rule) {
-        is BuildscriptMatchRule -> buildscriptContents.any { rule.regex.containsMatchIn(it) }
-        is ProjectPathMatchRule -> rule.regex.containsMatchIn(project.path)
-      }
-    }
-    .flatMapTo(mutableSetOf()) { rule -> rule.includedProjects }
+  return rules.filterIsInstance<ImplicitDependencyRule>()
+    .flatMap { it.findMatchingProjects(project.path, buildscriptContents, project.root) }
+    .toSet()
 }
 
 /**

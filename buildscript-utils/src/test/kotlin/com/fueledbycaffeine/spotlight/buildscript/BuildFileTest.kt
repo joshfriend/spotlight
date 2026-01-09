@@ -5,6 +5,7 @@ import assertk.assertions.containsExactlyInAnyOrder
 import assertk.assertions.isEmpty
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
+import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptCaptureRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
@@ -176,7 +177,7 @@ class BuildFileTest {
     val buildFile = BuildFile(project)
 
     val rules = setOf<ImplicitDependencyRule>(
-      ProjectPathMatchRule(":features:.*", setOf(GradlePath(buildRoot, ":bar"))),
+      ProjectPathMatchRule(Regex(":features:.*"), setOf(GradlePath(buildRoot, ":bar"))),
     )
     assertThat(buildFile.parseDependencies(rules))
       .containsExactlyInAnyOrder(
@@ -202,13 +203,77 @@ class BuildFileTest {
     val buildFile = BuildFile(project)
 
     val rules = setOf<DependencyRule>(
-      BuildscriptMatchRule("id 'com.example.feature'", setOf(GradlePath(buildRoot, ":bar"))),
+      BuildscriptMatchRule(Regex("id 'com.example.feature'"), setOf(GradlePath(buildRoot, ":bar"))),
     )
     assertThat(buildFile.parseDependencies(rules))
       .containsExactlyInAnyOrder(
         GradlePath(buildRoot, ":foo"),
         GradlePath(buildRoot, ":bar"),
       )
+  }
+
+  @Test fun `extracts dependencies from buildscript using capture rule`() {
+    val project = buildRoot.createProject(":macrobenchmark")
+    project.buildFilePath.writeText(
+      """
+      android {
+        targetProjectPath = ":example-app"
+      }
+      """.trimIndent()
+    )
+
+    val rule = BuildscriptCaptureRule(
+      pattern = Regex("""targetProjectPath\s*=\s*["']([^"']+)["']"""),
+      projectTemplate = "$1",
+    )
+    val buildFile = BuildFile(project)
+
+    assertThat(buildFile.parseDependencies(setOf(rule)))
+      .containsExactlyInAnyOrder(
+        GradlePath(buildRoot, ":example-app"),
+      )
+  }
+
+  @Test fun `capture rule with template transformation`() {
+    val project = buildRoot.createProject(":macrobenchmark")
+    project.buildFilePath.writeText(
+      """
+      android {
+        targetProjectPath = ":example-app"
+      }
+      """.trimIndent()
+    )
+
+    val rule = BuildscriptCaptureRule(
+      pattern = Regex("""targetProjectPath\s*=\s*["']([^"']+)["']"""),
+      projectTemplate = "$1-benchmark",
+    )
+    val buildFile = BuildFile(project)
+
+    // Template transforms :example-app to :example-app-benchmark
+    assertThat(buildFile.parseDependencies(setOf(rule)))
+      .containsExactlyInAnyOrder(
+        GradlePath(buildRoot, ":example-app-benchmark"),
+      )
+  }
+
+  @Test fun `capture rule does not match when pattern not found`() {
+    val project = buildRoot.createProject(":app")
+    project.buildFilePath.writeText(
+      """
+      android {
+        namespace 'com.example.app'
+      }
+      """.trimIndent()
+    )
+
+    val rule = BuildscriptCaptureRule(
+      pattern = Regex("""targetProjectPath\s*=\s*["']([^"']+)["']"""),
+      projectTemplate = "$1",
+    )
+    val buildFile = BuildFile(project)
+
+    assertThat(buildFile.parseDependencies(setOf(rule))).isEmpty()
   }
 
   @Test fun `ignores duplicates`() {
