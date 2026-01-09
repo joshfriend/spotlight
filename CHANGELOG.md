@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.5.4
+* Added new `buildscript-capture-rule` rule type that can use regex substitutions to dynamically include projects referenced in a buildscript via non-standard methods.
+
 ### 1.5.3
 * Removed `SpotlightBuildService`
 * IDE plugin add/remove actions now work in the "Project Files" view
