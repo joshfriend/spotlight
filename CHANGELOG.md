@@ -1,6 +1,6 @@
 # Changelog
 
-### Unreleased
+### 1.5.5
 * Add `Settings.applySpotlightConfiguration()` extension to force configuration if Spotlight is applied within another `settingsEvaluated {}` callback
 
 ### 1.5.4
