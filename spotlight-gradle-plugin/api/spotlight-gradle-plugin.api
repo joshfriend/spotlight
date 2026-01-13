@@ -4,6 +4,10 @@ public final class com/fueledbycaffeine/spotlight/SpotlightSettingsPlugin : org/
 	public fun apply (Lorg/gradle/api/initialization/Settings;)V
 }
 
+public final class com/fueledbycaffeine/spotlight/SpotlightSettingsPluginKt {
+	public static final fun applySpotlightConfiguration (Lorg/gradle/api/initialization/Settings;)V
+}
+
 public abstract class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension {
 	public static final field Companion Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension$Companion;
 	public static final field NAME Ljava/lang/String;

@@ -24,56 +24,66 @@ import org.gradle.api.initialization.Settings
 public class SpotlightSettingsPlugin: Plugin<Settings> {
   public override fun apply(settings: Settings): Unit = settings.run {
     // Create the extension
-    val extension = extensions.getSpotlightExtension()
+    extensions.getSpotlightExtension()
     // DSL is not available until then
-    gradle.settingsEvaluated {
-      val includedProjects = SpotlightIncludedProjectsValueSource.of(this, extension).get()
-      include(includedProjects)
+    gradle.settingsEvaluated { applySpotlightConfiguration() }
+  }
+}
 
-      // Report Spotlight metrics to Develocity if available
-      reportToDevelocity(includedProjects)
-    }
-    gradle.rootProject {
-      registerSpotlightLintTasks(it)
-    }
+/**
+ * The actual setup required to configure the plugin.
+ *
+ * It is a separate public method so that other plugins can wrap spotlight and still configure it
+ * properly.
+ * https://github.com/gradle/gradle/issues/17914
+ */
+public fun Settings.applySpotlightConfiguration(): Unit = settings.run {
+  val extension = extensions.getSpotlightExtension()
+  val includedProjects = SpotlightIncludedProjectsValueSource.of(this, extension).get()
+  include(includedProjects)
+
+  // Report Spotlight metrics to Develocity if available
+  reportToDevelocity(includedProjects)
+  gradle.rootProject {
+    registerSpotlightLintTasks(it)
+  }
+}
+
+private fun Settings.registerSpotlightLintTasks(project: Project) {
+  val allProjectsFile = settingsDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
+
+  project.tasks.register(FixSpotlightProjectListTask.NAME, FixSpotlightProjectListTask::class.java) { task ->
+    task.group = "spotlight"
+    task.description = "Auto-fixes issues in ${SpotlightProjectList.ALL_PROJECTS_LOCATION} by removing invalid projects, adding missing ones, and sorting"
+    task.projectsFile.set(allProjectsFile)
+    task.rootDirectory.set(settingsDir)
   }
 
-  private fun Settings.registerSpotlightLintTasks(project: Project) {
-    val allProjectsFile = settingsDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
-
-    project.tasks.register(FixSpotlightProjectListTask.NAME, FixSpotlightProjectListTask::class.java) { task ->
+  val checkSpotlightSort = project.tasks
+    .register(CheckSpotlightProjectListTask.NAME, CheckSpotlightProjectListTask::class.java) { task ->
       task.group = "spotlight"
-      task.description = "Auto-fixes issues in ${SpotlightProjectList.ALL_PROJECTS_LOCATION} by removing invalid projects, adding missing ones, and sorting"
+      task.description = "Checks if ${SpotlightProjectList.ALL_PROJECTS_LOCATION} is set up correctly"
       task.projectsFile.set(allProjectsFile)
       task.rootDirectory.set(settingsDir)
     }
-
-    val checkSpotlightSort = project.tasks
-      .register(CheckSpotlightProjectListTask.NAME, CheckSpotlightProjectListTask::class.java) { task ->
-        task.group = "spotlight"
-        task.description = "Checks if ${SpotlightProjectList.ALL_PROJECTS_LOCATION} is set up correctly"
-        task.projectsFile.set(allProjectsFile)
-        task.rootDirectory.set(settingsDir)
-      }
-    project.pluginManager.withPlugin("base") {
-      project.tasks.named("check") {
-        it.dependsOn(checkSpotlightSort)
-      }
+  project.pluginManager.withPlugin("base") {
+    project.tasks.named("check") {
+      it.dependsOn(checkSpotlightSort)
     }
   }
+}
 
-  private fun Settings.reportToDevelocity(includedProjects: Set<GradlePath>) {
-    val isSpotlightEnabled = isSpotlightEnabled
-    pluginManager.withPlugin("com.gradle.develocity") {
-      extensions.getByType(DevelocityConfiguration::class.java)
-        .buildScan { scan ->
-          // Report values in buildFinished {} so the properties aren't captured as part of configuration cache inputs
-          scan.buildFinished {
-            scan.value("Spotlight Enabled", isSpotlightEnabled.toString())
-            val leafProjects = includedProjects.filter { it.hasBuildFile }
-            scan.value("Spotlight Project Count", leafProjects.size.toString())
-          }
+private fun Settings.reportToDevelocity(includedProjects: Set<GradlePath>) {
+  val isSpotlightEnabled = isSpotlightEnabled
+  pluginManager.withPlugin("com.gradle.develocity") {
+    extensions.getByType(DevelocityConfiguration::class.java)
+      .buildScan { scan ->
+        // Report values in buildFinished {} so the properties aren't captured as part of configuration cache inputs
+        scan.buildFinished {
+          scan.value("Spotlight Enabled", isSpotlightEnabled.toString())
+          val leafProjects = includedProjects.filter { it.hasBuildFile }
+          scan.value("Spotlight Project Count", leafProjects.size.toString())
         }
-    }
+      }
   }
 }
