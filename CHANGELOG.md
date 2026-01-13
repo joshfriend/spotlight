@@ -1,5 +1,8 @@
 # Changelog
 
+### Unreleased
+* Add `Settings.applySpotlightConfiguration()` extension to force configuration if Spotlight is applied within another `settingsEvaluated {}` callback
+
 ### 1.5.4
 * Added new `buildscript-capture-rule` rule type that can use regex substitutions to dynamically include projects referenced in a buildscript via non-standard methods.
 
