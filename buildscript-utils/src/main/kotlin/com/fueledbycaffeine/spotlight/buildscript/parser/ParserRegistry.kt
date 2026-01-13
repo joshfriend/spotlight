@@ -12,7 +12,6 @@ import java.util.ServiceLoader
  *
  * Implementations can use different discovery mechanisms:
  * - ServiceLoader-based discovery ([ServiceLoaderParserRegistry])
- * - IDE-synced parsers ([IdeParserRegistry])
  * - Custom implementations
  */
 public interface ParserRegistry {
@@ -23,7 +22,11 @@ public interface ParserRegistry {
    * @param rules Additional dependency rules to apply
    * @return A [BuildscriptParser] instance, or null if no parser is available
    */
-  public fun findParser(project: GradlePath, rules: Set<DependencyRule>): BuildscriptParser?
+  public fun findParser(
+    project: GradlePath,
+    rules: Set<DependencyRule>,
+    configuration: ParserConfiguration = ParserConfiguration.EMPTY,
+  ): BuildscriptParser?
 }
 
 /**
@@ -37,7 +40,7 @@ public object ServiceLoaderParserRegistry : ParserRegistry {
       BuildscriptParserProvider::class.java.classLoader,
     ).toList().sortedByDescending { it.priority }
   }
-  
+
   /**
    * Find a parser for the given [GradlePath].
    * Providers are checked in priority order (highest first).
@@ -50,7 +53,12 @@ public object ServiceLoaderParserRegistry : ParserRegistry {
    * 
    * Returns null if no provider supports the build file.
    */
-  override fun findParser(project: GradlePath, rules: Set<DependencyRule>): BuildscriptParser? {
-    return ParserSelection.selectParser(providers, rules)
+  override fun findParser(
+    project: GradlePath,
+    rules: Set<DependencyRule>,
+    configuration: ParserConfiguration,
+  ): BuildscriptParser? {
+    val configuredProviders = providers.map { it.configure(configuration) }
+    return ParserSelection.selectParser(configuredProviders, rules)
   }
 }

@@ -3,6 +3,7 @@ package com.fueledbycaffeine.spotlight.idea.gradle
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.parser.BuildscriptParser
+import com.fueledbycaffeine.spotlight.buildscript.parser.ParserConfiguration
 import com.fueledbycaffeine.spotlight.buildscript.parser.ParserRegistry
 
 /**
@@ -19,7 +20,11 @@ class IdeParserRegistry(
   private val parsersService: SpotlightParsersService
 ) : ParserRegistry {
 
-  override fun findParser(project: GradlePath, rules: Set<DependencyRule>): BuildscriptParser? {
+  override fun findParser(
+    project: GradlePath,
+    rules: Set<DependencyRule>,
+    configuration: ParserConfiguration,
+  ): BuildscriptParser? {
     // Keep referencing the synced metadata so it remains observable/useful, but we can't
     // build actual parsers from it in-process.
     val providers = parsersService.providers.value

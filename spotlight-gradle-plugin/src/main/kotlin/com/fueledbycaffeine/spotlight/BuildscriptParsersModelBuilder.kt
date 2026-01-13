@@ -1,6 +1,7 @@
 package com.fueledbycaffeine.spotlight
 
 import com.fueledbycaffeine.spotlight.buildscript.parser.BuildscriptParserProvider
+import com.fueledbycaffeine.spotlight.buildscript.parser.ParserConfiguration
 import com.fueledbycaffeine.spotlight.tooling.BuildscriptParserProviderInfo
 import com.fueledbycaffeine.spotlight.tooling.BuildscriptParsersModel
 import com.fueledbycaffeine.spotlight.tooling.BuildscriptParsersModelImpl
@@ -18,10 +19,18 @@ public object BuildscriptParsersModelBuilder : ToolingModelBuilder {
     modelName == BuildscriptParsersModel::class.java.name
 
   override fun buildAll(modelName: String, project: Project): Any {
+    val config = ParserConfiguration { key ->
+      project.providers.gradleProperty(key)
+        .orElse(project.providers.systemProperty(key))
+        .orNull
+    }
+
     val providers = ServiceLoader.load(
       BuildscriptParserProvider::class.java,
       BuildscriptParserProvider::class.java.classLoader
-    ).sortedByDescending { it.priority }
+    )
+      .map { it.configure(config) }
+      .sortedByDescending { it.priority }
 
     val providerInfo = providers.map {
       BuildscriptParserProviderInfo(

@@ -48,4 +48,12 @@ public interface BuildscriptParserProvider : Serializable {
    */
   public val mode: ParserMode
     get() = REPLACE
+
+  /**
+   * Configure this provider with a runtime configuration source.
+   *
+   * Default implementation is a no-op and returns this provider.
+   * Providers that need configuration should override this and return a configured instance.
+   */
+  public fun configure(configuration: ParserConfiguration): BuildscriptParserProvider = this
 }

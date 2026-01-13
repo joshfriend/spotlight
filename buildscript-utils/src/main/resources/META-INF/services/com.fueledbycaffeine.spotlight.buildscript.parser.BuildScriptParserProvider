@@ -1,1 +1,2 @@
+com.fueledbycaffeine.spotlight.buildscript.parser.PropertyExpandingBuildscriptParserProvider
 com.fueledbycaffeine.spotlight.buildscript.parser.RegexBuildscriptParserProvider

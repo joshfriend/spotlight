@@ -12,6 +12,12 @@ import java.util.ServiceLoader
  */
 public object ParserContext {
   private val customRegistry = ThreadLocal<ParserRegistry?>()
+  private val customConfiguration = ThreadLocal<ParserConfiguration?>()
+
+  /**
+   * Current parser configuration for the calling thread.
+   */
+  public fun configuration(): ParserConfiguration = customConfiguration.get() ?: ParserConfiguration.EMPTY
 
   /**
    * Find a parser for the given project.
@@ -21,7 +27,7 @@ public object ParserContext {
    */
   public fun findParser(project: GradlePath, rules: Set<DependencyRule>): BuildscriptParser? {
     val registry = customRegistry.get() ?: ServiceLoaderParserRegistry
-    return registry.findParser(project, rules)
+    return registry.findParser(project, rules, configuration())
   }
 
   /**
@@ -37,15 +43,18 @@ public object ParserContext {
    */
   public fun <T> parserContext(
     registry: ParserRegistry?,
+    configuration: ParserConfiguration? = null,
     block: () -> T
   ): T {
     val oldRegistry = customRegistry.get()
+    val oldConfiguration = customConfiguration.get()
     try {
       customRegistry.set(registry)
+      customConfiguration.set(configuration)
       return block()
     } finally {
       customRegistry.set(oldRegistry)
+      customConfiguration.set(oldConfiguration)
     }
   }
 }
-

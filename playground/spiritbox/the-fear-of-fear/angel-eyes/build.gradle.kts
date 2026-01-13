@@ -1,0 +1,2 @@
+plugins { `java-library` }
+
