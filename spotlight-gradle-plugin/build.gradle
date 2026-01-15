@@ -101,7 +101,7 @@ functionalTestSourceSet.compileClasspath += main.output + configurations["testRu
 functionalTestSourceSet.runtimeClasspath += functionalTestSourceSet.output + functionalTestSourceSet.compileClasspath
 
 dependencies {
-  implementation project(':buildscript-utils')
+  api project(':buildscript-utils')
 
   compileOnly(libs.develocity)
 

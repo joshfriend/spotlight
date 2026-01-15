@@ -2,25 +2,24 @@ package com.fueledbycaffeine.spotlight.idea.ui
 
 import com.fueledbycaffeine.spotlight.idea.SpotlightBundle
 import com.fueledbycaffeine.spotlight.idea.SpotlightProjectService
+import com.fueledbycaffeine.spotlight.idea.gradle.SpotlightGradleProjectsService
 import com.fueledbycaffeine.spotlight.idea.spotlightService
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.wm.StatusBar
 import com.intellij.openapi.wm.StatusBarWidget
 import com.intellij.openapi.wm.StatusBarWidgetFactory
 import com.intellij.util.Consumer
-import java.awt.Component
-import java.awt.event.MouseEvent
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.withContext
+import java.awt.Component
+import java.awt.event.MouseEvent
 
 private const val ID = "com.fueledbycaffeine.spotlight"
 
@@ -61,46 +60,64 @@ private class SpotlightStatusBarWidget(
   override fun install(statusBar: StatusBar) {
     this.statusBar = statusBar
 
-    // start collecting service state
+    // Combine both data sources:
+    // - Use Gradle-synced projects (authoritative) when available
+    // - Fall back to file-based projects when sync hasn't completed or failed
     cs.launch {
-      project.service<SpotlightProjectService>()
-        .ideProjects
-        .map { it.size }
+      val gradleService = project.service<SpotlightGradleProjectsService>()
+      val projectService = project.service<SpotlightProjectService>()
+
+      combine(
+        gradleService.includedProjects,
+        projectService.ideProjects
+      ) { gradleSynced, fileBased ->
+        // Prefer Gradle-synced projects if available, otherwise use file-based
+        if (gradleSynced.isNotEmpty()) gradleSynced.size else fileBased.size
+      }
         .collectLatest { count ->
-          ideProjectsCount = count
-          // must update on EDT; VFS events already on EDT but collection may not be
-          withContext(Dispatchers.Main) { statusBar.updateWidget(ID()) }
+          // Update count and text atomically
+          // Must happen on EDT for UI updates
+          if (ApplicationManager.getApplication().isDispatchThread) {
+            updateCountAndText(count)
+          } else {
+            ApplicationManager.getApplication().invokeLater {
+              updateCountAndText(count)
+            }
+          }
         }
     }
+  }
+
+  private fun updateCountAndText(count: Int) {
+    ideProjectsCount = count
+    statusBar?.updateWidget(ID())
   }
 
   override fun ID(): String = ID
 
   override fun getPresentation(): StatusBarWidget.WidgetPresentation = this
 
+  override fun getText(): String = SpotlightBundle.message(
+    when (ideProjectsCount) {
+      0 -> "statusbar.widget.text.inactive"
+      else -> "statusbar.widget.text.active"
+    }
+  )
+
   override fun getTooltipText(): String {
     return SpotlightBundle.message("statusbar.widget.tooltip", ideProjectsCount)
   }
 
-  override fun getClickConsumer(): Consumer<MouseEvent>? {
+  override fun getClickConsumer(): Consumer<MouseEvent> {
     return Consumer {
       // Open ide-projects.txt
       project.spotlightService.openIdeProjectsInEditor()
     }
   }
 
-  override fun getText(): @NlsContexts.Label String {
-    return SpotlightBundle.message(
-      if (ideProjectsCount > 0) {
-        "statusbar.widget.text.active"
-      } else {
-        "statusbar.widget.text.inactive"
-      }
-    )
-  }
+  override fun getAlignment(): Float = Component.LEFT_ALIGNMENT
 
-  override fun getAlignment(): Float {
-    return Component.LEFT_ALIGNMENT
+  override fun dispose() {
+    job.cancel()
   }
-
 }

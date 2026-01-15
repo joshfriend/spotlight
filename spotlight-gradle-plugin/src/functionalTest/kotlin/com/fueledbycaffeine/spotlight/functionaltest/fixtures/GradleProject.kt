@@ -2,9 +2,9 @@ package com.fueledbycaffeine.spotlight.functionaltest.fixtures
 
 import com.autonomousapps.kit.GradleBuilder
 import com.autonomousapps.kit.GradleProject
+import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightModel
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.model.gradle.BasicGradleProject
 import org.gradle.util.GradleVersion
 import java.io.File
 
@@ -29,11 +29,16 @@ fun GradleProject.setGradleProperties(vararg props: Pair<String, String>) {
     })
 }
 
+interface ToolingResult {
+  val stdout: String
+  val stderr: String
+}
+
 data class SyncResult(
-  val projects: List<BasicGradleProject>,
-  val stdout: String,
-  val stderr: String,
-)
+  val model: SpotlightModel,
+  override val stdout: String,
+  override val stderr: String,
+): ToolingResult
 
 fun GradleProject.sync(): SyncResult = sync(gradleVersion)
 
@@ -44,13 +49,13 @@ fun GradleProject.sync(gradleVersion: GradleVersion): SyncResult =
     .connect().use {
       val stdout = TeeOutputStream(System.out)
       val stderr = TeeOutputStream(System.err)
-      val projects = it.action(GetIncludedProjectsBuildAction())
+      val model = it.model(SpotlightModel::class.java)
         .setStandardOutput(stdout)
         .setStandardError(stderr)
         .addArguments("--info")
         .addJvmArguments("-Didea.sync.active=true")
-        .run()
+        .get()
       stdout.close()
       stderr.close()
-      SyncResult(projects, stdout.output, stderr.output)
+      SyncResult(model, stdout.output, stderr.output)
     }
