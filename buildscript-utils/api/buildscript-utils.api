@@ -234,6 +234,10 @@ public final class com/fueledbycaffeine/spotlight/buildscript/graph/TypeSafeProj
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightModel : java/io/Serializable {
+	public abstract fun getIncludedProjectPaths ()Ljava/util/Set;
+}
+
 public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules {
 	public static final field Companion Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules$Companion;
 	public fun <init> ()V

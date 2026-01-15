@@ -9,6 +9,7 @@ import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList.Companion.S
 import com.fueledbycaffeine.spotlight.buildscript.computeSpotlightRules
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightRules
+import com.fueledbycaffeine.spotlight.idea.gradle.SpotlightGradleProjectsService
 import com.fueledbycaffeine.spotlight.idea.utils.vfsEventsFlow
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -37,7 +38,7 @@ class SpotlightProjectService(
 ) : Disposable {
 
   private val rootDir = Path.of(project.basePath!!)
-
+  private val gradleProjectsService = SpotlightGradleProjectsService.getInstance(project)
   private val allProjectsList = SpotlightProjectList.allProjects(rootDir)
   private val _allProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
   val allProjects: StateFlow<Set<GradlePath>> = _allProjects
@@ -78,12 +79,19 @@ class SpotlightProjectService(
     withContext(Dispatchers.IO) {
       when (changeType) {
         SpotlightFileChangeType.IDE_PROJECTS -> {
+          // When ide-projects.txt changes, the Gradle sync results become stale
+          // (they were based on the old configuration). Clear them to fall back to file-based mode.
+          gradleProjectsService.clearProjects()
+
           val paths = ideProjectsList.read()
           val currentRules = rules.value
           val implicitRules = currentRules.implicitRules
           val ruleSet =
             computeSpotlightRules(rootDir, project.name, implicitRules) { allProjects.value }
+
+          // Use default ServiceLoader-based discovery (built-in parsers)
           val allPaths = BreadthFirstSearch.flatten(paths, ruleSet)
+
           _ideProjects.emit(allPaths)
         }
 
@@ -93,6 +101,10 @@ class SpotlightProjectService(
         }
 
         SpotlightFileChangeType.RULES -> {
+          // When rules change, the set of projects included in the next sync might differ.
+          // Clear Gradle projects to fall back to file-based mode until next sync.
+          gradleProjectsService.clearProjects()
+
           // Read the rules once and re-read other lists
           rules.emit(rulesList.read())
           // Read ALL_PROJECTS first so IDE_PROJECTS can resolve glob patterns against it

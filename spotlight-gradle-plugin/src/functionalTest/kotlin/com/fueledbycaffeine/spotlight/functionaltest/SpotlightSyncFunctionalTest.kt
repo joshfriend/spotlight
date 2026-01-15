@@ -28,7 +28,7 @@ class SpotlightSyncFunctionalTest {
 
     // Then
     val allProjects = project.allProjects.readLines() + ":"
-    val projectsSynced = syncResult.projects.map { it.path }
+    val projectsSynced = syncResult.model.includedProjectPaths
     assertThat(projectsSynced).containsExactlyElementsIn(allProjects)
     assertThat(syncResult.stdout).contains("gradle/ide-projects.txt was missing or empty, including all projects")
   }
@@ -44,7 +44,7 @@ class SpotlightSyncFunctionalTest {
 
     // Then
     val allProjects = project.allProjects.readLines() + ":"
-    val projectsSynced = syncResult.projects.map { it.path }
+    val projectsSynced = syncResult.model.includedProjectPaths
     assertThat(projectsSynced).containsExactlyElementsIn(allProjects)
     assertThat(syncResult.stdout).contains("gradle/ide-projects.txt was missing or empty, including all projects")
   }
@@ -66,7 +66,7 @@ class SpotlightSyncFunctionalTest {
       ":rotoscope:hysteria",
       ":rotoscope:sew-me-up",
     )
-    val projectsSynced = syncResult.projects.map { it.path }
+    val projectsSynced = syncResult.model.includedProjectPaths
     assertThat(projectsSynced).containsExactlyElementsIn(expectedProjects)
     assertThat(syncResult.stdout).contains("gradle/ide-projects.txt matches 1 targets")
   }
@@ -82,7 +82,7 @@ class SpotlightSyncFunctionalTest {
 
     // Then
     val allProjects = project.allProjects.readLines() + ":"
-    val projectsSynced = syncResult.projects.map { it.path }
+    val projectsSynced = syncResult.model.includedProjectPaths
     assertThat(projectsSynced).containsExactlyElementsIn(allProjects)
     assertThat(syncResult.configurationCacheStored).isTrue()
     val ccReport = syncResult.ccReport()
@@ -107,7 +107,7 @@ class SpotlightSyncFunctionalTest {
       ":rotoscope:hysteria",
       ":rotoscope:sew-me-up",
     )
-    val projectsSynced = syncResult.projects.map { it.path }
+    val projectsSynced = syncResult.model.includedProjectPaths
     assertThat(projectsSynced).containsExactlyElementsIn(expectedProjects)
     assertThat(syncResult.stdout).contains("gradle/ide-projects.txt matches 1 targets")
     assertThat(syncResult.configurationCacheStored).isTrue()
@@ -133,7 +133,7 @@ class SpotlightSyncFunctionalTest {
       ":rotoscope:hysteria",
       ":rotoscope:sew-me-up",
     )
-    val projectsSynced = syncResult.projects.map { it.path }
+    val projectsSynced = syncResult.model.includedProjectPaths
     assertThat(projectsSynced).containsExactlyElementsIn(expectedProjects)
     assertThat(syncResult.stdout).contains("gradle/ide-projects.txt matches 3 targets")
     assertThat(syncResult.configurationCacheStored).isTrue()

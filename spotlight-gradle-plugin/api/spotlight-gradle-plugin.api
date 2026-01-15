@@ -1,5 +1,5 @@
-public final class com/fueledbycaffeine/spotlight/SpotlightSettingsPlugin : org/gradle/api/Plugin {
-	public fun <init> ()V
+public abstract class com/fueledbycaffeine/spotlight/SpotlightSettingsPlugin : org/gradle/api/Plugin {
+	public fun <init> (Lorg/gradle/tooling/provider/model/ToolingModelBuilderRegistry;)V
 	public synthetic fun apply (Ljava/lang/Object;)V
 	public fun apply (Lorg/gradle/api/initialization/Settings;)V
 }
@@ -36,6 +36,13 @@ public abstract class com/fueledbycaffeine/spotlight/tasks/FixSpotlightProjectLi
 }
 
 public final class com/fueledbycaffeine/spotlight/tasks/FixSpotlightProjectListTask$Companion {
+}
+
+public final class com/fueledbycaffeine/spotlight/tooling/SpotlightModelBuilder : org/gradle/tooling/provider/model/ToolingModelBuilder {
+	public fun <init> ()V
+	public fun buildAll (Ljava/lang/String;Lorg/gradle/api/Project;)Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightModel;
+	public synthetic fun buildAll (Ljava/lang/String;Lorg/gradle/api/Project;)Ljava/lang/Object;
+	public fun canBuild (Ljava/lang/String;)Z
 }
 
 public final class com/fueledbycaffeine/spotlight/utils/SpotlightProperties {

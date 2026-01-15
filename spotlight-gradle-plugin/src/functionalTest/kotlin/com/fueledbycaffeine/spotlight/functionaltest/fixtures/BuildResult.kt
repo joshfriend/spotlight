@@ -163,15 +163,15 @@ val BuildResult.configurationCacheUpdated: Boolean get() {
   return output.lines().any { "Configuration cache entry updated" in it }
 }
 
-val SyncResult.configurationCacheReused: Boolean get() {
+val ToolingResult.configurationCacheReused: Boolean get() {
   return stdout.lines().any { "Configuration cache entry reused" in it }
 }
 
-val SyncResult.configurationCacheStored: Boolean get() {
+val ToolingResult.configurationCacheStored: Boolean get() {
   return stdout.lines().any { "Configuration cache entry stored" in it }
 }
 
-val SyncResult.configurationCacheUpdated: Boolean get() {
+val ToolingResult.configurationCacheUpdated: Boolean get() {
   return stdout.lines().any { "Configuration cache entry updated" in it }
 }
 
@@ -181,7 +181,7 @@ val BuildResult.configurationCacheInvalidationReason: String get() {
   return reason
 }
 
-val SyncResult.configurationCacheInvalidationReason: String get() {
+val ToolingResult.configurationCacheInvalidationReason: String get() {
   val match = stdout.lines().firstNotNullOf { CC_INVALIDATION_REASON.find(it) }
   val (reason) = match.destructured
   return reason
