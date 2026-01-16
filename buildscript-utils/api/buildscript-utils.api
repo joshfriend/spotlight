@@ -256,3 +256,31 @@ public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRu
 	public final fun getEMPTY ()Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
 }
 
+public abstract interface class com/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParser {
+	public abstract fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/impl/BuildscriptMatchingParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParser {
+	public fun <init> (Ljava/util/Set;)V
+	public fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
+}
+
+public abstract interface class com/fueledbycaffeine/spotlight/buildscript/parser/impl/BuildscriptParserProvider {
+	public abstract fun getParser ()Lcom/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParser;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/impl/PathMatchingParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParser {
+	public fun <init> (Ljava/util/Set;)V
+	public fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/impl/RegexBuildscriptParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParser {
+	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/parser/impl/RegexBuildscriptParser;
+	public fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/parser/impl/RegexBuildscriptParser$Provider : com/fueledbycaffeine/spotlight/buildscript/parser/impl/BuildscriptParserProvider {
+	public fun <init> ()V
+	public fun getParser ()Lcom/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParser;
+}
+
