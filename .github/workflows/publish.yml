@@ -16,11 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       is-snapshot: ${{ steps.check_version.outputs.is_snapshot }}
+      version: ${{ steps.check_version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - id: check_version
         run: |
           VERSION_VALUE=$(grep '^VERSION_NAME=' gradle.properties | cut -d'=' -f2 | xargs)
+          echo "version=$VERSION_VALUE" >> "$GITHUB_OUTPUT"
           if [[ "$VERSION_VALUE" == *"-SNAPSHOT" ]]; then
             echo "is_snapshot=true" >> "$GITHUB_OUTPUT"
           else
@@ -117,3 +119,74 @@ jobs:
         run: ./gradlew :spotlight-idea-plugin:publishPlugin -PbuildIdePlugin=true
         env:
           JETBRAINS_MARKETPLACE_TOKEN: ${{ secrets.JETBRAINS_MARKETPLACE_TOKEN }}
+
+  create-github-release:
+    needs: prepare-release
+    if: >
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.repository == 'joshfriend/spotlight' &&
+        needs.prepare-release.outputs.is-snapshot == 'false'
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if tag exists and extract changelog
+        id: changelog
+        run: |
+          VERSION="${{ needs.prepare-release.outputs.version }}"
+          TAG_NAME="v$VERSION"
+
+          # Check if a tag exists for this version
+          if ! git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "No tag found for version $VERSION, skipping release creation"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+
+          # Extract the changelog section for this version
+          # This awk script finds the version header and extracts content until the next version header
+          CHANGELOG_ENTRY=$(awk -v version="$VERSION" '
+            /^### / {
+              if (found) exit
+              if ($0 ~ "### " version) {
+                found=1
+                next
+              }
+            }
+            found { print }
+          ' CHANGELOG.md | sed '/^$/d')
+
+          if [ -z "$CHANGELOG_ENTRY" ]; then
+            echo "No changelog entry found for version $VERSION"
+            CHANGELOG_ENTRY="Release $VERSION"
+          fi
+
+          # Output the changelog entry for the release notes
+          {
+            echo "notes<<EOF"
+            echo "$CHANGELOG_ENTRY"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        if: steps.changelog.outputs.skip == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if release already exists
+          if gh release view "v${{ needs.prepare-release.outputs.version }}" >/dev/null 2>&1; then
+            echo "Release already exists, skipping"
+            exit 0
+          fi
+
+          gh release create "v${{ needs.prepare-release.outputs.version }}" \
+            --title "v${{ needs.prepare-release.outputs.version }}" \
+            --notes "${{ steps.changelog.outputs.notes }}"
