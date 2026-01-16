@@ -39,3 +39,17 @@ jobs:
 
     - name: Functional Tests
       run: ./gradlew functionalTest -DgradleVersion=${{ matrix.gradle_version }}
+
+  functionalTest-results:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    name: Functional Tests Results
+    needs: [functionalTest]
+    steps:
+      - run: |
+          result="${{ needs.functionalTest.result }}"
+          if [[ $result == "success" || $result == "skipped" ]]; then
+            exit 0
+          else
+            exit 1
+          fi
