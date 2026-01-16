@@ -18,8 +18,8 @@ jobs:
       matrix:
         gradle_version:
           - 8.8
-          - 8.12.1
-          - 9.2.0
+          - 8.14.2
+          - 9.2.1
     runs-on: ubuntu-latest
     permissions:
       contents: read
