@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.5.6
+* IDE plugin reads list of projects from spotlight gradle plugin model builder after sync completes for more accurate project count and indexing settings.
+
 ### 1.5.5
 * Add `Settings.applySpotlightConfiguration()` extension to force configuration if Spotlight is applied within another `settingsEvaluated {}` callback
 
