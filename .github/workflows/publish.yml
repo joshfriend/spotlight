@@ -31,7 +31,7 @@ jobs:
     if: >
       ${{
         github.event.workflow_run.conclusion == 'success' &&
-        github.repository == 'joshfriend/spotlight-gradle-plugin'
+        github.repository == 'joshfriend/spotlight'
       }}
     runs-on: ubuntu-latest
     permissions:
@@ -63,7 +63,7 @@ jobs:
     if: >
       ${{
         github.event.workflow_run.conclusion == 'success' &&
-        github.repository == 'joshfriend/spotlight-gradle-plugin' &&
+        github.repository == 'joshfriend/spotlight' &&
         needs.prepare-release.outputs.is-snapshot == 'false'
       }}
     runs-on: ubuntu-latest
@@ -95,7 +95,7 @@ jobs:
     if: >
       ${{
         github.event.workflow_run.conclusion == 'success' &&
-        github.repository == 'joshfriend/spotlight-gradle-plugin'
+        github.repository == 'joshfriend/spotlight'
       }}
     runs-on: ubuntu-latest
     permissions:
