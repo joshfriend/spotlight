@@ -1,4 +1,5 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
   id 'java'
@@ -11,6 +12,18 @@ repositories {
   mavenCentral()
   intellijPlatform {
     defaultRepositories()
+  }
+}
+
+kotlin {
+  compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_21)
+  }
+}
+
+java {
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(21))
   }
 }
 
