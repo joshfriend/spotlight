@@ -153,7 +153,8 @@ jobs:
 
           # Extract the changelog section for this version
           # This awk script finds the version header and extracts content until the next version header
-          CHANGELOG_ENTRY=$(awk -v version="$VERSION" '
+          # Use a temporary file to avoid shell interpretation of special characters
+          awk -v version="$VERSION" '
             /^### / {
               if (found) exit
               if ($0 ~ "### " version) {
@@ -162,17 +163,17 @@ jobs:
               }
             }
             found { print }
-          ' CHANGELOG.md | sed '/^$/d')
+          ' CHANGELOG.md | sed '/^$/d' > /tmp/changelog.txt
 
-          if [ -z "$CHANGELOG_ENTRY" ]; then
+          if [ ! -s /tmp/changelog.txt ]; then
             echo "No changelog entry found for version $VERSION"
-            CHANGELOG_ENTRY="Release $VERSION"
+            echo "Release $VERSION" > /tmp/changelog.txt
           fi
 
           # Output the changelog entry for the release notes
           {
             echo "notes<<EOF"
-            echo "$CHANGELOG_ENTRY"
+            cat /tmp/changelog.txt
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
