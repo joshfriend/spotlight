@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.6.0
+* Custom parsing implementations may be provided to Spotlight via SPI by implementing `BuildscriptParserProvider`
+
 ### 1.5.6
 * IDE plugin reads list of projects from spotlight gradle plugin model builder after sync completes for more accurate project count and indexing settings.
 
