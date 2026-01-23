@@ -3,12 +3,13 @@ package com.fueledbycaffeine.spotlight.idea.notification
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.idea.SpotlightBundle
 import com.fueledbycaffeine.spotlight.idea.SpotlightProjectService
-import com.fueledbycaffeine.spotlight.idea.spotlightService
+import com.fueledbycaffeine.spotlight.idea.gradle.SpotlightGradleProjectsService
 import com.fueledbycaffeine.spotlight.idea.utils.toGradlePath
 import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
@@ -22,27 +23,34 @@ import javax.swing.JComponent
 /**
  * Shows a banner in editors for files that belong to projects not currently indexed by Spotlight
  */
-class ProjectStaleNotificationProvider(project: Project) : EditorNotificationProvider {
+class ProjectStaleNotificationProvider(project: Project) : EditorNotificationProvider, DumbAware {
 
   private val spotlightService = project.service<SpotlightProjectService>()
+  private val gradleProjectsService = project.service<SpotlightGradleProjectsService>()
 
   override fun collectNotificationData(
     project: Project,
     file: VirtualFile
   ): Function<in FileEditor, out JComponent?>? {
-    // Check if gradle/ide-projects.txt exists - if not, don't show banners
-    val ideProjects = spotlightService.ideProjects.value
-    if (ideProjects.isEmpty()) {
-      // No ide-projects.txt file or it's empty, so no banners needed
-      return null
-    }
-
     // Get the gradle path for this file
     val gradlePath = file.toGradlePath(project) ?: return null
 
-    // Check if this file's project is in the all-projects list but not in ide-projects
+    // Prefer gradle state over spotlight service state if available
+    val hasGradleState = gradleProjectsService.hasSyncedProjects
+    val indexedProjects = if (hasGradleState) {
+      gradleProjectsService.includedProjects.value
+    } else {
+      val ideProjects = spotlightService.ideProjects.value
+      if (ideProjects.isEmpty()) {
+        // No ide-projects.txt file or it's empty, so no banners needed
+        return null
+      }
+      ideProjects
+    }
+
+    // Check if this file's project is in the all-projects list but not indexed
     val allProjects = spotlightService.allProjects.value
-    if (gradlePath !in allProjects || gradlePath in ideProjects) {
+    if (gradlePath !in allProjects || gradlePath in indexedProjects) {
       // Either not a valid project or already indexed
       return null
     }
