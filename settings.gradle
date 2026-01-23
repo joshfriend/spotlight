@@ -8,7 +8,7 @@ pluginManagement {
     id 'com.autonomousapps.plugin-best-practices-plugin' version '0.10'
     id 'org.jetbrains.kotlinx.binary-compatibility-validator' version '0.17.0'
     id 'com.gradle.plugin-publish' version '1.3.1'
-    id 'com.vanniktech.maven.publish' version '0.35.0'
+    id 'com.vanniktech.maven.publish' version '0.36.0'
     id 'com.android.lint' version '9.0.0'
     id 'org.jetbrains.intellij.platform' version '2.10.5'
   }

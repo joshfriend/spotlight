@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.portal.DeploymentState
+
 plugins {
   id 'java-gradle-plugin'
   id 'com.gradle.plugin-publish'
@@ -27,7 +29,7 @@ gradlePlugin {
 }
 
 mavenPublishing {
-  publishToMavenCentral(true)
+  publishToMavenCentral(true, DeploymentState.VALIDATED)
   if (providers.gradleProperty("signingInMemoryKey").isPresent()) {
     signAllPublications()
   }
