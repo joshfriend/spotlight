@@ -115,6 +115,59 @@ Spotlight provides several tasks for managing its config files:
   * Adds missing projects discovered via dependency graph
   * Sorts the file alphabetically
 
+### Custom Parsers
+Spotlight uses an extensible parser system to extract project dependencies from your buildscripts. By default, it uses a regex-based parser (`RegexBuildscriptParser`), but you can provide your own parser implementations for more sophisticated parsing strategies (e.g., AST-based parsing, PSI-based parsing, or custom DSL support).
+
+Custom parsers are discovered via Java's [ServiceLoader][serviceloader] mechanism. All parsers are **additive** and their results are combined together.
+
+**1. Implement the `BuildscriptParser` interface:**
+
+```kotlin
+package com.example.spotlight
+
+object MyCustomParser : BuildscriptParser {
+  override fun parse(
+    project: GradlePath,
+    rules: Set<DependencyRule>
+  ): Set<GradlePath> {
+    // Your parsing logic here
+    // Return the set of project dependencies found
+    return emptySet()
+  }
+}
+```
+
+**2. Implement the `BuildscriptParserProvider` interface:**
+
+```kotlin
+package com.example.spotlight
+
+class Provider : BuildscriptParserProvider {
+  override fun getParser(): BuildscriptParser = MyCustomParser
+}
+```
+
+**3. Register your provider via `ServiceLoader`:**
+
+Create a file at `src/main/resources/META-INF/services/com.fueledbycaffeine.spotlight.buildscript.parser.impl.BuildscriptParserProvider` with the fully qualified class name of your provider:
+
+```
+com.example.spotlight.MyCustomParserProvider
+```
+
+**4. Add your parser library to your buildscript dependencies (or the classpath of whatever else is running buildscript-utils):**
+
+```kotlin
+// settings.gradle(.kts)
+buildscript {
+  dependencies {
+    classpath("com.example:spotlight-custom-parser:1.0.0")
+  }
+}
+```
+
+Your custom parser will now be automatically discovered and run alongside the built-in parsers.
+
 ## Differences from Focus
 Unlike [Focus][focus], which configures your gradle project to select which projects get synced using the `:createFocusSettings` task provided by the plugin, Spotlight relies on parsing of your buildscripts with regexes to compute the dependency graph, which is much faster.
 
@@ -155,3 +208,4 @@ You can still add `include`s to `settings.gradle(.kts)` in your build outside of
 [shrinking-elephants]: https://engineering.block.xyz/blog/shrinking-elephants
 [typesafe-project-accessors]: https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html#sec:type-safe-project-accessors
 [kts-accessors-bad]: https://www.zacsweers.dev/dont-use-type-safe-project-accessors-with-kotlin-gradle-dsl/
+[serviceloader]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/ServiceLoader.html
