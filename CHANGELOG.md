@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.6.1
+* Improved behavior of showing the IDE plugin notification banner for unloaded projects
+
 ### 1.6.0
 * Custom parsing implementations may be provided to Spotlight via SPI by implementing `BuildscriptParserProvider`
 
