@@ -1,5 +1,8 @@
 # Changelog
 
+### 1.6.2
+* Update MoshiX version
+
 ### 1.6.1
 * Improved behavior of showing the IDE plugin notification banner for unloaded projects
 
