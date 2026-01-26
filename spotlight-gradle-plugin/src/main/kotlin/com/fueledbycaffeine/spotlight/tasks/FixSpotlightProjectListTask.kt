@@ -8,8 +8,8 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
@@ -38,8 +38,7 @@ public abstract class FixSpotlightProjectListTask : DefaultTask() {
   @get:PathSensitive(PathSensitivity.RELATIVE)
   internal abstract val projectsFile: RegularFileProperty
 
-  @get:InputDirectory
-  @get:PathSensitive(PathSensitivity.RELATIVE)
+  @get:Internal
   internal abstract val rootDirectory: DirectoryProperty
 
   @TaskAction
