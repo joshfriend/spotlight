@@ -326,6 +326,41 @@ class SpotlightBuildFunctionalTest {
   }
 
   @Test
+  fun `can run task from project with settings file that is not an included build`() {
+    // Given: Create a project that has settings.gradle but modules are in main build
+    val project = SpiritboxProject().build()
+
+    // Add a standalone-project with its own settings.gradle
+    val standaloneDir = project.rootDir.resolve("standalone-project")
+    standaloneDir.mkdirs()
+    standaloneDir.resolve("settings.gradle").writeText("""
+      rootProject.name = 'standalone-project'
+    """.trimIndent())
+
+    // Add a module under standalone-project
+    val moduleDir = standaloneDir.resolve("module")
+    moduleDir.mkdirs()
+    moduleDir.resolve("build.gradle").writeText("""
+      plugins {
+        id 'java-library'
+      }
+    """.trimIndent())
+
+    // Also include this module in the main build
+    project.allProjects.appendText("\n:standalone-project:module\n")
+
+    // When: Run a task on the module
+    val result = project.build(":standalone-project:module:assemble")
+
+    // Then: Task should succeed and project should be included
+    assertThat(result).task(":standalone-project:module:assemble").succeeded()
+    val includedProjects = result.includedProjects()
+    assertThat(includedProjects).contains(":standalone-project:module")
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(SPOTLIGHT_INPUTS)
+  }
+
+  @Test
   fun `can run a task with set of target overrides`() {
     // Given
     val project = SpiritboxProject().build()

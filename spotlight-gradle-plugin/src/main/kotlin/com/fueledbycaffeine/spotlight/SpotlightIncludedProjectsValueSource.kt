@@ -18,8 +18,11 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.initialization.DefaultSettings
+import java.io.File
 import java.nio.file.Path
 import kotlin.time.measureTimedValue
 
@@ -77,9 +80,15 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
       }
     }
 
-    // Composite builds may contain projects from other builds besides this one. Included builds cannot have `include()`
-    // called for their projects again so we have to filter those from spotlight
-    val mainBuildProjects = projects.filter { it.isFromMainBuild }.toSet()
+    // Composite builds may contain projects from other builds besides this one. Included builds
+    // cannot have `include()` called for their projects again so we have to filter those out.
+    val includedBuildRoots = parameters.includedBuildRoots.get()
+    val mainBuildProjects = projects.filterNot { project ->
+      includedBuildRoots.any { includedRoot ->
+        project.projectDir.startsWith(includedRoot.toPath())
+      }
+    }.toSet()
+
     logger.lifecycle("Spotlight included {} projects", mainBuildProjects.size)
     return mainBuildProjects
   }
@@ -119,6 +128,7 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
     val taskRequests: ListProperty<TaskExecutionRequest>
     val rootProjectName: Property<String>
     val targetsOverride: Property<String>
+    val includedBuildRoots: SetProperty<File>
   }
 
   companion object {
@@ -134,6 +144,11 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
         it.parameters.targetsOverride.set(spotlightOptions.targetsOverride)
         it.parameters.ideSync.set(settings.isIdeSync)
         it.parameters.spotlightEnabled.set(settings.isSpotlightEnabled)
+        it.parameters.includedBuildRoots.set(
+          // Uses internal api DefaultSettings because Gradle.getIncludedBuilds() always throws
+          // "Included builds are not yet available for this build." even in settingsEvaluated
+          (settings as DefaultSettings).includedBuilds.map { build -> build.rootDir }
+        )
       }
     }
   }

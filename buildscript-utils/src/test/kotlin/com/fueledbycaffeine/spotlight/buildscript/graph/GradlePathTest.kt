@@ -122,17 +122,6 @@ class GradlePathTest {
     assertThat(root.isRootProject).isTrue()
   }
 
-  @Test fun `can tell if it is from included build`() {
-    val buildLogic = GradlePath(buildRoot, ":build-logic")
-    buildLogic.projectDir.createSettingsFile()
-    val foo = GradlePath(buildRoot, ":foo")
-    val root = GradlePath(buildRoot, ":")
-    root.projectDir.createSettingsFile()
-    assertThat(foo.isFromMainBuild).isTrue()
-    assertThat(root.isFromMainBuild).isTrue()
-    assertThat(buildLogic.isFromMainBuild).isFalse()
-  }
-
   @Test fun `minimize removes nested paths when parent is present`() {
     val paths = listOf(
       GradlePath(buildRoot, ":foo"),
