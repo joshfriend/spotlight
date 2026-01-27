@@ -1,5 +1,11 @@
 # Changelog
 
+### 1.6.4
+* Improved detection of included builds
+
+### 1.6.3
+* Fix implicit task dependency conflict with other plugins
+
 ### 1.6.2
 * Update MoshiX version
 
