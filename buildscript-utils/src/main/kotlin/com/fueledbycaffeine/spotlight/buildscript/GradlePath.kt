@@ -87,12 +87,6 @@ public data class GradlePath(
     }
   }
 
-  public val isFromMainBuild: Boolean get() {
-    val firstParentWithSettings = generateSequence(this) { it.parent }
-      .first { it.hasSettingsFile }
-    return firstParentWithSettings.isRootProject
-  }
-
   /**
    * Recursively walk the directory for this project and find all the child projects.
    */

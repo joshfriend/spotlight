@@ -55,7 +55,6 @@ public final class com/fueledbycaffeine/spotlight/buildscript/GradlePath : com/f
 	public final fun getRoot ()Ljava/nio/file/Path;
 	public final fun getTypeSafeAccessorName ()Ljava/lang/String;
 	public fun hashCode ()I
-	public final fun isFromMainBuild ()Z
 	public final fun isRootProject ()Z
 	public fun toString ()Ljava/lang/String;
 }
