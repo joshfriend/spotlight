@@ -32,6 +32,9 @@ def intellijTarget = "2025.3.1"
 dependencies {
   implementation project(":buildscript-utils")
 
+  testImplementation libs.junit4
+  testImplementation libs.truth
+
   intellijPlatform {
     intellijIdea(intellijTarget) {
       // Use cache to prevent multiple IDE transforms when build classpath changes

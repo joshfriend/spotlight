@@ -24,12 +24,11 @@ class RemoveAllInvalidPathsAction : AnAction(), DumbAware {
   override fun update(e: AnActionEvent) {
     val file = e.getData(CommonDataKeys.VIRTUAL_FILE)
     val isIdeProjectsFile = file != null && file.path.endsWith(IDE_PROJECTS_LOCATION)
-    e.presentation.isEnabledAndVisible = isIdeProjectsFile
     
-    if (isIdeProjectsFile) {
-      e.presentation.text = SpotlightBundle.message("action.remove.all.invalid.paths")
-      e.presentation.description = SpotlightBundle.message("action.remove.all.invalid.paths.description")
-    }
+    // Only enabled in ide-projects.txt, where it overrides Optimize Imports shortcut
+    e.presentation.isEnabled = isIdeProjectsFile
+    e.presentation.text = SpotlightBundle.message("action.remove.all.invalid.paths")
+    e.presentation.description = SpotlightBundle.message("action.remove.all.invalid.paths.description")
   }
   
   override fun actionPerformed(e: AnActionEvent) {
@@ -71,9 +70,15 @@ class RemoveAllInvalidPathsAction : AnAction(), DumbAware {
       return
     }
     
+    // Save the document first to avoid VFS conflict when service writes to disk
+    FileDocumentManager.getInstance().saveDocument(document)
+    
     // Remove all invalid paths
     val gradlePaths = invalidPaths.map { GradlePath(rootDir, it) }
     spotlightService.removeIdeProjects(gradlePaths)
+    
+    // Refresh the file to reload the changes
+    file.refresh(false, false)
     
     NotificationGroupManager.getInstance()
       .getNotificationGroup("Spotlight")

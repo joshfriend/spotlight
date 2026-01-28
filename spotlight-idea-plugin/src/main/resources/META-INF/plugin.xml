@@ -21,16 +21,18 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
             implementation="com.fueledbycaffeine.spotlight.idea.direxclude.SpotlightExcludeDirectoryPolicy"/>
     <externalProjectDataService implementation="com.fueledbycaffeine.spotlight.idea.gradle.SpotlightModelDataService"/>
     
-    <!-- ide-projects.txt file support -->
-    <annotator language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsAnnotator"/>
-    <completion.contributor language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsCompletionContributor"/>
-    <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsGotoDeclarationHandler"/>
+    <!-- Unified project path completion for all file types -->
+    <completion.contributor language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
+    <completion.contributor language="Groovy" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
+    <completion.contributor language="kotlin" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
     
-    <!-- build.gradle file support -->
-    <annotator language="Groovy" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectAnnotator"/>
-    <annotator language="kotlin" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectAnnotator"/>
-    <completion.contributor language="Groovy" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectCompletionContributor"/>
-    <completion.contributor language="kotlin" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectCompletionContributor"/>
+    <!-- Unified project path validation for all supported file types -->
+    <annotator language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.annotator.SpotlightAnnotator"/>
+    <annotator language="Groovy" implementationClass="com.fueledbycaffeine.spotlight.idea.annotator.SpotlightAnnotator"/>
+    <annotator language="kotlin" implementationClass="com.fueledbycaffeine.spotlight.idea.annotator.SpotlightAnnotator"/>
+    
+    <!-- Navigation support -->
+    <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsGotoDeclarationHandler"/>
     <psi.referenceContributor language="Groovy" implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectReferenceContributor"/>
     <psi.referenceContributor language="kotlin" implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectReferenceContributor"/>
     <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectGotoHandler"/>
@@ -64,9 +66,10 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     <action class="com.fueledbycaffeine.spotlight.idea.lang.RemoveAllInvalidPathsAction"
             id="Action.RemoveAllInvalidPaths"
             text="Remove All Invalid Paths">
+      <!-- Ctrl+Opt+O on all platforms - same as Optimize Imports, only enabled in ide-projects.txt -->
       <keyboard-shortcut first-keystroke="control alt O" keymap="$default"/>
-      <keyboard-shortcut first-keystroke="meta alt O" keymap="Mac OS X"/>
-      <keyboard-shortcut first-keystroke="meta alt O" keymap="Mac OS X 10.5+"/>
+      <keyboard-shortcut first-keystroke="control alt O" keymap="Mac OS X"/>
+      <keyboard-shortcut first-keystroke="control alt O" keymap="Mac OS X 10.5+"/>
     </action>
   </actions>
 </idea-plugin>
