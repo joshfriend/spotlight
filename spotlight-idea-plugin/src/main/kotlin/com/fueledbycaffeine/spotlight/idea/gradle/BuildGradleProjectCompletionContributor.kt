@@ -53,9 +53,6 @@ private class BuildGradleProjectCompletionProvider : CompletionProvider<Completi
     val lineNumber = document.getLineNumber(offset)
     val lineStartOffset = document.getLineStartOffset(lineNumber)
     val lineEndOffset = document.getLineEndOffset(lineNumber)
-    val currentLine = document.getText(
-      TextRange(lineStartOffset, lineEndOffset)
-    )
     val textBeforeCaret = document.getText(
       TextRange(lineStartOffset, offset)
     )
@@ -77,8 +74,12 @@ private class BuildGradleProjectCompletionProvider : CompletionProvider<Completi
     // Only provide completions in the correct context to avoid confusion
     if (inProjectCall) {
       addProjectCallCompletions(allProjects, resultWithCustomMatcher, typedPrefix)
+      // Stop other completion contributors from running for cleaner results
+      result.stopHere()
     } else if (inTypeSafeContext) {
       addTypeSafeAccessorCompletions(allProjects, resultWithCustomMatcher, typedPrefix)
+      // Stop other completion contributors from running for cleaner results
+      result.stopHere()
     }
   }
   
@@ -103,13 +104,14 @@ private class BuildGradleProjectCompletionProvider : CompletionProvider<Completi
   }
   
   /**
-   * Checks if we're inside a project() call by looking for an opening quote after project(
-   * that hasn't been closed yet.
+   * Checks if we're inside a project() call.
+   * Uses a permissive check - just looks for "project(" in the text before caret.
+   * This matches Foundry's approach which checks for project( anywhere nearby.
    */
   private fun isInsideProjectCall(textBeforeCaret: String): Boolean {
     val cleanText = textBeforeCaret.replace(Regex("""IntellijIdeaRulezzz\w*"""), "")
-    // Look for project(" or project(' that hasn't been closed
-    return Regex("""project\s*\(\s*["'][^"']*$""").containsMatchIn(cleanText)
+    // Simple permissive check: just see if project( is in the text before caret
+    return cleanText.contains("project(")
   }
   
   /**
