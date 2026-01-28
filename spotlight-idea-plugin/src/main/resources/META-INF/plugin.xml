@@ -20,6 +20,22 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     <directoryIndexExcludePolicy
             implementation="com.fueledbycaffeine.spotlight.idea.direxclude.SpotlightExcludeDirectoryPolicy"/>
     <externalProjectDataService implementation="com.fueledbycaffeine.spotlight.idea.gradle.SpotlightModelDataService"/>
+    
+    <!-- ide-projects.txt file support -->
+    <annotator language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsAnnotator"/>
+    <completion.contributor language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsCompletionContributor"/>
+    <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsGotoDeclarationHandler"/>
+    
+    <!-- build.gradle file support -->
+    <annotator language="Groovy" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectAnnotator"/>
+    <annotator language="kotlin" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectAnnotator"/>
+    <completion.contributor language="Groovy" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectCompletionContributor"/>
+    <completion.contributor language="kotlin" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectCompletionContributor"/>
+    <psi.referenceContributor language="Groovy" implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectReferenceContributor"/>
+    <psi.referenceContributor language="kotlin" implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectReferenceContributor"/>
+    <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectGotoHandler"/>
+    
+    <notificationGroup id="Spotlight" displayType="BALLOON"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
@@ -44,5 +60,13 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
       <separator/>
       <add-to-group group-id="ProjectViewPopupMenu"/>
     </group>
+    
+    <action class="com.fueledbycaffeine.spotlight.idea.lang.RemoveAllInvalidPathsAction"
+            id="Action.RemoveAllInvalidPaths"
+            text="Remove All Invalid Paths">
+      <keyboard-shortcut first-keystroke="control alt O" keymap="$default"/>
+      <keyboard-shortcut first-keystroke="meta alt O" keymap="Mac OS X"/>
+      <keyboard-shortcut first-keystroke="meta alt O" keymap="Mac OS X 10.5+"/>
+    </action>
   </actions>
 </idea-plugin>

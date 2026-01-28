@@ -33,7 +33,10 @@ dependencies {
   implementation project(":buildscript-utils")
 
   intellijPlatform {
-    intellijIdea(intellijTarget)
+    intellijIdea(intellijTarget) {
+      // Use cache to prevent multiple IDE transforms when build classpath changes
+      useCache = true
+    }
 
     bundledPlugin("com.intellij.gradle")
 
@@ -59,6 +62,11 @@ if (isSnapshot()) {
 
 // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
+  caching {
+    ides {
+      enabled = true
+    }
+  }
   pluginConfiguration {
     name = "Spotlight"
 
