@@ -29,8 +29,8 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     <!-- build.gradle file support -->
     <annotator language="Groovy" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectAnnotator"/>
     <annotator language="kotlin" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectAnnotator"/>
-    <completion.contributor language="Groovy" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectCompletionContributor"/>
-    <completion.contributor language="kotlin" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectCompletionContributor"/>
+    <completion.contributor language="Groovy" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectCompletionContributor"/>
+    <completion.contributor language="kotlin" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectCompletionContributor"/>
     <psi.referenceContributor language="Groovy" implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectReferenceContributor"/>
     <psi.referenceContributor language="kotlin" implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectReferenceContributor"/>
     <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectGotoHandler"/>
