@@ -9,9 +9,12 @@ import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.CompletionUtilCore
+import com.intellij.codeInsight.completion.PrefixMatcher
+import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
+import com.intellij.psi.PsiElement
 import com.intellij.util.ProcessingContext
 
 /**
@@ -27,10 +30,9 @@ class SpotlightCompletionContributor : CompletionContributor(), DumbAware {
   }
 
   override fun beforeCompletion(context: CompletionInitializationContext) {
-    val fileName = context.file.name
-    // Set empty dummy identifier for proper prefix matching in supported files
-    if (isIdeProjectsFile(context.file.virtualFile?.path) ||
-        isGradleBuildFile(fileName)) {
+    // Only set empty dummy identifier for ide-projects.txt files
+    // For Gradle files, we can't set it here because it conflicts with Groovy's completion contributor
+    if (isIdeProjectsFile(context.file.virtualFile?.path)) {
       context.dummyIdentifier = ""
     }
   }
@@ -109,71 +111,144 @@ private class SpotlightCompletionProvider : CompletionProvider<CompletionParamet
 
     val document = parameters.editor.document
     val offset = parameters.offset
-    val lineNumber = document.getLineNumber(offset)
-    val lineStartOffset = document.getLineStartOffset(lineNumber)
-    val textBeforeCaret = document.getText(TextRange(lineStartOffset, offset))
-
-    val inProjectCall = isInsideProjectCall(textBeforeCaret)
-    val inTypeSafeContext = isTypingTypeSafeAccessor(textBeforeCaret)
-
+    
+    // Get text from start of file to cursor (up to 500 chars for performance)
+    val startOffset = maxOf(0, offset - 500)
+    val textBeforeCaret = document.getText(TextRange(startOffset, offset))
+    val cleanText = cleanDummyIdentifier(textBeforeCaret)
+    
+    // Check if we're inside a project() string literal
+    // Look for project( followed by a quote, then capture everything until the end
+    val projectCallMatch = Regex("""project\s*\(\s*["']([^"']*)$""").find(cleanText)
+    
+    // Fallback: check if we're in a string literal via PSI (handles cases where project() 
+    // is outside our text window)
+    val inStringLiteral = isInStringLiteral(parameters.position)
+    
+    // Check if we're typing a type-safe accessor (projects.xxx.yyy)
+    val typeSafeMatch = Regex("""projects\.([\w.]*)$""").find(cleanText)
+    
     when {
-      inProjectCall -> {
-        // Extract the prefix (what's typed after the opening quote)
-        val prefix = extractProjectCallPrefix(textBeforeCaret)
-        val prefixResult = if (prefix.isEmpty()) result else result.withPrefixMatcher(prefix)
+      projectCallMatch != null || (inStringLiteral && typeSafeMatch == null) -> {
+        // We're inside quotes in a project() call - provide path completions
+        val prefix = projectCallMatch?.groupValues?.get(1) ?: extractStringContent(parameters.position)
+        val fuzzyResult = result.withPrefixMatcher(FuzzyGradlePrefixMatcher(prefix, isPathMatch = true))
         
-        allProjects
-          .sortedBy { it.path }
-          .forEach { gradlePath ->
+        allProjects.forEach { gradlePath ->
+          val priority = FuzzyMatchingUtils.calculatePathMatchPriority(gradlePath.path, prefix)
+          if (priority < 100) {
             val lookupElement = ProjectCompletionUtils.createProjectPathLookup(
               path = gradlePath.path,
               typeText = "Gradle project"
             )
-            prefixResult.addElement(lookupElement)
+            fuzzyResult.addElement(
+              PrioritizedLookupElement.withPriority(lookupElement, (100 - priority).toDouble())
+            )
           }
+        }
+        // Only stop here when we're actually inside quotes
         result.stopHere()
       }
-      inTypeSafeContext -> {
-        // Extract the prefix (what's typed after "projects.")
-        val prefix = extractAccessorPrefix(textBeforeCaret)
-        val prefixResult = if (prefix.isEmpty()) result else result.withPrefixMatcher(prefix)
+      typeSafeMatch != null -> {
+        // We're typing a type-safe accessor - provide accessor completions
+        val prefix = typeSafeMatch.groupValues[1]
+        val fuzzyResult = result.withPrefixMatcher(FuzzyGradlePrefixMatcher(prefix, isPathMatch = false))
         
-        allProjects
-          .sortedBy { it.path }
-          .forEach { gradlePath ->
+        allProjects.forEach { gradlePath ->
+          val accessor = gradlePath.typeSafeAccessorName
+          val priority = FuzzyMatchingUtils.calculateAccessorMatchPriority(accessor, prefix)
+          if (priority < 100) {
             val lookupElement = ProjectCompletionUtils.createAccessorLookup(
-              accessorName = gradlePath.typeSafeAccessorName,
+              accessorName = accessor,
               typeText = "Gradle project"
             )
-            prefixResult.addElement(lookupElement)
+            fuzzyResult.addElement(
+              PrioritizedLookupElement.withPriority(lookupElement, (100 - priority).toDouble())
+            )
           }
-        result.stopHere()
+        }
+        // Don't stopHere for type-safe accessors - other completions may be relevant
       }
+      // If neither match, we're not in a completion context - don't add anything
     }
   }
   
-  /** Extracts the typed prefix from inside a project() call. */
-  private fun extractProjectCallPrefix(textBeforeCaret: String): String {
-    val cleanText = CompletionContextUtils.cleanDummyIdentifier(textBeforeCaret)
-    // Match everything after the last quote in project("xxx or project('xxx
-    val match = Regex("""project\s*\(\s*["']([^"']*)$""").find(cleanText)
-    return match?.groupValues?.get(1) ?: ""
+  private fun cleanDummyIdentifier(text: String): String {
+    return text.replace(Regex("""${CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED}\w*"""), "")
   }
   
-  /** Extracts the typed prefix from a type-safe accessor context. */
-  private fun extractAccessorPrefix(textBeforeCaret: String): String {
-    val cleanText = CompletionContextUtils.cleanDummyIdentifier(textBeforeCaret)
-    // Match everything after "projects."
-    val match = Regex("""projects\.([\w.]*)$""").find(cleanText)
-    return match?.groupValues?.get(1) ?: ""
+  /**
+   * Checks if the PSI element is inside a string literal.
+   */
+  private fun isInStringLiteral(element: PsiElement): Boolean {
+    var current: PsiElement? = element
+    while (current != null) {
+      val text = current.text
+      // Check if this element looks like a string literal
+      if (text.startsWith("\"") || text.startsWith("'")) {
+        return true
+      }
+      // Check element type name for string-related types
+      val typeName = current.javaClass.simpleName
+      if (typeName.contains("String", ignoreCase = true) ||
+          typeName.contains("Literal", ignoreCase = true)) {
+        return true
+      }
+      current = current.parent
+    }
+    return false
+  }
+  
+  /**
+   * Extracts the content of the string literal containing the PSI element.
+   * Gets the text from the start of the string up to the cursor position.
+   */
+  private fun extractStringContent(element: PsiElement): String {
+    var current: PsiElement? = element
+    while (current != null) {
+      val text = current.text
+      if (text.startsWith("\"") || text.startsWith("'")) {
+        // Found string literal - extract content without quotes
+        var content = text
+          .removePrefix("\"").removePrefix("'")
+          .removeSuffix("\"").removeSuffix("'")
+        
+        // Remove IntelliJ's dummy identifier - it may be concatenated with user input
+        // e.g., user types ":ffapi" and it becomes ":ffapiIntellijIdeaRulezzz"
+        val dummyIndex = content.indexOf(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED, ignoreCase = true)
+        if (dummyIndex >= 0) {
+          content = content.take(dummyIndex)
+        }
+        
+        // Keep only valid path characters: alphanumeric, colon, dash, underscore, dot
+        content = content.takeWhile { it.isLetterOrDigit() || it in ":.-_" }
+        return content
+      }
+      current = current.parent
+    }
+    return ""
+  }
+}
+
+/**
+ * Custom PrefixMatcher that uses our fuzzy matching logic.
+ */
+private class FuzzyGradlePrefixMatcher(
+  prefix: String,
+  private val isPathMatch: Boolean
+) : PrefixMatcher(prefix) {
+  
+  override fun prefixMatches(name: String): Boolean {
+    val priority = if (isPathMatch) {
+      FuzzyMatchingUtils.calculatePathMatchPriority(name, prefix)
+    } else {
+      FuzzyMatchingUtils.calculateAccessorMatchPriority(name, prefix)
+    }
+    return priority < 100
   }
 
-  private fun isInsideProjectCall(textBeforeCaret: String): Boolean {
-    return CompletionContextUtils.isInsideProjectCall(textBeforeCaret)
-  }
-
-  private fun isTypingTypeSafeAccessor(textBeforeCaret: String): Boolean {
-    return CompletionContextUtils.isTypingTypeSafeAccessor(textBeforeCaret)
+  override fun cloneWithPrefix(prefix: String): PrefixMatcher {
+    return FuzzyGradlePrefixMatcher(prefix, isPathMatch)
   }
 }
 
@@ -181,27 +256,6 @@ private class SpotlightCompletionProvider : CompletionProvider<CompletionParamet
  * Utility functions for detecting completion context. Exposed for testing.
  */
 internal object CompletionContextUtils {
-  
-  /** 
-   * Checks if the cursor is inside a project() call.
-   * Looks for project( followed by a quote, indicating we're in the string argument.
-   */
-  fun isInsideProjectCall(textBeforeCaret: String): Boolean {
-    val cleanText = cleanDummyIdentifier(textBeforeCaret)
-    // Match project( followed by optional whitespace and an opening quote
-    return Regex("""project\s*\(\s*["']""").containsMatchIn(cleanText)
-  }
-
-  /** 
-   * Checks if the cursor is typing a type-safe accessor like projects.xxx.yyy
-   * Only matches if NOT inside a project() call.
-   */
-  fun isTypingTypeSafeAccessor(textBeforeCaret: String): Boolean {
-    val cleanText = cleanDummyIdentifier(textBeforeCaret)
-    // Don't match if we're inside a project() call
-    if (isInsideProjectCall(textBeforeCaret)) return false
-    return Regex("""projects\.([\w.]*)$""").containsMatchIn(cleanText)
-  }
 
   /** Checks if a file path is an ide-projects.txt file. */
   fun isIdeProjectsFile(path: String?): Boolean {
@@ -211,11 +265,6 @@ internal object CompletionContextUtils {
   /** Checks if a filename is a Gradle build file. */
   fun isGradleBuildFile(fileName: String): Boolean {
     return fileName.endsWith(".gradle") || fileName.endsWith(".gradle.kts")
-  }
-
-  /** Removes IntelliJ's dummy identifier from text for pattern matching. */
-  fun cleanDummyIdentifier(text: String): String {
-    return text.replace(Regex("""${CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED}\w*"""), "")
   }
 }
 

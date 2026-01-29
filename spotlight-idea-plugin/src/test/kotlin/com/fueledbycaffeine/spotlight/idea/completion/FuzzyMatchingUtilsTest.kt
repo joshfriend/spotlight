@@ -47,6 +47,16 @@ class FuzzyMatchingUtilsTest {
   }
 
   @Test
+  fun `fuzzy match works without leading colon in prefix`() {
+    // User can type "ffapi" without the leading colon and still match ":feature-flags:api"
+    val priority = FuzzyMatchingUtils.calculatePathMatchPriority(
+      ":feature-flags:api",
+      "ffapi"
+    )
+    assertThat(priority).isEqualTo(3)
+  }
+
+  @Test
   fun `fuzzy match with prefix-per-word returns priority 3`() {
     // "caos" should match "cash-os" via prefix-per-word (ca->cash, os->os)
     val priority = FuzzyMatchingUtils.calculatePathMatchPriority(
