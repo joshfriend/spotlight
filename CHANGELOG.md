@@ -1,6 +1,6 @@
 # Changelog
 
-### Unreleased
+### 1.6.6
 #### IDE plugin
 * Add Search Everywhere contributor for Gradle project paths (shift + shift, type or paste a gradle path)
 * Improve fuzzy matching with prefix-per-word support
