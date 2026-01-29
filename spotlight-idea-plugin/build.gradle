@@ -64,6 +64,13 @@ if (isSnapshot()) {
   version = VERSION_NAME
 }
 
+intellijPlatformTesting.runIde.configureEach {
+  plugins {
+    // This throws a bunch of errors in the IDE
+    disablePlugin("com.intellij.kubernetes")
+  }
+}
+
 // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
   caching {
