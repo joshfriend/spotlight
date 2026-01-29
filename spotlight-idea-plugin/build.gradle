@@ -42,6 +42,7 @@ dependencies {
     }
 
     bundledPlugin("com.intellij.gradle")
+    bundledModule("com.intellij.modules.json")
 
     intellijPlatformTesting.runIde.register("runLocalIde") {
       // https://plugins.jetbrains.com/docs/intellij/android-studio.html#configuring-the-plugin-gradle-build-script

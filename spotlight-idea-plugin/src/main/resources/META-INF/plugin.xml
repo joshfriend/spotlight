@@ -10,6 +10,7 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
 
   <depends>com.intellij.modules.platform</depends>
   <depends>com.intellij.gradle</depends>
+  <depends optional="true" config-file="spotlight-json.xml">com.intellij.modules.json</depends>
 
   <resource-bundle>messages.SpotlightBundle</resource-bundle>
 

@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/joshfriend/spotlight/spotlight-rules-schema.json",
+  "title": "Spotlight Rules",
+  "description": "Configuration for Spotlight implicit dependency rules",
+  "type": "object",
+  "properties": {
+    "implicitRules": {
+      "type": "array",
+      "description": "A set of rules for inferring implicit project dependencies",
+      "items": {
+        "$ref": "#/definitions/implicitDependencyRule"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "implicitDependencyRule": {
+      "type": "object",
+      "description": "A rule for adding implicit dependencies based on build script content or project path",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/buildscriptMatchRule"
+        },
+        {
+          "$ref": "#/definitions/projectPathMatchRule"
+        },
+        {
+          "$ref": "#/definitions/buildscriptCaptureRule"
+        }
+      ]
+    },
+    "buildscriptMatchRule": {
+      "type": "object",
+      "title": "Buildscript Match Rule",
+      "description": "Adds implicit dependencies when a regex pattern matches any line in a project's build script",
+      "properties": {
+        "type": {
+          "const": "buildscript-match-rule",
+          "description": "Rule type identifier"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "A regex pattern to match against build script contents"
+        },
+        "includedProjects": {
+          "$ref": "#/definitions/projectPathArray"
+        }
+      },
+      "required": ["type", "pattern", "includedProjects"],
+      "additionalProperties": false
+    },
+    "projectPathMatchRule": {
+      "type": "object",
+      "title": "Project Path Match Rule",
+      "description": "Adds implicit dependencies when a project's Gradle path matches the regex pattern",
+      "properties": {
+        "type": {
+          "const": "project-path-match-rule",
+          "description": "Rule type identifier"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "A regex pattern to match against project paths"
+        },
+        "includedProjects": {
+          "$ref": "#/definitions/projectPathArray"
+        }
+      },
+      "required": ["type", "pattern", "includedProjects"],
+      "additionalProperties": false
+    },
+    "buildscriptCaptureRule": {
+      "type": "object",
+      "title": "Buildscript Capture Rule",
+      "description": "Extracts project paths from build scripts using regex capture groups and a template",
+      "properties": {
+        "type": {
+          "const": "buildscript-capture-rule",
+          "description": "Rule type identifier"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "A regex pattern with capture groups to match against build script contents"
+        },
+        "projectTemplate": {
+          "type": "string",
+          "description": "A template string where $1, $2, etc. are replaced with captured groups"
+        }
+      },
+      "required": ["type", "pattern", "projectTemplate"],
+      "additionalProperties": false
+    },
+    "projectPathArray": {
+      "type": "array",
+      "description": "An array of Gradle project paths",
+      "items": {
+        "$ref": "#/definitions/projectPath"
+      }
+    },
+    "projectPath": {
+      "type": "string",
+      "description": "A Gradle project path (e.g., ':shared:core', ':features:login')",
+      "pattern": "^:[a-zA-Z0-9_-]+(:[a-zA-Z0-9_-]+)*$"
+    }
+  }
+}
