@@ -21,12 +21,23 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
             implementation="com.fueledbycaffeine.spotlight.idea.direxclude.SpotlightExcludeDirectoryPolicy"/>
     <externalProjectDataService implementation="com.fueledbycaffeine.spotlight.idea.gradle.SpotlightModelDataService"/>
     
+    <!-- Spotlight project files language support -->
+    <fileType name="SpotlightProjects"
+              implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightProjectsFileType"
+              language="SpotlightProjects"
+              fileNames="ide-projects.txt;all-projects.txt"/>
+    <fileTypeOverrider implementation="com.fueledbycaffeine.spotlight.idea.lang.SpotlightProjectsFileTypeOverrider" order="first"/>
+    <lang.parserDefinition language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightProjectsParserDefinition"/>
+    <lang.commenter language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightProjectsCommenter"/>
+    
     <!-- Project path completion -->
+    <completion.contributor language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
     <completion.contributor language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
     <completion.contributor language="Groovy" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
     <completion.contributor language="kotlin" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
 
     <!-- Project path validation and highlighting spotlight files -->
+    <annotator language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.annotator.SpotlightAnnotator"/>
     <annotator language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.annotator.SpotlightAnnotator"/>
     <annotator language="Groovy" implementationClass="com.fueledbycaffeine.spotlight.idea.annotator.SpotlightAnnotator"/>
     <annotator language="kotlin" implementationClass="com.fueledbycaffeine.spotlight.idea.annotator.SpotlightAnnotator"/>
@@ -38,6 +49,7 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectGotoHandler"/>
     
     <!-- Suppress built-in inspections in spotlight project files -->
+    <lang.inspectionSuppressor language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightInspectionSuppressor"/>
     <lang.inspectionSuppressor language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightInspectionSuppressor"/>
     
     <notificationGroup id="Spotlight" displayType="BALLOON"/>
@@ -69,10 +81,7 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     <action class="com.fueledbycaffeine.spotlight.idea.lang.RemoveAllInvalidPathsAction"
             id="Action.RemoveAllInvalidPaths"
             text="Remove All Invalid Paths">
-      <!-- Ctrl+Opt+O on all platforms - same as Optimize Imports -->
       <keyboard-shortcut first-keystroke="control alt O" keymap="$default"/>
-      <keyboard-shortcut first-keystroke="control alt O" keymap="Mac OS X"/>
-      <keyboard-shortcut first-keystroke="control alt O" keymap="Mac OS X 10.5+"/>
     </action>
   </actions>
 </idea-plugin>
