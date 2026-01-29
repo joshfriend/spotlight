@@ -12,12 +12,14 @@ import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightRules
 import com.fueledbycaffeine.spotlight.idea.gradle.SpotlightGradleProjectsService
 import com.fueledbycaffeine.spotlight.idea.utils.vfsEventsFlow
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.ui.EditorNotifications
 import java.nio.file.Path
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -79,10 +81,6 @@ class SpotlightProjectService(
     withContext(Dispatchers.IO) {
       when (changeType) {
         SpotlightFileChangeType.IDE_PROJECTS -> {
-          // When ide-projects.txt changes, the Gradle sync results become stale
-          // (they were based on the old configuration). Clear them to fall back to file-based mode.
-          gradleProjectsService.clearProjects()
-
           val paths = ideProjectsList.read()
           val currentRules = rules.value
           val implicitRules = currentRules.implicitRules
@@ -93,6 +91,11 @@ class SpotlightProjectService(
           val allPaths = BreadthFirstSearch.flatten(paths, ruleSet)
 
           _ideProjects.emit(allPaths)
+          
+          // Refresh editor notifications to update sync stale banner
+          withContext(Dispatchers.EDT) {
+            EditorNotifications.getInstance(project).updateAllNotifications()
+          }
         }
 
         SpotlightFileChangeType.ALL_PROJECTS -> {
@@ -101,9 +104,8 @@ class SpotlightProjectService(
         }
 
         SpotlightFileChangeType.RULES -> {
-          // When rules change, the set of projects included in the next sync might differ.
-          // Clear Gradle projects to fall back to file-based mode until next sync.
-          gradleProjectsService.clearProjects()
+          // Note: We no longer clear Gradle projects when rules change. The sync staleness
+          // detection will handle showing a banner when needed.
 
           // Read the rules once and re-read other lists
           rules.emit(rulesList.read())

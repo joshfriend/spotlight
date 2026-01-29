@@ -23,11 +23,13 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
                              displayName="Spotlight"/>
     
     <editorNotificationProvider implementation="com.fueledbycaffeine.spotlight.idea.notification.ProjectStaleNotificationProvider"/>
+    <editorNotificationProvider implementation="com.fueledbycaffeine.spotlight.idea.notification.GradleSyncStaleNotificationProvider"/>
     <statusBarWidgetFactory implementation="com.fueledbycaffeine.spotlight.idea.ui.SpotlightStatusBarWidgetFactory"
                             id="com.fueledbycaffeine.spotlight"/>
     <directoryIndexExcludePolicy
             implementation="com.fueledbycaffeine.spotlight.idea.direxclude.SpotlightExcludeDirectoryPolicy"/>
     <externalProjectDataService implementation="com.fueledbycaffeine.spotlight.idea.gradle.SpotlightModelDataService"/>
+    <externalSystemTaskNotificationListener implementation="com.fueledbycaffeine.spotlight.idea.gradle.GradleSyncStatusListener"/>
     
     <!-- Spotlight project files language support -->
     <fileType name="SpotlightProjects"
@@ -65,6 +67,11 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
     <projectResolve implementation="com.fueledbycaffeine.spotlight.idea.gradle.SpotlightProjectResolverExtension"/>
   </extensions>
+
+  <projectListeners>
+    <listener class="com.fueledbycaffeine.spotlight.idea.listener.SpotlightProjectsListAutoSaveListener"
+              topic="com.intellij.openapi.fileEditor.FileEditorManagerListener"/>
+  </projectListeners>
 
   <actions>
     <group id="Group.SpotlightWorkspace"

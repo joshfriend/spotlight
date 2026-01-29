@@ -3,8 +3,9 @@ package com.fueledbycaffeine.spotlight.idea.notification
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.idea.SpotlightBundle
 import com.fueledbycaffeine.spotlight.idea.SpotlightProjectService
+import com.fueledbycaffeine.spotlight.idea.gradle.GradleSystemUtils
 import com.fueledbycaffeine.spotlight.idea.gradle.SpotlightGradleProjectsService
-import com.fueledbycaffeine.spotlight.idea.utils.toGradlePath
+import com.fueledbycaffeine.spotlight.idea.utils.findContainingProject
 import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
@@ -32,9 +33,6 @@ class ProjectStaleNotificationProvider(project: Project) : EditorNotificationPro
     project: Project,
     file: VirtualFile
   ): Function<in FileEditor, out JComponent?>? {
-    // Get the gradle path for this file
-    val gradlePath = file.toGradlePath(project) ?: return null
-
     // Prefer gradle state over spotlight service state if available
     val hasGradleState = gradleProjectsService.hasSyncedProjects
     val indexedProjects = if (hasGradleState) {
@@ -48,10 +46,12 @@ class ProjectStaleNotificationProvider(project: Project) : EditorNotificationPro
       ideProjects
     }
 
-    // Check if this file's project is in the all-projects list but not indexed
+    // Find which known project contains this file
     val allProjects = spotlightService.allProjects.value
-    if (gradlePath !in allProjects || gradlePath in indexedProjects) {
-      // Either not a valid project or already indexed
+    val gradlePath = file.findContainingProject(allProjects) ?: return null
+
+    // Show banner only if the project is not indexed
+    if (gradlePath in indexedProjects) {
       return null
     }
 
@@ -79,9 +79,7 @@ class ProjectStaleNotificationProvider(project: Project) : EditorNotificationPro
     panel.createActionLabel(SpotlightBundle.message("notification.action.add.addAndSync")) {
       spotlightService.addIdeProjects(listOf(gradlePath))
 
-      // Trigger a fresh Gradle sync
-      val importSpec = ImportSpecBuilder(project, GradleConstants.SYSTEM_ID).build()
-      ExternalSystemUtil.refreshProject(project.basePath!!, importSpec)
+      GradleSystemUtils.sync(project)
 
       // Refresh editor notifications to hide this banner after adding the project
       EditorNotifications.getInstance(project).updateAllNotifications()
