@@ -52,6 +52,7 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     
     <!-- Navigation support for ide-projects.txt -->
     <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsGotoDeclarationHandler"/>
+    <psi.referenceContributor language="SpotlightProjects" implementation="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsReferenceContributor"/>
     
     <!-- Navigation support for build.gradle project references -->
     <psi.referenceContributor language="Groovy" implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectReferenceContributor"/>

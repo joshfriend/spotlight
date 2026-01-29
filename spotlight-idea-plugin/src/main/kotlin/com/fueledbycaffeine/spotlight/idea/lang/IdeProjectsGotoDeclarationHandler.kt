@@ -9,7 +9,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 
 /**
- * Allows Cmd+Click navigation from paths in ide-projects.txt to their build files.
+ * Allows Cmd+Click navigation from paths in Spotlight project files to their build files.
  */
 class IdeProjectsGotoDeclarationHandler : GotoDeclarationHandler, DumbAware {
   private companion object {
@@ -24,8 +24,8 @@ class IdeProjectsGotoDeclarationHandler : GotoDeclarationHandler, DumbAware {
     if (sourceElement == null || editor == null) return null
     val file = sourceElement.containingFile ?: return null
     
-    // Only handle ide-projects.txt files
-    if (!IdeProjectsFileUtils.isIdeProjectsFile(file)) return null
+    // Only handle Spotlight project files (ide-projects.txt, all-projects.txt)
+    if (!IdeProjectsFileUtils.isSpotlightProjectsFile(file)) return null
     
     // Get the Gradle path at the cursor position
     val gradlePath = IdeProjectsFileUtils.getGradlePathAtOffset(editor, file, offset) ?: return null
