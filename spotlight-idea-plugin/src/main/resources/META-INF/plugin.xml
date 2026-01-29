@@ -30,6 +30,12 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     <lang.parserDefinition language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightProjectsParserDefinition"/>
     <lang.commenter language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightProjectsCommenter"/>
     
+    <!-- Project path completion -->
+    <completion.contributor language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
+    <completion.contributor language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
+    <completion.contributor language="Groovy" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
+    <completion.contributor language="kotlin" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
+
     <!-- Navigation support for ide-projects.txt -->
     <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsGotoDeclarationHandler"/>
     
