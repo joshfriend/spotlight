@@ -1,12 +1,13 @@
 # Changelog
 
-### Unreleased
-* IDE plugin: Add custom language support for `ide-projects.txt` and `all-projects.txt` files
-* IDE plugin: Add project path completion in `ide-projects.txt` and `build.gradle` files
-* IDE plugin: Add path validation with error highlighting and quick-fix suggestions
-* IDE plugin: Add Cmd+Click navigation from `project()` calls and type-safe accessors to build files
-* IDE plugin: Support fuzzy matching for project path completion (e.g., "ffapi" matches ":feature-flags:api")
-* IDE plugin: Add "Remove All Invalid Paths" action for `ide-projects.txt` (Opt+Shift+O)
+### 1.6.5
+#### IDE plugin
+* Add custom language support for `ide-projects.txt` and `all-projects.txt` files
+* Add project path completion in `ide-projects.txt` and `build.gradle` files
+* Add path validation with error highlighting and quick-fix suggestions
+* Add Cmd+Click navigation from `project()` calls and type-safe accessors to build files
+* Support fuzzy matching for project path completion (e.g., "ffapi" matches ":feature-flags:api")
+* Add "Remove All Invalid Paths" action for `ide-projects.txt` (Opt+Shift+O)
 
 ### 1.6.4
 * Improved detection of included builds
