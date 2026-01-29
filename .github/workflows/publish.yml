@@ -153,6 +153,7 @@ jobs:
 
           # Extract the changelog section for this version
           # This awk script finds the version header and extracts content until the next version header
+          # It handles subcategories (#### headers) within a version section
           # Use a temporary file to avoid shell interpretation of special characters
           awk -v version="$VERSION" '
             /^### / {
@@ -163,7 +164,7 @@ jobs:
               }
             }
             found { print }
-          ' CHANGELOG.md | sed '/^$/d' > /tmp/changelog.txt
+          ' CHANGELOG.md > /tmp/changelog.txt
 
           if [ ! -s /tmp/changelog.txt ]; then
             echo "No changelog entry found for version $VERSION"
@@ -191,3 +192,44 @@ jobs:
           gh release create "v${{ needs.prepare-release.outputs.version }}" \
             --title "v${{ needs.prepare-release.outputs.version }}" \
             --notes "${{ steps.changelog.outputs.notes }}"
+
+  prepare-next-snapshot:
+    needs: [prepare-release, create-github-release]
+    if: >
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.repository == 'joshfriend/spotlight' &&
+        needs.prepare-release.outputs.is-snapshot == 'false'
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump version to next snapshot
+        run: |
+          CURRENT_VERSION="${{ needs.prepare-release.outputs.version }}"
+          
+          # Extract major, minor, patch from version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          
+          # Increment patch version
+          NEXT_PATCH=$((PATCH + 1))
+          NEXT_VERSION="${MAJOR}.${MINOR}.${NEXT_PATCH}-SNAPSHOT"
+          
+          # Update gradle.properties
+          sed -i "s/^VERSION_NAME=.*/VERSION_NAME=$NEXT_VERSION/" gradle.properties
+          
+          echo "Bumped version from $CURRENT_VERSION to $NEXT_VERSION"
+
+      - name: Commit version change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add gradle.properties
+          git commit -m "prepare next version"
+          git push
+
