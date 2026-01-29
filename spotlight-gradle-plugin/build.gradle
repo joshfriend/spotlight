@@ -107,6 +107,7 @@ dependencies {
 
   lintChecks(libs.lint.gradle)
 
+  functionalTestApi libs.moshi
   functionalTestImplementation libs.truth
   functionalTestImplementation libs.moshi.kotlin
 

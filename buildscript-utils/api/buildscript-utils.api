@@ -220,6 +220,34 @@ public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDepe
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRuleJsonAdapter : com/squareup/moshi/JsonAdapter {
+	public fun <init> (Lcom/squareup/moshi/Moshi;)V
+	public fun fromJson (Lcom/squareup/moshi/JsonReader;)Ljava/lang/Object;
+	public fun toJson (Lcom/squareup/moshi/JsonWriter;Ljava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule_BuildscriptCaptureRuleJsonAdapter : com/squareup/moshi/JsonAdapter {
+	public fun <init> (Lcom/squareup/moshi/Moshi;)V
+	public fun fromJson (Lcom/squareup/moshi/JsonReader;)Ljava/lang/Object;
+	public fun toJson (Lcom/squareup/moshi/JsonWriter;Ljava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule_BuildscriptMatchRuleJsonAdapter : com/squareup/moshi/JsonAdapter {
+	public fun <init> (Lcom/squareup/moshi/Moshi;)V
+	public fun fromJson (Lcom/squareup/moshi/JsonReader;)Ljava/lang/Object;
+	public fun toJson (Lcom/squareup/moshi/JsonWriter;Ljava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/graph/ImplicitDependencyRule_ProjectPathMatchRuleJsonAdapter : com/squareup/moshi/JsonAdapter {
+	public fun <init> (Lcom/squareup/moshi/Moshi;)V
+	public fun fromJson (Lcom/squareup/moshi/JsonReader;)Ljava/lang/Object;
+	public fun toJson (Lcom/squareup/moshi/JsonWriter;Ljava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class com/fueledbycaffeine/spotlight/buildscript/graph/TypeSafeProjectAccessorRule : com/fueledbycaffeine/spotlight/buildscript/graph/DependencyRule {
 	public fun <init> (Ljava/lang/String;Ljava/util/Map;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -253,6 +281,13 @@ public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRu
 
 public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules$Companion {
 	public final fun getEMPTY ()Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRulesJsonAdapter : com/squareup/moshi/JsonAdapter {
+	public fun <init> (Lcom/squareup/moshi/Moshi;)V
+	public fun fromJson (Lcom/squareup/moshi/JsonReader;)Ljava/lang/Object;
+	public fun toJson (Lcom/squareup/moshi/JsonWriter;Ljava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
 }
 
 public abstract interface class com/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParser {

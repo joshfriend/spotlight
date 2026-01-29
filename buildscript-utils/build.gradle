@@ -1,5 +1,6 @@
 plugins {
   id 'org.jetbrains.kotlin.jvm'
+  id 'dev.zacsweers.moshix'
   id 'com.vanniktech.maven.publish'
   id 'com.autonomousapps.testkit'
   id 'org.jetbrains.kotlinx.binary-compatibility-validator'
@@ -41,10 +42,31 @@ mavenPublishing {
   }
 }
 
+moshi {
+  enableSealed = true
+}
+
+dependencyAnalysis {
+  issues {
+    onUnusedDependencies {
+      // Moshix IR compiler adds these and we dont use them in some configurations
+      exclude(libs.moshix.runtime)
+      exclude(libs.moshi)
+      exclude(libs.moshix.sealed.runtime)
+    }
+    onIncorrectConfiguration {
+      // Moshix IR compiler adds these incorrectly
+      exclude(libs.moshi)
+      exclude(libs.moshix.sealed.runtime)
+    }
+  }
+}
+
 dependencies {
-  api(libs.moshix.sealedRuntime)
-  implementation(libs.moshi.kotlin)
-  implementation(libs.moshix.sealedReflect)
+  api(libs.moshix.sealed.runtime)
+  api(libs.moshi)
+
+  implementation(libs.moshi.adapters)
   implementation(libs.okio)
 
   testImplementation gradleApi()
