@@ -49,19 +49,14 @@ private class BuildGradleProjectReferenceProvider : PsiReferenceProvider() {
       return arrayOf(BuildGradleProjectReference(element, range, unquoted))
     }
     
-    // Handle type-safe accessors by checking if parent/surrounding text contains projects.
-    // Match identifiers that are part of projects.xxx.yyy chains
-    if (element.parent != null) {
-      val parentText = element.parent.text ?: ""
-      val accessorMatch = GradleProjectPathUtils.TYPE_SAFE_ACCESSOR_PATTERN.find(parentText)
-      if (accessorMatch != null) {
-        val typeSafeAccessor = accessorMatch.groupValues[1]
-        // Check if our element is part of this accessor
-        if (typeSafeAccessor.contains(elementText.trim())) {
-          val range = TextRange.from(0, elementText.length)
-          return arrayOf(BuildGradleProjectReference(element, range, null, typeSafeAccessor))
-        }
-      }
+    // Handle type-safe accessors - only create a reference for the full accessor expression
+    // (not for individual segments)
+    val accessorMatch = GradleProjectPathUtils.TYPE_SAFE_ACCESSOR_PATTERN.find(elementText)
+    if (accessorMatch != null && accessorMatch.value == elementText.trim()) {
+      // This element contains exactly the full accessor (e.g., "projects.account.backend.api")
+      val typeSafeAccessor = accessorMatch.value
+      val range = TextRange.from(0, typeSafeAccessor.length)
+      return arrayOf(BuildGradleProjectReference(element, range, null, typeSafeAccessor))
     }
     
     return PsiReference.EMPTY_ARRAY
