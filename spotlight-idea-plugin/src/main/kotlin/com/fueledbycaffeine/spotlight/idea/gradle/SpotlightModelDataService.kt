@@ -1,24 +1,22 @@
 package com.fueledbycaffeine.spotlight.idea.gradle
 
-import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightModel
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.Key
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
 import com.intellij.openapi.project.Project
-import java.nio.file.Path
 
 /**
- * Data service that processes [SpotlightModel] after Gradle sync and updates the
+ * Data service that processes [SpotlightIdeModelData] after Gradle sync and updates the
  * [SpotlightGradleProjectsService] with the discovered projects.
  */
-class SpotlightModelDataService : AbstractProjectDataService<SpotlightModel, Void>() {
+class SpotlightModelDataService : AbstractProjectDataService<SpotlightIdeModelData, Void>() {
 
-  override fun getTargetDataKey(): Key<SpotlightModel> = SpotlightProjectResolverExtension.SPOTLIGHT_MODEL_KEY
+  override fun getTargetDataKey(): Key<SpotlightIdeModelData> = SpotlightIdeModelData.KEY
 
   override fun importData(
-    toImport: Collection<DataNode<SpotlightModel>>,
+    toImport: Collection<DataNode<SpotlightIdeModelData>>,
     projectData: ProjectData?,
     project: Project,
     modelsProvider: IdeModifiableModelsProvider
