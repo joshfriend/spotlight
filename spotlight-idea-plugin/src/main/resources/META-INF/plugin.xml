@@ -61,8 +61,11 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     
     <!-- Suppress built-in inspections in spotlight project files -->
     <lang.inspectionSuppressor language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightInspectionSuppressor"/>
-    
+
     <notificationGroup id="Spotlight" displayType="BALLOON"/>
+
+    <!-- Search Everywhere contributor for Gradle project paths -->
+    <searchEverywhereContributor implementation="com.fueledbycaffeine.spotlight.idea.search.GradleProjectSearchContributorFactory"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
