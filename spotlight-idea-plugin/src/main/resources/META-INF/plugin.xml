@@ -20,6 +20,24 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     <directoryIndexExcludePolicy
             implementation="com.fueledbycaffeine.spotlight.idea.direxclude.SpotlightExcludeDirectoryPolicy"/>
     <externalProjectDataService implementation="com.fueledbycaffeine.spotlight.idea.gradle.SpotlightModelDataService"/>
+    
+    <!-- Spotlight project files language support -->
+    <fileType name="SpotlightProjects"
+              implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightProjectsFileType"
+              language="SpotlightProjects"
+              fileNames="ide-projects.txt;all-projects.txt"/>
+    <fileTypeOverrider implementation="com.fueledbycaffeine.spotlight.idea.lang.SpotlightProjectsFileTypeOverrider" order="first"/>
+    <lang.parserDefinition language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightProjectsParserDefinition"/>
+    <lang.commenter language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightProjectsCommenter"/>
+    
+    <!-- Navigation support for ide-projects.txt -->
+    <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsGotoDeclarationHandler"/>
+    
+    <!-- Suppress built-in inspections in spotlight project files -->
+    <lang.inspectionSuppressor language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightInspectionSuppressor"/>
+    <lang.inspectionSuppressor language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightInspectionSuppressor"/>
+    
+    <notificationGroup id="Spotlight" displayType="BALLOON"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
