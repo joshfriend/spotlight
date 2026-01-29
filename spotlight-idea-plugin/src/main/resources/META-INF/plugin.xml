@@ -35,6 +35,11 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     <completion.contributor language="Groovy" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
     <completion.contributor language="kotlin" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.completion.SpotlightCompletionContributor"/>
 
+    <!-- Project path validation and highlighting -->
+    <annotator language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.annotator.SpotlightAnnotator"/>
+    <annotator language="Groovy" implementationClass="com.fueledbycaffeine.spotlight.idea.annotator.SpotlightAnnotator"/>
+    <annotator language="kotlin" implementationClass="com.fueledbycaffeine.spotlight.idea.annotator.SpotlightAnnotator"/>
+    
     <!-- Navigation support for ide-projects.txt -->
     <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsGotoDeclarationHandler"/>
     
@@ -71,5 +76,11 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
       <separator/>
       <add-to-group group-id="ProjectViewPopupMenu"/>
     </group>
+    
+    <action class="com.fueledbycaffeine.spotlight.idea.lang.RemoveAllInvalidPathsAction"
+            id="Action.RemoveAllInvalidPaths"
+            text="Remove All Invalid Paths">
+      <keyboard-shortcut first-keystroke="control alt O" keymap="$default"/>
+    </action>
   </actions>
 </idea-plugin>
