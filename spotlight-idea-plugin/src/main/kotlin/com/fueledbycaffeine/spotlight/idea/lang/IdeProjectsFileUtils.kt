@@ -1,6 +1,7 @@
 package com.fueledbycaffeine.spotlight.idea.lang
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
+import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.ALL_PROJECTS_LOCATION
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.TextRange
@@ -8,15 +9,22 @@ import com.intellij.psi.PsiFile
 import java.nio.file.Path
 
 /**
- * Utility functions for working with ide-projects.txt files.
+ * Utility functions for working with Spotlight project files (ide-projects.txt, all-projects.txt).
  */
 object IdeProjectsFileUtils {
   /**
-   * Checks if the given file is an ide-projects.txt file.
+   * Checks if the given path is a Spotlight project file (ide-projects.txt or all-projects.txt).
    */
-  fun isIdeProjectsFile(file: PsiFile): Boolean {
+  fun isSpotlightProjectsFile(path: String): Boolean {
+    return path.endsWith(IDE_PROJECTS_LOCATION) || path.endsWith(ALL_PROJECTS_LOCATION)
+  }
+  
+  /**
+   * Checks if the given file is a Spotlight project file (ide-projects.txt or all-projects.txt).
+   */
+  fun isSpotlightProjectsFile(file: PsiFile): Boolean {
     val virtualFile = file.virtualFile ?: return false
-    return virtualFile.path.endsWith(IDE_PROJECTS_LOCATION)
+    return isSpotlightProjectsFile(virtualFile.path)
   }
   
   /**
