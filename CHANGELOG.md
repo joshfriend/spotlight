@@ -1,5 +1,16 @@
 # Changelog
 
+### Unreleased
+#### IDE plugin
+* Fix `ide-projects.txt` highlighting entire file on Cmd+hover
+* Fix `SerializationException` when saving external project data
+* Improve project stale banner and add sync stale detection
+* Add IDE support for `spotlight-rules.json`
+* Add configurable IDE exclusion policy setting
+
+#### buildscript-utils
+* Add JSON schema for `spotlight-rules.json`
+
 ### 1.6.5
 #### IDE plugin
 * Add custom language support for `ide-projects.txt` and `all-projects.txt` files
