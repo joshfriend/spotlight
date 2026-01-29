@@ -33,6 +33,11 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
     <!-- Navigation support for ide-projects.txt -->
     <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.lang.IdeProjectsGotoDeclarationHandler"/>
     
+    <!-- Navigation support for build.gradle project references -->
+    <psi.referenceContributor language="Groovy" implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectReferenceContributor"/>
+    <psi.referenceContributor language="kotlin" implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectReferenceContributor"/>
+    <gotoDeclarationHandler implementation="com.fueledbycaffeine.spotlight.idea.gradle.BuildGradleProjectGotoHandler"/>
+    
     <!-- Suppress built-in inspections in spotlight project files -->
     <lang.inspectionSuppressor language="SpotlightProjects" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightInspectionSuppressor"/>
     <lang.inspectionSuppressor language="TEXT" implementationClass="com.fueledbycaffeine.spotlight.idea.lang.SpotlightInspectionSuppressor"/>
