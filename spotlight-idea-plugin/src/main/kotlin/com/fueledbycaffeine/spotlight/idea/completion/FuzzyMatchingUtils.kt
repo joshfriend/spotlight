@@ -168,13 +168,52 @@ object FuzzyMatchingUtils {
   }
   
   /**
-   * Matches acronym-style input against camelCase text.
-   * ONLY matches at word boundaries (uppercase letters).
-   * Examples: "ff" matches "featureFlags" (f→f, f→F)
+   * Matches acronym-style input against camelCase text using two strategies:
+   * 1. Prefix-per-word: consecutive chars match prefixes of camelCase words (e.g., "caos" → "cashOs")
+   * 2. Strict acronym: each char matches first char of a camelCase word (e.g., "ff" → "featureFlags")
    */
   private fun matchCamelCaseAcronym(prefix: String, text: String): Int {
     if (prefix.isEmpty() || text.isEmpty()) return 0
     
+    // Split camelCase into words
+    val words = splitCamelCase(text)
+    if (words.size < 2) return 0
+    
+    // Try prefix-per-word matching first
+    val prefixMatch = matchPrefixesAcrossWords(prefix, words)
+    if (prefixMatch > 0) return prefixMatch
+    
+    // Fall back to strict acronym matching
+    return matchStrictCamelCaseAcronym(prefix, text)
+  }
+  
+  /**
+   * Splits camelCase text into lowercase words.
+   * Example: "featureFlags" → ["feature", "flags"]
+   */
+  private fun splitCamelCase(text: String): List<String> {
+    val words = mutableListOf<String>()
+    val currentWord = StringBuilder()
+    
+    for (char in text) {
+      if (char.isUpperCase() && currentWord.isNotEmpty()) {
+        words.add(currentWord.toString().lowercase())
+        currentWord.clear()
+      }
+      currentWord.append(char)
+    }
+    
+    if (currentWord.isNotEmpty()) {
+      words.add(currentWord.toString().lowercase())
+    }
+    
+    return words
+  }
+  
+  /**
+   * Strict camelCase acronym matching: each prefix char matches the start of a camelCase word.
+   */
+  private fun matchStrictCamelCaseAcronym(prefix: String, text: String): Int {
     var prefixIndex = 0
     var textIndex = 0
     
@@ -239,36 +278,82 @@ object FuzzyMatchingUtils {
   }
   
   /**
-   * Matches acronym against kebab-case words.
-   * Examples: "ff" matches ["feature", "flags"]
+   * Matches acronym against kebab-case words using two strategies:
+   * 1. Strict acronym: each char matches first char of a word (e.g., "ff" → "feature-flags")
+   * 2. Prefix-per-word: consecutive chars match prefixes of words (e.g., "caos" → "cash-os")
    */
   private fun matchKebabAcronym(prefix: String, words: List<String>): Int {
     if (prefix.isEmpty() || words.isEmpty()) return 0
+    if (words.size < 2) return 0
     
+    // Try prefix-per-word matching first (more flexible)
+    val prefixMatch = matchPrefixesAcrossWords(prefix, words)
+    if (prefixMatch > 0) return prefixMatch
+    
+    // Fall back to strict acronym matching
+    return matchStrictAcronym(prefix, words)
+  }
+  
+  /**
+   * Matches by consuming prefix characters against the start of each word.
+   * Example: "caos" matches ["cash", "os"] (ca→cash, os→os)
+   */
+  private fun matchPrefixesAcrossWords(prefix: String, words: List<String>): Int {
     var prefixIndex = 0
     var wordIndex = 0
     
-    // First character must match first word
-    if (prefix[0] != words[0].firstOrNull()) return 0
-    prefixIndex++
-    
-    // Try to match subsequent characters with word starts
     while (prefixIndex < prefix.length && wordIndex < words.size) {
-      val prefixChar = prefix[prefixIndex]
       val word = words[wordIndex]
-      
-      // Check if this word starts with the prefix char
-      if (word.isNotEmpty() && word[0] == prefixChar) {
-        prefixIndex++
+      if (word.isEmpty()) {
         wordIndex++
-      } else if (wordIndex == 0 && prefixIndex < word.length && word[prefixIndex] == prefixChar) {
-        // Allow matching within the first word
-        prefixIndex++
+        continue
+      }
+      
+      // Check if the word starts with the current prefix character
+      if (word[0] != prefix[prefixIndex]) {
+        wordIndex++
+        continue
+      }
+      
+      // Match as many characters as possible from this word
+      var matchedInWord = 0
+      while (prefixIndex + matchedInWord < prefix.length &&
+             matchedInWord < word.length &&
+             prefix[prefixIndex + matchedInWord] == word[matchedInWord]) {
+        matchedInWord++
+      }
+      
+      if (matchedInWord > 0) {
+        prefixIndex += matchedInWord
+        wordIndex++
       } else {
         wordIndex++
       }
     }
     
-    return if (prefixIndex > 1) prefixIndex else 0
+    // Must match across at least 2 words to be considered a valid fuzzy match
+    return if (prefixIndex >= 2 && wordIndex >= 2) prefixIndex else 0
+  }
+  
+  /**
+   * Strict acronym matching: each prefix char matches first char of a different word.
+   * Example: "ff" matches ["feature", "flags"] (f→feature, f→flags)
+   */
+  private fun matchStrictAcronym(prefix: String, words: List<String>): Int {
+    var prefixIndex = 0
+    var wordIndex = 0
+    
+    while (prefixIndex < prefix.length && wordIndex < words.size) {
+      val prefixChar = prefix[prefixIndex]
+      val word = words[wordIndex]
+      
+      if (word.isNotEmpty() && word[0] == prefixChar) {
+        prefixIndex++
+      }
+      wordIndex++
+    }
+    
+    // Only return match count if we matched at least 2 characters
+    return if (prefixIndex >= 2) prefixIndex else 0
   }
 }
