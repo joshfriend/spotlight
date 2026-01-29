@@ -14,6 +14,7 @@ import com.intellij.codeInsight.completion.PrioritizedLookupElement
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
+import com.intellij.psi.PsiElement
 import com.intellij.util.ProcessingContext
 
 /**
@@ -110,20 +111,27 @@ private class SpotlightCompletionProvider : CompletionProvider<CompletionParamet
 
     val document = parameters.editor.document
     val offset = parameters.offset
-    val lineNumber = document.getLineNumber(offset)
-    val lineStartOffset = document.getLineStartOffset(lineNumber)
-    val lineText = document.getText(TextRange(lineStartOffset, offset))
-    val cleanText = cleanDummyIdentifier(lineText)
     
-    // Check if we're actually inside a project() string literal or typing a projects. accessor
-    // This is the key check - we only provide completions if we're actually in the right context
+    // Get text from start of file to cursor (up to 500 chars for performance)
+    val startOffset = maxOf(0, offset - 500)
+    val textBeforeCaret = document.getText(TextRange(startOffset, offset))
+    val cleanText = cleanDummyIdentifier(textBeforeCaret)
+    
+    // Check if we're inside a project() string literal
+    // Look for project( followed by a quote, then capture everything until the end
     val projectCallMatch = Regex("""project\s*\(\s*["']([^"']*)$""").find(cleanText)
+    
+    // Fallback: check if we're in a string literal via PSI (handles cases where project() 
+    // is outside our text window)
+    val inStringLiteral = isInStringLiteral(parameters.position)
+    
+    // Check if we're typing a type-safe accessor (projects.xxx.yyy)
     val typeSafeMatch = Regex("""projects\.([\w.]*)$""").find(cleanText)
     
     when {
-      projectCallMatch != null -> {
+      projectCallMatch != null || (inStringLiteral && typeSafeMatch == null) -> {
         // We're inside quotes in a project() call - provide path completions
-        val prefix = projectCallMatch.groupValues[1]
+        val prefix = projectCallMatch?.groupValues?.get(1) ?: extractStringContent(parameters.position)
         val fuzzyResult = result.withPrefixMatcher(FuzzyGradlePrefixMatcher(prefix, isPathMatch = true))
         
         allProjects.forEach { gradlePath ->
@@ -167,6 +175,58 @@ private class SpotlightCompletionProvider : CompletionProvider<CompletionParamet
   
   private fun cleanDummyIdentifier(text: String): String {
     return text.replace(Regex("""${CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED}\w*"""), "")
+  }
+  
+  /**
+   * Checks if the PSI element is inside a string literal.
+   */
+  private fun isInStringLiteral(element: PsiElement): Boolean {
+    var current: PsiElement? = element
+    while (current != null) {
+      val text = current.text
+      // Check if this element looks like a string literal
+      if (text.startsWith("\"") || text.startsWith("'")) {
+        return true
+      }
+      // Check element type name for string-related types
+      val typeName = current.javaClass.simpleName
+      if (typeName.contains("String", ignoreCase = true) ||
+          typeName.contains("Literal", ignoreCase = true)) {
+        return true
+      }
+      current = current.parent
+    }
+    return false
+  }
+  
+  /**
+   * Extracts the content of the string literal containing the PSI element.
+   * Gets the text from the start of the string up to the cursor position.
+   */
+  private fun extractStringContent(element: PsiElement): String {
+    var current: PsiElement? = element
+    while (current != null) {
+      val text = current.text
+      if (text.startsWith("\"") || text.startsWith("'")) {
+        // Found string literal - extract content without quotes
+        var content = text
+          .removePrefix("\"").removePrefix("'")
+          .removeSuffix("\"").removeSuffix("'")
+        
+        // Remove IntelliJ's dummy identifier - it may be concatenated with user input
+        // e.g., user types ":ffapi" and it becomes ":ffapiIntellijIdeaRulezzz"
+        val dummyIndex = content.indexOf(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED, ignoreCase = true)
+        if (dummyIndex >= 0) {
+          content = content.take(dummyIndex)
+        }
+        
+        // Keep only valid path characters: alphanumeric, colon, dash, underscore, dot
+        content = content.takeWhile { it.isLetterOrDigit() || it in ":.-_" }
+        return content
+      }
+      current = current.parent
+    }
+    return ""
   }
 }
 
