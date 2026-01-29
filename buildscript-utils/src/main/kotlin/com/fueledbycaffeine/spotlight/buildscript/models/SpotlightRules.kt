@@ -1,7 +1,9 @@
 package com.fueledbycaffeine.spotlight.buildscript.models
 
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 public data class SpotlightRules(
   val implicitRules: Set<ImplicitDependencyRule> = emptySet(),
 ) {

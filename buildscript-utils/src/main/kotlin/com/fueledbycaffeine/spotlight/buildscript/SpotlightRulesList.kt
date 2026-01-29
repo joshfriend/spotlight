@@ -10,8 +10,6 @@ import com.squareup.moshi.JsonReader
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.ToJson
 import com.squareup.moshi.adapter
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import dev.zacsweers.moshix.sealed.reflect.MoshiSealedJsonAdapterFactory
 import java.nio.file.Path
 import kotlin.io.path.exists
 import okio.IOException
@@ -48,10 +46,8 @@ public class SpotlightRulesList(private val root: Path) {
 
   private val moshi by lazy {
     Moshi.Builder()
-      .add(MoshiSealedJsonAdapterFactory())
       .add(GradlePathAdapter(root))
       .add(RegexAdapter)
-      .addLast(KotlinJsonAdapterFactory())
       .build()
   }
 

@@ -7,7 +7,7 @@ import java.nio.file.Path
 
 public sealed interface DependencyRule
 
-@JsonClass(generateAdapter = false, generator = "sealed:type")
+@JsonClass(generateAdapter = true, generator = "sealed:type")
 public sealed interface ImplicitDependencyRule : DependencyRule {
 
   /**
@@ -34,6 +34,7 @@ public sealed interface ImplicitDependencyRule : DependencyRule {
    * @param includedProjects Projects to add as dependencies when the pattern matches.
    */
   @TypeLabel("buildscript-match-rule")
+  @JsonClass(generateAdapter = true)
   public data class BuildscriptMatchRule(
     val pattern: Regex,
     val includedProjects: Set<GradlePath>,
@@ -63,6 +64,7 @@ public sealed interface ImplicitDependencyRule : DependencyRule {
    * @param includedProjects Projects to add as dependencies when the pattern matches.
    */
   @TypeLabel("project-path-match-rule")
+  @JsonClass(generateAdapter = true)
   public data class ProjectPathMatchRule(
     val pattern: Regex,
     val includedProjects: Set<GradlePath>,
@@ -104,6 +106,7 @@ public sealed interface ImplicitDependencyRule : DependencyRule {
    * @param projectTemplate A template string where `$1`, `$2`, etc. are replaced with captured groups.
    */
   @TypeLabel("buildscript-capture-rule")
+  @JsonClass(generateAdapter = true)
   public data class BuildscriptCaptureRule(
     val pattern: Regex,
     val projectTemplate: String,

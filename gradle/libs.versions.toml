@@ -11,7 +11,7 @@ truth = "1.4.4"
 testkit = "0.18"
 lint-gradle = "1.0.0-alpha05"
 moshi = "1.15.2"
-moshix = "0.34.3"
+moshix = "0.34.4"
 okio = "3.16.2"
 
 [libraries]
@@ -27,6 +27,7 @@ autonomousapps-testkit-support = { module = "com.autonomousapps:gradle-testkit-s
 lint-gradle = { module = "androidx.lint:lint-gradle", version.ref = "lint-gradle" }
 moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
-moshix-sealedReflect = { module = "dev.zacsweers.moshix:moshi-sealed-reflect", version.ref = "moshix" }
-moshix-sealedRuntime = { module = "dev.zacsweers.moshix:moshi-sealed-runtime", version.ref = "moshix" }
+moshi-adapters = { module = "com.squareup.moshi:moshi-adapters", version.ref = "moshi" }
+moshix-sealed-runtime = { module = "dev.zacsweers.moshix:moshi-sealed-runtime", version.ref = "moshix" }
+moshix-runtime = { module = "dev.zacsweers.moshix:moshix-runtime", version.ref = "moshix" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }

@@ -33,8 +33,7 @@ dependencyAnalysis {
       includeDependency libs.truth
     }
     bundle('moshi') {
-      primary libs.moshi.kotlin
-      includeDependency libs.moshi
+      primary libs.moshi
     }
   }
 }
