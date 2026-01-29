@@ -1,0 +1,14 @@
+<idea-plugin>
+  <extensions defaultExtensionNs="JavaScript">
+    <!-- JSON Schema support for spotlight-rules.json -->
+    <JsonSchema.ProviderFactory implementation="com.fueledbycaffeine.spotlight.idea.json.SpotlightRulesJsonSchemaProviderFactory"/>
+  </extensions>
+  
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- Path completion for project paths in spotlight-rules.json -->
+    <completion.contributor language="JSON" order="first" implementationClass="com.fueledbycaffeine.spotlight.idea.json.SpotlightRulesCompletionContributor"/>
+    
+    <!-- Path reference/navigation for project paths in spotlight-rules.json -->
+    <psi.referenceContributor language="JSON" implementation="com.fueledbycaffeine.spotlight.idea.json.SpotlightRulesReferenceContributor"/>
+  </extensions>
+</idea-plugin>
