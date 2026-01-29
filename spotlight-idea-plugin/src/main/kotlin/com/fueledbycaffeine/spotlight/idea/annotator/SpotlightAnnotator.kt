@@ -9,6 +9,7 @@ import com.fueledbycaffeine.spotlight.idea.lang.RemoveInvalidPathIntentionAction
 import com.fueledbycaffeine.spotlight.idea.spotlightService
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.LowPriorityAction
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
@@ -21,7 +22,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import java.nio.file.FileSystems
 
 /**
  * Unified annotator for validating Gradle project paths.
@@ -34,13 +34,17 @@ class SpotlightAnnotator : Annotator, DumbAware {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
     val file = element.containingFile ?: return
     
+    // Only process the file element itself to avoid duplicate annotations
+    // (parent elements contain the same text as children)
+    if (element != file) return
+    
     when {
-      isSpotlightProjectFile(file) -> annotateSpotlightProjectFile(element, file, holder)
+      isSpotlightProjectFile(file) -> annotateSpotlightProjectFile(file, holder)
       GradleProjectPathUtils.isGradleBuildFile(file.name) -> {
         val spotlightService = element.project.spotlightService
         val allProjects = spotlightService.allProjects.value
         if (allProjects.isNotEmpty()) {
-          annotateGradleBuildFile(element, holder, allProjects)
+          annotateGradleBuildFile(file, holder, allProjects)
         }
       }
     }
@@ -49,19 +53,15 @@ class SpotlightAnnotator : Annotator, DumbAware {
   // ===== Spotlight project files (ide-projects.txt, all-projects.txt) =====
   
   private fun annotateSpotlightProjectFile(
-    element: PsiElement,
     file: PsiFile,
     holder: AnnotationHolder
   ) {
-    // Only process the file element itself to avoid redundant checks
-    if (element != file) return
-    
     val text = file.text
     val lines = text.lines()
     val isIdeProjects = isIdeProjectsFile(file)
     
     // Only validate paths in ide-projects.txt (all-projects.txt is auto-generated)
-    val spotlightService = element.project.spotlightService
+    val spotlightService = file.project.spotlightService
     val allProjects = if (isIdeProjects) spotlightService.allProjects.value else emptySet()
     
     var offset = 0
@@ -86,7 +86,7 @@ class SpotlightAnnotator : Annotator, DumbAware {
       }
       
       // Validate paths only in ide-projects.txt
-      if (isIdeProjects && allProjects.isNotEmpty() && !isValidIdeProjectPath(trimmed, allProjects)) {
+      if (isIdeProjects && allProjects.isNotEmpty() && !GradleProjectPathUtils.isValidIdeProjectPath(trimmed, allProjects)) {
         val range = TextRange(offset, offset + line.length)
         val bestMatch = GradleProjectPathUtils.findBestMatchingPath(trimmed, allProjects)
         
@@ -126,47 +126,27 @@ class SpotlightAnnotator : Annotator, DumbAware {
     return virtualFile.path.endsWith(IDE_PROJECTS_LOCATION)
   }
   
-  private fun isValidIdeProjectPath(path: String, allProjects: Set<GradlePath>): Boolean {
-    // Paths with glob characters are valid if they match at least one project
-    if (path.containsGlobChar()) {
-      return matchesAnyProject(path, allProjects)
-    }
-    return allProjects.any { it.path == path }
-  }
-  
-  private fun matchesAnyProject(pattern: String, allProjects: Set<GradlePath>): Boolean {
-    val globPattern = "glob:$pattern"
-    val pathMatcher = FileSystems.getDefault().getPathMatcher(globPattern)
-    return allProjects.any { gradlePath ->
-      val pathToMatch = FileSystems.getDefault().getPath(gradlePath.path)
-      pathMatcher.matches(pathToMatch)
-    }
-  }
-  
-  private fun String.containsGlobChar(): Boolean = contains('*') || contains('?')
-  
   // ===== build.gradle handling =====
   
   private fun annotateGradleBuildFile(
-    element: PsiElement,
+    file: PsiFile,
     holder: AnnotationHolder,
     allProjects: Set<GradlePath>
   ) {
-    val elementText = element.text
-    annotateProjectCalls(element, elementText, holder, allProjects)
-    annotateTypeSafeAccessors(element, elementText, holder, allProjects)
+    val fileText = file.text
+    annotateProjectCalls(fileText, holder, allProjects)
+    annotateTypeSafeAccessors(fileText, holder, allProjects)
   }
   
   private fun annotateProjectCalls(
-    element: PsiElement,
-    elementText: String,
+    fileText: String,
     holder: AnnotationHolder,
     allProjects: Set<GradlePath>
   ) {
-    GradleProjectPathUtils.PROJECT_CALL_PATTERN.findAll(elementText).forEach { matchResult ->
+    GradleProjectPathUtils.PROJECT_CALL_PATTERN.findAll(fileText).forEach { matchResult ->
       val (_, projectPath) = matchResult.destructured
-      val startOffset = element.textRange.startOffset + matchResult.groups[2]!!.range.first
-      val endOffset = element.textRange.startOffset + matchResult.groups[2]!!.range.last + 1
+      val startOffset = matchResult.groups[2]!!.range.first
+      val endOffset = matchResult.groups[2]!!.range.last + 1
       val range = TextRange.create(startOffset, endOffset)
       
       val isValid = GradleProjectPathUtils.isValidProjectPath(projectPath, allProjects)
@@ -188,25 +168,27 @@ class SpotlightAnnotator : Annotator, DumbAware {
           )
         }
         
+        // Add remove line option with lower priority
+        annotationBuilder.withFix(RemoveInvalidLineAction(fileText, startOffset))
+        
         annotationBuilder.create()
       }
     }
   }
   
   private fun annotateTypeSafeAccessors(
-    element: PsiElement,
-    elementText: String,
+    fileText: String,
     holder: AnnotationHolder,
     allProjects: Set<GradlePath>
   ) {
     val accessorMap = GradleProjectPathUtils.buildAccessorMap(allProjects)
     
-    GradleProjectPathUtils.TYPE_SAFE_ACCESSOR_PATTERN.findAll(elementText).forEach { matchResult ->
+    GradleProjectPathUtils.TYPE_SAFE_ACCESSOR_PATTERN.findAll(fileText).forEach { matchResult ->
       val (typeSafeAccessor) = matchResult.destructured
       val cleanAccessor = GradleProjectPathUtils.cleanTypeSafeAccessor(typeSafeAccessor)
       
-      val startOffset = element.textRange.startOffset + matchResult.range.first
-      val endOffset = element.textRange.startOffset + matchResult.range.last + 1
+      val startOffset = matchResult.range.first
+      val endOffset = matchResult.range.last + 1
       val range = TextRange.create(startOffset, endOffset)
       
       val isValid = GradleProjectPathUtils.isValidAccessor(cleanAccessor, accessorMap)
@@ -228,6 +210,9 @@ class SpotlightAnnotator : Annotator, DumbAware {
           )
         }
         
+        // Add remove line option with lower priority
+        annotationBuilder.withFix(RemoveInvalidLineAction(fileText, startOffset))
+        
         annotationBuilder.create()
       }
     }
@@ -236,6 +221,7 @@ class SpotlightAnnotator : Annotator, DumbAware {
 
 /**
  * QuickFix action that replaces an invalid path with the best autocomplete suggestion.
+ * Uses HighPriorityAction to appear above spelling suggestions.
  */
 class CompleteWithSuggestionAction(
   private val suggestion: String,
@@ -264,4 +250,40 @@ class CompleteWithSuggestionAction(
   override fun startInWriteAction(): Boolean = false
   
   override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.TOP
+}
+
+/**
+ * QuickFix action that removes the entire line containing an invalid project reference.
+ * Lower priority than CompleteWithSuggestionAction.
+ */
+class RemoveInvalidLineAction(
+  private val fileText: String,
+  private val offsetInLine: Int
+) : IntentionAction, LowPriorityAction, PriorityAction, DumbAware {
+  
+  override fun getText(): String = SpotlightBundle.message("intention.remove.invalid.line")
+  
+  override fun getFamilyName(): String = SpotlightBundle.message("statusbar.widget.name")
+  
+  override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean = true
+  
+  override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
+    editor ?: return
+    
+    val document = editor.document
+    val lineNumber = document.getLineNumber(offsetInLine)
+    val lineStartOffset = document.getLineStartOffset(lineNumber)
+    val lineEndOffset = document.getLineEndOffset(lineNumber)
+    
+    WriteCommandAction.runWriteCommandAction(project) {
+      // Delete the line including the newline character if not the last line
+      val deleteEnd = if (lineEndOffset < document.textLength) lineEndOffset + 1 else lineEndOffset
+      val deleteStart = if (lineStartOffset > 0 && deleteEnd == lineEndOffset) lineStartOffset - 1 else lineStartOffset
+      document.deleteString(deleteStart, deleteEnd)
+    }
+  }
+  
+  override fun startInWriteAction(): Boolean = false
+  
+  override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.LOW
 }

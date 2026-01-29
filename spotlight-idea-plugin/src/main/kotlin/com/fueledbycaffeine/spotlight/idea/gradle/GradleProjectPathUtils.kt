@@ -1,6 +1,7 @@
 package com.fueledbycaffeine.spotlight.idea.gradle
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
+import java.nio.file.FileSystems
 
 /**
  * Shared utilities for parsing and validating Gradle project paths.
@@ -62,6 +63,40 @@ object GradleProjectPathUtils {
     val prefix = "$path:"
     return allProjects.any { it.path.startsWith(prefix) }
   }
+  
+  /**
+   * Checks if a path from ide-projects.txt is valid.
+   * Supports glob patterns (e.g., ":tools:*").
+   */
+  fun isValidIdeProjectPath(path: String, allProjects: Set<GradlePath>): Boolean {
+    // Paths with glob characters are valid if they match at least one project
+    if (containsGlobChar(path)) {
+      return matchesAnyProject(path, allProjects)
+    }
+    return allProjects.any { it.path == path }
+  }
+  
+  /**
+   * Checks if a glob pattern matches any project in the set.
+   */
+  fun matchesAnyProject(pattern: String, allProjects: Set<GradlePath>): Boolean {
+    val globPattern = "glob:$pattern"
+    return try {
+      val pathMatcher = FileSystems.getDefault().getPathMatcher(globPattern)
+      allProjects.any { gradlePath ->
+        val pathToMatch = FileSystems.getDefault().getPath(gradlePath.path)
+        pathMatcher.matches(pathToMatch)
+      }
+    } catch (_: Exception) {
+      // Invalid glob pattern
+      false
+    }
+  }
+  
+  /**
+   * Checks if a string contains glob wildcard characters.
+   */
+  fun containsGlobChar(path: String): Boolean = path.contains('*') || path.contains('?')
   
   /**
    * Finds the best matching project path for autocomplete, ranked by fuzzy similarity.

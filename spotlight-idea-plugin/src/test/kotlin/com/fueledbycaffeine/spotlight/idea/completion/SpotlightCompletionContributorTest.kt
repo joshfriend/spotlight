@@ -5,6 +5,8 @@ import org.junit.Test
 
 class SpotlightCompletionContributorTest {
 
+  // ===== Project call context detection =====
+
   @Test
   fun `isInsideProjectCall detects project call context`() {
     // Valid project call contexts - must have quote after project(
@@ -20,6 +22,31 @@ class SpotlightCompletionContributorTest {
     assertThat(CompletionContextUtils.isInsideProjectCall("""implementation(""")).isFalse()
     assertThat(CompletionContextUtils.isInsideProjectCall("""dependencies {""")).isFalse()
     assertThat(CompletionContextUtils.isInsideProjectCall("""implementation(libs.someLib)""")).isFalse()
+  }
+
+  @Test
+  fun `isInsideProjectCall handles various quote styles`() {
+    // Double quotes
+    assertThat(CompletionContextUtils.isInsideProjectCall("""project(":rotoscope""")).isTrue()
+    assertThat(CompletionContextUtils.isInsideProjectCall("""project( ":rotoscope""")).isTrue()
+    
+    // Single quotes
+    assertThat(CompletionContextUtils.isInsideProjectCall("""project(':rotoscope""")).isTrue()
+    assertThat(CompletionContextUtils.isInsideProjectCall("""project( ':rotoscope""")).isTrue()
+    
+    // Mixed content
+    assertThat(CompletionContextUtils.isInsideProjectCall("""val x = "test"; project(":""")).isTrue()
+  }
+
+  @Test
+  fun `isInsideProjectCall matches any text with project and opening quote`() {
+    // The function simply checks if project( followed by a quote exists in the text
+    // It doesn't track whether the call is "complete" - that's not its job
+    // It's used during completion to know if we should offer project path completions
+    assertThat(CompletionContextUtils.isInsideProjectCall("""project(":rotoscope:hysteria")""")).isTrue()
+    assertThat(CompletionContextUtils.isInsideProjectCall("""project(':rotoscope:hysteria')""")).isTrue()
+    assertThat(CompletionContextUtils.isInsideProjectCall("""project(":rotoscope:hysteria""")).isTrue()
+    assertThat(CompletionContextUtils.isInsideProjectCall("""project(":""")).isTrue()
   }
 
   @Test
@@ -119,11 +146,135 @@ class SpotlightCompletionContributorTest {
   @Test
   fun `context detection with projects on previous lines`() {
     // Even with projects.xxx on previous lines, project() call takes precedence
-    val textWithProjectsAbove = """implementation projects.di.scoping
-implementation projects.ffapi
-implementation project(":"""
+    val textWithProjectsAbove = """
+      implementation projects.eternalBlue.holyRoller
+      implementation projects.rotoscope.hysteria
+      implementation project(":
+      """.trimIndent()
     
     assertThat(CompletionContextUtils.isInsideProjectCall(textWithProjectsAbove)).isTrue()
     assertThat(CompletionContextUtils.isTypingTypeSafeAccessor(textWithProjectsAbove)).isFalse()
+  }
+
+  // ===== Completion filtering tests =====
+
+  @Test
+  fun `completion should exclude current project from suggestions`() {
+    val allProjects = setOf(
+      ":eternal-blue:holy-roller",
+      ":eternal-blue:secret-garden",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+    )
+
+    val currentProject = ":eternal-blue:holy-roller"
+    val filteredPaths = allProjects.filter { it != currentProject }
+
+    assertThat(filteredPaths).containsExactly(
+      ":eternal-blue:secret-garden",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+    )
+    assertThat(filteredPaths).doesNotContain(":eternal-blue:holy-roller")
+  }
+
+  @Test
+  fun `completion context detection with surrounding text`() {
+    // Context with project( - should trigger
+    val contextWithProject = "dependencies { implementation(project(\""
+    assertThat(contextWithProject.contains("project(")).isTrue()
+
+    // Context without project( - should not trigger
+    val contextWithoutProject = "dependencies { implementation(libs.someLibrary"
+    assertThat(contextWithoutProject.contains("project(")).isFalse()
+
+    // Context after completed project - for reference
+    val contextAfterProject = "implementation(project(\":rotoscope:hysteria\"))"
+    assertThat(contextAfterProject.contains("project(")).isTrue()
+  }
+
+  // ===== Prefix extraction tests =====
+
+  @Test
+  fun `prefix extraction from project call`() {
+    val testCases = mapOf(
+      """project(":rotoscope""" to ":rotoscope",
+      """project(":eternal-blue:holy-roller""" to ":eternal-blue:holy-roller",
+      """project(":""" to ":",
+      """project('""" to "",
+      """project(":tsunami-sea:fata-morgana""" to ":tsunami-sea:fata-morgana",
+    )
+
+    testCases.forEach { (context, expectedPrefix) ->
+      val extracted = extractProjectPathPrefix(context)
+      assertThat(extracted).isEqualTo(expectedPrefix)
+    }
+  }
+
+  @Test
+  fun `prefix extraction from accessor`() {
+    val testCases = mapOf(
+      "projects.rotoscope" to "rotoscope",
+      "projects.eternalBlue.holyRoller" to "eternalBlue.holyRoller",
+      "projects." to "",
+      "projects.theFearOfFear.cellarDoor" to "theFearOfFear.cellarDoor",
+    )
+
+    testCases.forEach { (context, expectedPrefix) ->
+      val extracted = extractAccessorPrefix(context)
+      assertThat(extracted).isEqualTo(expectedPrefix)
+    }
+  }
+
+  // ===== Edge cases =====
+
+  @Test
+  fun `handles whitespace in project calls`() {
+    assertThat(CompletionContextUtils.isInsideProjectCall("""project(  ":""")).isTrue()
+    assertThat(CompletionContextUtils.isInsideProjectCall("""project(
+      ":""")).isTrue()
+    assertThat(CompletionContextUtils.isInsideProjectCall("""project(	":""")).isTrue() // tab
+  }
+
+  @Test
+  fun `handles comments in gradle content`() {
+    val contentWithComments = """
+      // This is a comment with project(":fake") in it
+      implementation(project(":
+    """.trimIndent()
+    
+    assertThat(CompletionContextUtils.isInsideProjectCall(contentWithComments)).isTrue()
+  }
+
+  @Test
+  fun `handles multiline project calls`() {
+    val multilineCall = """
+      implementation(
+        project(
+          ":
+    """.trimIndent()
+    
+    assertThat(CompletionContextUtils.isInsideProjectCall(multilineCall)).isTrue()
+  }
+
+  // ===== Helper functions =====
+
+  private fun extractProjectPathPrefix(context: String): String {
+    val quoteIndex = context.lastIndexOf("project(")
+    if (quoteIndex == -1) return ""
+    
+    val afterProject = context.substring(quoteIndex + "project(".length).trim()
+    return if (afterProject.startsWith("\"") || afterProject.startsWith("'")) {
+      afterProject.substring(1)
+    } else {
+      ""
+    }
+  }
+
+  private fun extractAccessorPrefix(context: String): String {
+    val projectsIndex = context.lastIndexOf("projects.")
+    if (projectsIndex == -1) return ""
+    
+    return context.substring(projectsIndex + "projects.".length)
   }
 }

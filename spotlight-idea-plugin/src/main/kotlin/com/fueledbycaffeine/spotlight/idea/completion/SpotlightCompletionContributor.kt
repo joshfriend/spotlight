@@ -64,20 +64,24 @@ private class SpotlightCompletionProvider : CompletionProvider<CompletionParamet
     val caretOffset = parameters.offset
     val lineNumber = document.getLineNumber(caretOffset)
     val lineStartOffset = document.getLineStartOffset(lineNumber)
-    val lineEndOffset = document.getLineEndOffset(lineNumber)
-    val lineText = document.getText(TextRange(lineStartOffset, lineEndOffset))
+    
+    // Get text from start of line to caret - this is what the user is typing
+    val textBeforeCaret = document.getText(TextRange(lineStartOffset, caretOffset))
 
     // Don't provide completions for comment lines
-    if (lineText.trim().startsWith("#")) return
+    if (textBeforeCaret.trim().startsWith("#")) return
 
-    // Get the current line's path (if editing an existing path)
-    val currentLinePath = lineText.trim()
+    // Use the trimmed text as prefix - this ensures proper replacement
+    val typedPrefix = textBeforeCaret.trim()
+    
+    // Use prefix matcher so IntelliJ replaces what's typed with our completion
+    val prefixResult = result.withPrefixMatcher(typedPrefix)
 
     allProjects
       .sortedBy { it.path }
       .forEach { gradlePath ->
-        // Don't mark as "already included" if it's the current line being edited
-        val isAlreadyIncluded = gradlePath in existingPaths && gradlePath.path != currentLinePath
+        // Don't mark as "already included" if it matches what's being typed
+        val isAlreadyIncluded = gradlePath in existingPaths && gradlePath.path != typedPrefix
 
         val lookupElement = ProjectCompletionUtils.createProjectPathLookup(
           path = gradlePath.path,
@@ -85,8 +89,11 @@ private class SpotlightCompletionProvider : CompletionProvider<CompletionParamet
           bold = !isAlreadyIncluded
         )
 
-        result.addElement(lookupElement)
+        prefixResult.addElement(lookupElement)
       }
+    
+    // Prevent spelling and other completions from interfering
+    result.stopHere()
   }
 
   private fun addGradleBuildCompletions(

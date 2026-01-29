@@ -7,84 +7,84 @@ class GradleProjectPathUtilsTest {
 
   @Test
   fun `calculateFuzzyScore returns highest score for exact match`() {
-    val score = GradleProjectPathUtils.calculateFuzzyScore("feature-flags:api", "feature-flags:api")
+    val score = GradleProjectPathUtils.calculateFuzzyScore("eternal-blue:holy-roller", "eternal-blue:holy-roller")
     assertThat(score).isEqualTo(10000)
   }
 
   @Test
   fun `calculateFuzzyScore returns high score for prefix match`() {
-    val score = GradleProjectPathUtils.calculateFuzzyScore("feature-flags:api", "feature")
+    val score = GradleProjectPathUtils.calculateFuzzyScore("eternal-blue:holy-roller", "eternal")
     assertThat(score).isGreaterThan(800)
   }
 
   @Test
   fun `calculateFuzzyScore returns good score for contains match`() {
-    val score = GradleProjectPathUtils.calculateFuzzyScore("feature-flags:api", "flags")
+    val score = GradleProjectPathUtils.calculateFuzzyScore("eternal-blue:holy-roller", "holy")
     assertThat(score).isGreaterThan(700)
   }
 
   @Test
   fun `calculateFuzzyScore matches acronyms across segments`() {
-    // "ff" should match "feature-flags" (f=feature, f=flags)
-    val ffScore = GradleProjectPathUtils.calculateFuzzyScore("feature-flags", "ff")
-    assertThat(ffScore).isGreaterThan(0)
+    // "eb" should match "eternal-blue" (e=eternal, b=blue)
+    val ebScore = GradleProjectPathUtils.calculateFuzzyScore("eternal-blue", "eb")
+    assertThat(ebScore).isGreaterThan(0)
     
-    // "ffapi" should match "feature-flags:api"
-    val ffapiScore = GradleProjectPathUtils.calculateFuzzyScore("feature-flags:api", "ffapi")
-    assertThat(ffapiScore).isGreaterThan(0)
+    // "ebhr" should match "eternal-blue:holy-roller"
+    val ebhrScore = GradleProjectPathUtils.calculateFuzzyScore("eternal-blue:holy-roller", "ebhr")
+    assertThat(ebhrScore).isGreaterThan(0)
   }
 
   @Test
   fun `calculateFuzzyScore prefers better acronym matches`() {
-    // "ffapi" should score higher for "feature-flags:api" than for "family:activity:backend:api"
-    val featureFlagsScore = GradleProjectPathUtils.calculateFuzzyScore("feature-flags:api", "ffapi")
-    val familyScore = GradleProjectPathUtils.calculateFuzzyScore("family:activity:backend:api", "ffapi")
+    // "ebhr" should score higher for "eternal-blue:holy-roller" than for a longer path
+    val eternalBlueScore = GradleProjectPathUtils.calculateFuzzyScore("eternal-blue:holy-roller", "ebhr")
+    val longerPathScore = GradleProjectPathUtils.calculateFuzzyScore("the-fear-of-fear:too-close-too-late", "ebhr")
     
-    assertThat(featureFlagsScore).isGreaterThan(familyScore)
+    assertThat(eternalBlueScore).isGreaterThan(longerPathScore)
   }
 
   @Test
   fun `calculateFuzzyScore prefers shorter paths with same acronym match`() {
-    // "ffapi" matches both, but feature-flags:api is shorter (fewer segments)
-    val featureFlagsScore = GradleProjectPathUtils.calculateFuzzyScore("feature-flags:api", "ffapi")
-    val familyHubScore = GradleProjectPathUtils.calculateFuzzyScore("family:family-hub:backend:api", "ffapi")
+    // "rh" matches both, but rotoscope:hysteria is shorter (fewer segments)
+    val rotoscopeScore = GradleProjectPathUtils.calculateFuzzyScore("rotoscope:hysteria", "rh")
+    val longerScore = GradleProjectPathUtils.calculateFuzzyScore("rotoscope:rotoscope:hysteria", "rh")
     
-    assertThat(featureFlagsScore).isGreaterThan(familyHubScore)
+    assertThat(rotoscopeScore).isGreaterThan(longerScore)
   }
 
   @Test
   fun `calculateFuzzyScore penalizes skipped segments`() {
-    // "fc" with "feature:central" has no skipped segments (f→feature, c→central)
-    // "fc" with "feature:backend:central" skips "backend" (f→feature, skip backend, c→central)
-    val directScore = GradleProjectPathUtils.calculateFuzzyScore("feature:central", "fc")
-    val skippedScore = GradleProjectPathUtils.calculateFuzzyScore("feature:backend:central", "fc")
+    // "rs" with "rotoscope:sew-me-up" has no skipped segments (r→rotoscope, s→sew-me-up)
+    // "rs" with "rotoscope:hysteria:sew-me-up" skips "hysteria"
+    val directScore = GradleProjectPathUtils.calculateFuzzyScore("rotoscope:sew-me-up", "rs")
+    val skippedScore = GradleProjectPathUtils.calculateFuzzyScore("rotoscope:hysteria:sew-me-up", "rs")
     
     assertThat(directScore).isGreaterThan(skippedScore)
   }
 
   @Test
   fun `calculateFuzzyScore handles camelCase segments`() {
-    // "ff" should match "featureFlags" (f=feature, f=Flags)
-    val score = GradleProjectPathUtils.calculateFuzzyScore("featureFlags", "ff")
+    // "eb" should match "eternalBlue" (e=eternal, b=Blue)
+    val score = GradleProjectPathUtils.calculateFuzzyScore("eternalBlue", "eb")
     assertThat(score).isGreaterThan(0)
   }
 
   @Test
   fun `calculateFuzzyScore returns zero for no match`() {
-    val score = GradleProjectPathUtils.calculateFuzzyScore("feature-flags:api", "xyz")
+    val score = GradleProjectPathUtils.calculateFuzzyScore("eternal-blue:holy-roller", "xyz")
     assertThat(score).isEqualTo(0)
   }
 
   @Test
   fun `calculateFuzzyScore handles empty prefix`() {
-    val score = GradleProjectPathUtils.calculateFuzzyScore("feature-flags:api", "")
+    val score = GradleProjectPathUtils.calculateFuzzyScore("eternal-blue:holy-roller", "")
     assertThat(score).isGreaterThan(0) // Should match anything
   }
 
   @Test
   fun `calculateFuzzyScore handles subsequence matching`() {
-    // "fapi" should match "feature-flags:api" as subsequence
-    val score = GradleProjectPathUtils.calculateFuzzyScore("feature-flags:api", "fapi")
+    // "eahr" should match "eternal-blue:holy-roller" as subsequence
+    val score = GradleProjectPathUtils.calculateFuzzyScore("eternal-blue:holy-roller", "eahr")
     assertThat(score).isGreaterThan(0)
   }
 
@@ -99,11 +99,11 @@ class GradleProjectPathUtilsTest {
 
   @Test
   fun `cleanTypeSafeAccessor removes prefixes and suffixes`() {
-    assertThat(GradleProjectPathUtils.cleanTypeSafeAccessor("projects.feature.api"))
-      .isEqualTo("feature.api")
-    assertThat(GradleProjectPathUtils.cleanTypeSafeAccessor("feature.api.dependencyProject"))
-      .isEqualTo("feature.api")
-    assertThat(GradleProjectPathUtils.cleanTypeSafeAccessor("feature.api.path"))
-      .isEqualTo("feature.api")
+    assertThat(GradleProjectPathUtils.cleanTypeSafeAccessor("projects.eternalBlue.holyRoller"))
+      .isEqualTo("eternalBlue.holyRoller")
+    assertThat(GradleProjectPathUtils.cleanTypeSafeAccessor("rotoscope.hysteria.dependencyProject"))
+      .isEqualTo("rotoscope.hysteria")
+    assertThat(GradleProjectPathUtils.cleanTypeSafeAccessor("rotoscope.hysteria.path"))
+      .isEqualTo("rotoscope.hysteria")
   }
 }

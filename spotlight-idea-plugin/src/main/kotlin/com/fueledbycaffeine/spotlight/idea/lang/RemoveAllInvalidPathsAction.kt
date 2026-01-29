@@ -1,8 +1,9 @@
 package com.fueledbycaffeine.spotlight.idea.lang
 
-import com.fueledbycaffeine.spotlight.buildscript.GradlePath
+import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.ALL_PROJECTS_LOCATION
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
 import com.fueledbycaffeine.spotlight.idea.SpotlightBundle
+import com.fueledbycaffeine.spotlight.idea.gradle.GradleProjectPathUtils
 import com.fueledbycaffeine.spotlight.idea.spotlightService
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -10,23 +11,25 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.DumbAware
-import java.nio.file.FileSystems
 
 /**
- * An action that removes all invalid paths from the ide-projects.txt file.
+ * An action that removes all invalid paths from ide-projects.txt or all-projects.txt.
  * Bound to the "Optimize Imports" keyboard shortcut for convenience.
+ * Modifies the document directly to avoid VFS sync issues.
  */
 class RemoveAllInvalidPathsAction : AnAction(), DumbAware {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   
   override fun update(e: AnActionEvent) {
     val file = e.getData(CommonDataKeys.VIRTUAL_FILE)
-    val isIdeProjectsFile = file != null && file.path.endsWith(IDE_PROJECTS_LOCATION)
+    val isSpotlightProjectFile = file != null && 
+      (file.path.endsWith(IDE_PROJECTS_LOCATION) || file.path.endsWith(ALL_PROJECTS_LOCATION))
     
-    // Only enabled in ide-projects.txt, where it overrides Optimize Imports shortcut
-    e.presentation.isEnabled = isIdeProjectsFile
+    // Only enabled in ide-projects.txt or all-projects.txt
+    e.presentation.isEnabled = isSpotlightProjectFile
     e.presentation.text = SpotlightBundle.message("action.remove.all.invalid.paths")
     e.presentation.description = SpotlightBundle.message("action.remove.all.invalid.paths.description")
   }
@@ -35,7 +38,6 @@ class RemoveAllInvalidPathsAction : AnAction(), DumbAware {
     val project = e.project ?: return
     val spotlightService = project.spotlightService
     val allProjects = spotlightService.allProjects.value
-    val rootDir = java.nio.file.Path.of(project.basePath!!)
     
     // Read the current file to get all paths
     val file = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
@@ -43,7 +45,7 @@ class RemoveAllInvalidPathsAction : AnAction(), DumbAware {
     val text = document.text
     val lines = text.lines()
     
-    val invalidPaths = mutableListOf<String>()
+    val invalidPaths = mutableSetOf<String>()
     
     for (line in lines) {
       val trimmed = line.trim()
@@ -54,7 +56,7 @@ class RemoveAllInvalidPathsAction : AnAction(), DumbAware {
       }
       
       // Check if the path is valid
-      if (!isValidPath(trimmed, allProjects)) {
+      if (!GradleProjectPathUtils.isValidIdeProjectPath(trimmed, allProjects)) {
         invalidPaths.add(trimmed)
       }
     }
@@ -70,15 +72,17 @@ class RemoveAllInvalidPathsAction : AnAction(), DumbAware {
       return
     }
     
-    // Save the document first to avoid VFS conflict when service writes to disk
-    FileDocumentManager.getInstance().saveDocument(document)
+    // Filter out invalid paths and rebuild the document
+    val newLines = lines.filter { line ->
+      val trimmed = line.trim()
+      trimmed !in invalidPaths
+    }
+    val newText = newLines.joinToString("\n")
     
-    // Remove all invalid paths
-    val gradlePaths = invalidPaths.map { GradlePath(rootDir, it) }
-    spotlightService.removeIdeProjects(gradlePaths)
-    
-    // Refresh the file to reload the changes
-    file.refresh(false, false)
+    // Modify document directly to avoid VFS sync issues
+    WriteCommandAction.runWriteCommandAction(project) {
+      document.setText(newText)
+    }
     
     NotificationGroupManager.getInstance()
       .getNotificationGroup("Spotlight")
@@ -87,28 +91,5 @@ class RemoveAllInvalidPathsAction : AnAction(), DumbAware {
         NotificationType.INFORMATION
       )
       .notify(project)
-  }
-  
-  private fun isValidPath(path: String, allProjects: Set<GradlePath>): Boolean {
-    // Paths with glob characters are always considered valid if they match at least one project
-    if (path.containsGlobChar()) {
-      return matchesAnyProject(path, allProjects)
-    }
-    
-    // Direct paths: check if they exist in allProjects
-    return allProjects.any { it.path == path }
-  }
-  
-  private fun matchesAnyProject(pattern: String, allProjects: Set<GradlePath>): Boolean {
-    val globPattern = "glob:$pattern"
-    val pathMatcher = FileSystems.getDefault().getPathMatcher(globPattern)
-    return allProjects.any { gradlePath ->
-      val pathToMatch = FileSystems.getDefault().getPath(gradlePath.path)
-      pathMatcher.matches(pathToMatch)
-    }
-  }
-  
-  private fun String.containsGlobChar(): Boolean {
-    return contains('*') || contains('?')
   }
 }
