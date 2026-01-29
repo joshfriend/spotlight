@@ -2,6 +2,9 @@
 
 ### Unreleased
 #### IDE plugin
+* Add Search Everywhere contributor for Gradle project paths (shift + shift, type or paste a gradle path)
+* Improve fuzzy matching with prefix-per-word support
+* Fix build file reference handling and completion
 * Fix `ide-projects.txt` highlighting entire file on Cmd+hover
 * Fix `SerializationException` when saving external project data
 * Improve project stale banner and add sync stale detection
@@ -9,6 +12,7 @@
 * Add configurable IDE exclusion policy setting
 
 #### buildscript-utils
+* Switch to moshi-ir codegen, generated JSON adapters are now packaged in the jar
 * Add JSON schema for `spotlight-rules.json`
 
 ### 1.6.5
