@@ -8,6 +8,7 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.codeInsight.completion.CompletionUtilCore
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
@@ -214,7 +215,7 @@ internal object CompletionContextUtils {
 
   /** Removes IntelliJ's dummy identifier from text for pattern matching. */
   fun cleanDummyIdentifier(text: String): String {
-    return text.replace(Regex("""IntellijIdeaRulezzz\w*"""), "")
+    return text.replace(Regex("""${CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED}\w*"""), "")
   }
 }
 
