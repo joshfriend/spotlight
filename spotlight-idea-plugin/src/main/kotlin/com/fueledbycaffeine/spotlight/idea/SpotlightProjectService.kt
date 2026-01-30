@@ -9,7 +9,6 @@ import com.fueledbycaffeine.spotlight.buildscript.SpotlightRulesList.Companion.S
 import com.fueledbycaffeine.spotlight.buildscript.computeSpotlightRules
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightRules
-import com.fueledbycaffeine.spotlight.idea.gradle.SpotlightGradleProjectsService
 import com.fueledbycaffeine.spotlight.idea.utils.vfsEventsFlow
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.EDT
@@ -20,7 +19,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.ui.EditorNotifications
-import java.nio.file.Path
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +29,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.nio.file.Path
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Service(Service.Level.PROJECT)
@@ -40,25 +39,23 @@ class SpotlightProjectService(
 ) : Disposable {
 
   private val rootDir = Path.of(project.basePath!!)
-  private val gradleProjectsService = SpotlightGradleProjectsService.getInstance(project)
   private val allProjectsList = SpotlightProjectList.allProjects(rootDir)
-  private val _allProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
+  private val _allProjects = MutableStateFlow(allProjectsList.read())
   val allProjects: StateFlow<Set<GradlePath>> = _allProjects
 
   private val ideProjectsList = SpotlightProjectList.ideProjects(rootDir, allProjects::value)
-  private val _ideProjects = MutableStateFlow<Set<GradlePath>>(emptySet())
+  // Initialize with file-based read immediately (doesn't require indexes)
+  private val _ideProjects = MutableStateFlow(ideProjectsList.read())
   val ideProjects: StateFlow<Set<GradlePath>> = _ideProjects
 
   private val rulesList = SpotlightRulesList(rootDir)
 
-
   private val rules = MutableStateFlow(SpotlightRules.EMPTY)
 
   init {
-    // Connect to the message bus and listen for file ide-projects.txt
+    // Connect to the message bus and listen for file changes
     scope.launch {
-      // Set initial values
-      // Rules triggers a load of ide-projects.txt and all-projects.txt
+      // Do full initialization with rules and BFS flattening
       readAndEmit(SpotlightFileChangeType.RULES)
 
       vfsEventsFlow(project)
