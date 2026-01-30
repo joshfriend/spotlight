@@ -120,8 +120,14 @@ jobs:
         env:
           JETBRAINS_MARKETPLACE_TOKEN: ${{ secrets.JETBRAINS_MARKETPLACE_TOKEN }}
 
+      - name: Upload plugin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: idea-plugin
+          path: spotlight-idea-plugin/build/distributions/*.zip
+
   create-github-release:
-    needs: prepare-release
+    needs: [prepare-release, jetbrains]
     if: >
       ${{
         github.event.workflow_run.conclusion == 'success' &&
@@ -135,6 +141,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Download plugin artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: idea-plugin
+          path: idea-plugin
 
       - name: Check if tag exists and extract changelog
         id: changelog
@@ -191,4 +203,5 @@ jobs:
 
           gh release create "v${{ needs.prepare-release.outputs.version }}" \
             --title "v${{ needs.prepare-release.outputs.version }}" \
-            --notes-file /tmp/changelog.txt
+            --notes-file /tmp/changelog.txt \
+            idea-plugin/*.zip
