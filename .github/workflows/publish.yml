@@ -191,4 +191,4 @@ jobs:
 
           gh release create "v${{ needs.prepare-release.outputs.version }}" \
             --title "v${{ needs.prepare-release.outputs.version }}" \
-            --notes "${{ steps.changelog.outputs.notes }}"
+            --notes-file /tmp/changelog.txt
