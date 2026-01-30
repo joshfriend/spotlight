@@ -1,5 +1,9 @@
 # Changelog
 
+### Unreleased
+#### IDE plugin
+* Fix status bar widget showing "inactive" during dumb mode
+
 ### 1.6.6
 #### IDE plugin
 * Add Search Everywhere contributor for Gradle project paths (shift + shift, type or paste a gradle path)

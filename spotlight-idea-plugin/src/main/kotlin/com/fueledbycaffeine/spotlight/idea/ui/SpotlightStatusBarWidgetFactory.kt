@@ -51,8 +51,15 @@ private class SpotlightStatusBarWidget(
   private var statusBar: StatusBar? = null
   private val cs = CoroutineScope(SupervisorJob())
 
+  private val gradleService = project.service<SpotlightGradleProjectsService>()
+  private val projectService = project.service<SpotlightProjectService>()
+
+  // Initialize with current StateFlow values so getText() returns correct value before install()
   @Volatile
-  private var ideProjectsCount = 0
+  private var ideProjectsCount = computeCount(
+    gradleService.includedProjects.value,
+    projectService.ideProjects.value
+  )
 
   override fun install(statusBar: StatusBar) {
     this.statusBar = statusBar
@@ -61,16 +68,11 @@ private class SpotlightStatusBarWidget(
     // - Use Gradle-synced projects (authoritative) when available
     // - Fall back to file-based projects when sync hasn't completed or failed
     cs.launch {
-      val gradleService = project.service<SpotlightGradleProjectsService>()
-      val projectService = project.service<SpotlightProjectService>()
-
       combine(
         gradleService.includedProjects,
-        projectService.ideProjects
-      ) { gradleSynced, fileBased ->
-        // Prefer Gradle-synced projects if available, otherwise use file-based
-        if (gradleSynced.isNotEmpty()) gradleSynced.size else fileBased.size
-      }
+        projectService.ideProjects,
+        ::computeCount
+      )
         .collectLatest { count ->
           // Update count and text atomically
           // Must happen on EDT for UI updates
@@ -116,5 +118,11 @@ private class SpotlightStatusBarWidget(
 
   override fun dispose() {
     cs.cancel()
+  }
+
+  private companion object {
+    // Prefer Gradle-synced projects if available, otherwise use file-based
+    fun computeCount(gradleSynced: Set<*>, fileBased: Set<*>): Int =
+      if (gradleSynced.isNotEmpty()) gradleSynced.size else fileBased.size
   }
 }
