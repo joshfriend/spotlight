@@ -1,5 +1,6 @@
 package com.fueledbycaffeine.spotlight.buildscript.parser.impl
 
+import com.fueledbycaffeine.autoservice.AutoService
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.TypeSafeProjectAccessorRule
@@ -12,6 +13,7 @@ import kotlin.io.path.readText
  * This is the legacy parsing approach that uses simple regex patterns.
  */
 public object RegexBuildscriptParser : BuildscriptParser {
+  @AutoService
   public class Provider : BuildscriptParserProvider {
     override fun getParser(): BuildscriptParser = RegexBuildscriptParser
   }
