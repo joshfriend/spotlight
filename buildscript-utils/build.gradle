@@ -4,6 +4,7 @@ plugins {
   id 'com.vanniktech.maven.publish'
   id 'com.autonomousapps.testkit'
   id 'org.jetbrains.kotlinx.binary-compatibility-validator'
+  id 'com.fueledbycaffeine.autoservice'
 }
 
 group = 'com.fueledbycaffeine.spotlight'
