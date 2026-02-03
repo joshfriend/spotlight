@@ -3,7 +3,7 @@ plugins {
   id 'dev.zacsweers.moshix'
   id 'com.vanniktech.maven.publish'
   id 'com.autonomousapps.testkit'
-
+  id 'com.fueledbycaffeine.autoservice'
 }
 
 group = 'com.fueledbycaffeine.spotlight'
