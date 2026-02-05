@@ -3,7 +3,7 @@ plugins {
   id 'dev.zacsweers.moshix'
   id 'com.vanniktech.maven.publish'
   id 'com.autonomousapps.testkit'
-  id 'org.jetbrains.kotlinx.binary-compatibility-validator'
+
 }
 
 group = 'com.fueledbycaffeine.spotlight'
@@ -78,6 +78,10 @@ dependencies {
 
 kotlin {
   explicitApi()
+
+  abiValidation {
+    enabled.set(true)
+  }
 }
 
 java {

@@ -3,9 +3,7 @@ plugins {
   id 'com.gradle.plugin-publish'
   id 'com.vanniktech.maven.publish'
   id 'com.autonomousapps.testkit'
-  id 'com.autonomousapps.plugin-best-practices-plugin'
   id 'org.jetbrains.kotlin.jvm'
-  id 'org.jetbrains.kotlinx.binary-compatibility-validator'
   id 'com.android.lint'
 }
 
@@ -61,6 +59,10 @@ mavenPublishing {
 
 kotlin {
   explicitApi()
+
+  abiValidation {
+    enabled.set(true)
+  }
 }
 
 java {
