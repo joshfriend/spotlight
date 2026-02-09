@@ -1,6 +1,6 @@
 # Changelog
 
-### Unreleased
+### 1.6.7
 #### IDE plugin
 * Fix status bar widget showing "inactive" during dumb mode
 
