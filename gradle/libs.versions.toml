@@ -12,6 +12,7 @@ testkit = "0.18"
 lint-gradle = "1.0.0-alpha05"
 moshi = "1.15.2"
 moshix = "0.34.4"
+coroutines = "1.9.0"
 okio = "3.16.2"
 
 [libraries]
@@ -30,4 +31,5 @@ moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "mosh
 moshi-adapters = { module = "com.squareup.moshi:moshi-adapters", version.ref = "moshi" }
 moshix-sealed-runtime = { module = "dev.zacsweers.moshix:moshi-sealed-runtime", version.ref = "moshix" }
 moshix-runtime = { module = "dev.zacsweers.moshix:moshix-runtime", version.ref = "moshix" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }

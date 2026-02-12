@@ -1,0 +1,19 @@
+plugins {
+  id 'org.jetbrains.kotlin.jvm'
+  id 'application'
+}
+
+application {
+  mainClass = 'com.fueledbycaffeine.spotlight.cli.BuildImpactReportKt'
+}
+
+dependencies {
+  implementation project(':buildscript-utils')
+  implementation libs.coroutines.core
+}
+
+java {
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(libs.versions.javaTarget.get()))
+  }
+}
