@@ -140,6 +140,8 @@ public final class com/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorIn
 
 public final class com/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch {
 	public static final field INSTANCE Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;
+	public final fun affectedProjects (Ljava/lang/Iterable;Ljava/lang/Iterable;Ljava/util/Set;)Ljava/util/Set;
+	public static synthetic fun affectedProjects$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/lang/Iterable;Ljava/lang/Iterable;Ljava/util/Set;ILjava/lang/Object;)Ljava/util/Set;
 	public final fun flatten (Ljava/lang/Iterable;Ljava/util/Set;)Ljava/util/Set;
 	public static synthetic fun flatten$default (Lcom/fueledbycaffeine/spotlight/buildscript/graph/BreadthFirstSearch;Ljava/lang/Iterable;Ljava/util/Set;ILjava/lang/Object;)Ljava/util/Set;
 	public final fun run (Ljava/lang/Iterable;Ljava/util/Set;)Ljava/util/Map;

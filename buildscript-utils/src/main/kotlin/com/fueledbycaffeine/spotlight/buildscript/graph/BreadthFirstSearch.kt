@@ -59,10 +59,8 @@ public object BreadthFirstSearch {
     allNodes: Iterable<T>,
     rules: Set<DependencyRule> = emptySet()
   ): Set<T> {
-    // Build reverse dependency map: node -> set of nodes that depend on it
     val dependentsMap = buildDependentsGraph(allNodes, rules)
 
-    // BFS from targets using reverse map
     val seen = HashSet<T>(INITIAL_CAPACITY)
     val queue = ArrayDeque<T>(INITIAL_CAPACITY)
 
@@ -71,16 +69,15 @@ public object BreadthFirstSearch {
 
     while (queue.isNotEmpty()) {
       val nextNode = queue.removeFirst()
-      val accessors = dependentsMap[nextNode] ?: emptySet()
+      val dependents = dependentsMap[nextNode] ?: emptySet()
 
-      for (accessor in accessors) {
-        if (seen.add(accessor)) {
-          queue.addLast(accessor)
+      for (dependent in dependents) {
+        if (seen.add(dependent)) {
+          queue.addLast(dependent)
         }
       }
     }
 
-    // Return all seen nodes including the original targets
     return seen
   }
 
@@ -91,7 +88,7 @@ public object BreadthFirstSearch {
     allNodes: Iterable<T>,
     rules: Set<DependencyRule>
   ): Map<T, Set<T>> {
-    val dependentsMap = mutableMapOf<T, MutableSet<T>>()
+    val dependentsMap = HashMap<T, MutableSet<T>>(INITIAL_CAPACITY)
 
     for (node in allNodes) {
       val successors = node.findSuccessors(rules)
