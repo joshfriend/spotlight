@@ -11,13 +11,13 @@ import com.intellij.openapi.components.Storage
 enum class ExclusionPolicyMode {
     /**
      * Only index active/loaded projects. Unloaded projects are completely excluded.
-     * This is the default behavior.
      */
     ACTIVE_PROJECTS_ONLY,
 
     /**
      * Index all projects, but still exclude build/ folders from unloaded projects
      * to reduce indexing overhead while keeping source files searchable.
+     * This is the default behavior.
      */
     ALL_PROJECTS_EXCLUDE_BUILD,
 
@@ -37,7 +37,7 @@ enum class ExclusionPolicyMode {
 class SpotlightSettings : PersistentStateComponent<SpotlightSettings.State> {
 
     data class State(
-        var exclusionPolicyMode: ExclusionPolicyMode = ExclusionPolicyMode.ACTIVE_PROJECTS_ONLY
+        var exclusionPolicyMode: ExclusionPolicyMode = ExclusionPolicyMode.ALL_PROJECTS_EXCLUDE_BUILD
     )
 
     private var myState = State()
