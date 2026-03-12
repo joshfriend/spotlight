@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.6.8
+#### IDE plugin
+* Change default indexing behavior to `ALL_PROJECTS_EXCLUDE_BUILD`
+
 ### 1.6.7
 #### IDE plugin
 * Fix status bar widget showing "inactive" during dumb mode
