@@ -4,11 +4,14 @@ package com.fueledbycaffeine.spotlight.idea.action
 
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.ALL_PROJECTS_LOCATION
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
+import com.fueledbycaffeine.spotlight.idea.SpotlightBundle
 import com.fueledbycaffeine.spotlight.idea.spotlightService
 import com.fueledbycaffeine.spotlight.idea.utils.gradlePathsSelected
 import com.fueledbycaffeine.spotlight.idea.utils.isWildcardPattern
 import com.fueledbycaffeine.spotlight.idea.utils.toSpotlightPattern
 import com.intellij.icons.AllIcons
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -20,7 +23,8 @@ import com.intellij.openapi.diagnostic.Logger
  */
 class AddProjectToSpotlightAction : AnAction() {
   override fun actionPerformed(action: AnActionEvent) {
-    val projectService = action.project?.spotlightService ?: return
+    val project = action.project ?: return
+    val projectService = project.spotlightService
     val allProjects = projectService.allProjects.value
 
     val pathsToAdd = action.gradlePathsSelected
@@ -40,6 +44,18 @@ class AddProjectToSpotlightAction : AnAction() {
     if (pathsToAdd.isNotEmpty()) {
       logger.info("Add projects to IDE Spotlight: ${pathsToAdd.joinToString { it.path }}")
       projectService.addIdeProjects(pathsToAdd)
+
+      NotificationGroupManager.getInstance()
+        .getNotificationGroup("Spotlight")
+        .createNotification(
+          SpotlightBundle.message(
+            "notification.added.paths",
+            pathsToAdd.size,
+            pathsToAdd.joinToString { it.path }
+          ),
+          NotificationType.INFORMATION
+        )
+        .notify(project)
     }
   }
 
