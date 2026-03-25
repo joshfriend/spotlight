@@ -34,6 +34,7 @@ class RemoveProjectFromSpotlightAction : AnAction() {
       }
     }
 
+    if (pathsToRemove.isNotEmpty()) {
       logger.info("Remove projects from IDE Spotlight: ${pathsToRemove.joinToString { it.path }}")
       spotlightService.removeIdeProjects(pathsToRemove)
 
@@ -48,6 +49,7 @@ class RemoveProjectFromSpotlightAction : AnAction() {
           NotificationType.INFORMATION
         )
         .notify(project)
+    }
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
