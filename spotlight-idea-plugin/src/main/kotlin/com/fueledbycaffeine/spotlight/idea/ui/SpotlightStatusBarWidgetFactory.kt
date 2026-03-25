@@ -94,6 +94,8 @@ private class SpotlightStatusBarWidget(
 
   override fun ID(): String = ID
 
+  override fun getPresentation(): StatusBarWidget.WidgetPresentation = this
+
   override fun getText(): String = SpotlightBundle.message(
     when (ideProjectsCount) {
       0 -> "statusbar.widget.text.inactive"
