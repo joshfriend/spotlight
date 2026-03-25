@@ -27,7 +27,7 @@ java {
   }
 }
 
-def intellijTarget = "2025.3.1"
+def intellijTarget = "2025.3.4"
 
 dependencies {
   implementation project(":buildscript-utils")
@@ -82,7 +82,7 @@ intellijPlatform {
     name = "Spotlight"
 
     ideaVersion {
-      sinceBuild = "251"
+      sinceBuild = "252"
     }
   }
 
