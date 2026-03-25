@@ -362,6 +362,31 @@ class SpotlightProjectListTest {
   }
 
   @Test
+  fun `replace overwrites existing ide projects with provided paths`() {
+    val ideProjectListFile = buildRoot.resolve("ide-projects.txt")
+    buildRoot.createProjectList(
+      ":foo",
+      ":bar",
+      ":baz"
+    )
+    ideProjectListFile.writeText("""
+      # Keep me?
+      :foo
+      :bar
+    """.trimIndent())
+
+    val projects = IdeProjects(buildRoot, ideProjectListFile)
+    projects.replace(
+      listOf(
+        GradlePath(buildRoot, ":baz")
+      )
+    )
+
+    val updatedFileContents = ideProjectListFile.readText()
+    assertThat(updatedFileContents).equals(":baz")
+  }
+
+  @Test
   fun `contains with multiple overlapping patterns`() {
     val ideProjectListFile = buildRoot.resolve("ide-projects.txt")
     buildRoot.createProjectList(

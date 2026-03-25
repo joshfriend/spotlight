@@ -92,6 +92,11 @@ For use with the <a href="https://plugins.gradle.org/plugin/com.fueledbycaffeine
               text="Remove Project from Spotlight">
         <keyboard-shortcut first-keystroke="control shift F" keymap="$default"/>
       </action>
+      <action class="com.fueledbycaffeine.spotlight.idea.action.ReplaceProjectSelectionInSpotlightAction"
+              id="Action.ReplaceProjectSelectionInSpotlight"
+              text="Replace Spotlight with Selection">
+        <keyboard-shortcut first-keystroke="control shift I" keymap="$default"/>
+      </action>
       <separator/>
       <add-to-group group-id="ProjectViewPopupMenu"/>
     </group>

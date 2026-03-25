@@ -6,9 +6,7 @@ import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
 import com.fueledbycaffeine.spotlight.idea.SpotlightBundle
 import com.fueledbycaffeine.spotlight.idea.spotlightService
-import com.fueledbycaffeine.spotlight.idea.utils.gradlePathsSelected
-import com.fueledbycaffeine.spotlight.idea.utils.isWildcardPattern
-import com.fueledbycaffeine.spotlight.idea.utils.toSpotlightPattern
+import com.fueledbycaffeine.spotlight.idea.utils.resolveSpotlightPaths
 import com.intellij.icons.AllIcons
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -25,21 +23,7 @@ class AddProjectToSpotlightAction : AnAction() {
   override fun actionPerformed(action: AnActionEvent) {
     val project = action.project ?: return
     val projectService = project.spotlightService
-    val allProjects = projectService.allProjects.value
-
-    val pathsToAdd = action.gradlePathsSelected
-      .filter { !it.isRootProject }
-      .mapNotNull { selectedPath ->
-        val pattern = selectedPath.toSpotlightPattern()
-        when {
-          // If directory contains child Gradle projects, use the wildcard pattern
-          pattern.isWildcardPattern -> pattern
-          // If this is a direct project in allProjects, add it as-is
-          selectedPath in allProjects -> selectedPath
-          // Otherwise, skip it
-          else -> null
-        }
-      }
+    val pathsToAdd = action.resolveSpotlightPaths()
 
     if (pathsToAdd.isNotEmpty()) {
       logger.info("Add projects to IDE Spotlight: ${pathsToAdd.joinToString { it.path }}")
@@ -72,14 +56,7 @@ class AddProjectToSpotlightAction : AnAction() {
       icon = AllIcons.General.Add
       val projectService = e.project?.spotlightService
       isVisible = if (projectService != null) {
-        val allProjects = projectService.allProjects.value
-        e.gradlePathsSelected
-          .filter { !it.isRootProject }
-          .any { selectedPath ->
-            val pattern = selectedPath.toSpotlightPattern()
-            val isValidProject = selectedPath in allProjects
-            (pattern.isWildcardPattern || isValidProject) && !projectService.isInIdeProjectsFile(pattern)
-          }
+        e.resolveSpotlightPaths().any { !projectService.isInIdeProjectsFile(it) }
       } else {
         false
       }

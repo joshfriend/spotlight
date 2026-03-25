@@ -81,6 +81,7 @@ public final class com/fueledbycaffeine/spotlight/buildscript/IdeProjects : com/
 	public fun read ()Ljava/util/Set;
 	public fun readRawPaths (Z)Ljava/util/List;
 	public final fun remove (Ljava/lang/Iterable;)V
+	public final fun replace (Ljava/lang/Iterable;)V
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/InvalidSpotlightRules : java/lang/Exception {

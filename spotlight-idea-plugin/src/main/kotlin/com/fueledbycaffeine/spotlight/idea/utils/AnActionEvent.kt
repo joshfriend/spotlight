@@ -1,6 +1,7 @@
 package com.fueledbycaffeine.spotlight.idea.utils
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
+import com.fueledbycaffeine.spotlight.idea.spotlightService
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.LangDataKeys
@@ -94,4 +95,23 @@ internal val AnActionEvent.gradlePathsSelected: Set<GradlePath> get() {
     .mapNotNull { it.javaPath.dropBuildAndSrc() }
     .map { it.gradlePathRelativeTo(project) }
     .toSet()
+}
+
+/**
+ * Resolves the current selection into valid Spotlight paths/patterns.
+ * Filters out the root project, converts directories with children to wildcard patterns,
+ * and only keeps paths that exist in all-projects.txt (or are wildcard patterns).
+ */
+internal fun AnActionEvent.resolveSpotlightPaths(): List<GradlePath> {
+  val allProjects = project?.spotlightService?.allProjects?.value ?: return emptyList()
+  return gradlePathsSelected
+    .filter { !it.isRootProject }
+    .mapNotNull { selectedPath ->
+      val pattern = selectedPath.toSpotlightPattern()
+      when {
+        pattern.isWildcardPattern -> pattern
+        selectedPath in allProjects -> selectedPath
+        else -> null
+      }
+    }
 }

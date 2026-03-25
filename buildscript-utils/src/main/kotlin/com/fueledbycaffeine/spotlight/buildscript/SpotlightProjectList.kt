@@ -123,6 +123,14 @@ public class IdeProjects internal constructor(
     projectList.writeText(filteredPaths.joinToString("\n"))
   }
 
+  /**
+   * Replace the file contents with the exact paths provided.
+   */
+  public fun replace(paths: Iterable<GradlePath>) {
+    ensureFileExists()
+    projectList.writeText(paths.map { it.path }.joinToString("\n"))
+  }
+
   override fun read(): Set<GradlePath> {
     val rawPaths = readRawPaths(includeComments = false)
 

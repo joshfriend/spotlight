@@ -124,6 +124,11 @@ class SpotlightProjectService(
     refreshIdeProjectsFile()
   }
 
+  fun replaceIdeProjects(paths: Iterable<GradlePath>) {
+    ideProjectsList.replace(paths)
+    refreshIdeProjectsFile()
+  }
+
   fun isInIdeProjectsFile(path: GradlePath): Boolean {
     return path in ideProjectsList
   }
