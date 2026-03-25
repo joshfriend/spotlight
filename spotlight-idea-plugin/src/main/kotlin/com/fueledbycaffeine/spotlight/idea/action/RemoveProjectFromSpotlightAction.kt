@@ -8,14 +8,14 @@ import com.fueledbycaffeine.spotlight.idea.utils.gradlePathsSelected
 import com.fueledbycaffeine.spotlight.idea.utils.toSpotlightPattern
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbAwareAction
 
 /**
  * A right-click context action that removes selected projects from [IDE_PROJECTS_LOCATION]
  */
-class RemoveProjectFromSpotlightAction : AnAction() {
+class RemoveProjectFromSpotlightAction : DumbAwareAction() {
   override fun actionPerformed(action: AnActionEvent) {
     val spotlightService = action.project?.spotlightService ?: return
     val selectedPaths = action.gradlePathsSelected

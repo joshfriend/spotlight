@@ -10,15 +10,15 @@ import com.fueledbycaffeine.spotlight.idea.utils.isWildcardPattern
 import com.fueledbycaffeine.spotlight.idea.utils.toSpotlightPattern
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.project.DumbAwareAction
 
 
 /**
  * A right-click context action that adds selected projects to [IDE_PROJECTS_LOCATION]
  */
-class AddProjectToSpotlightAction : AnAction() {
+class AddProjectToSpotlightAction : DumbAwareAction() {
   override fun actionPerformed(action: AnActionEvent) {
     val projectService = action.project?.spotlightService ?: return
     val allProjects = projectService.allProjects.value

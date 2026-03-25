@@ -8,19 +8,18 @@ import com.fueledbycaffeine.spotlight.idea.spotlightService
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.DumbAwareAction
 
 /**
  * An action that removes all invalid paths from ide-projects.txt or all-projects.txt.
  * Bound to the "Optimize Imports" keyboard shortcut for convenience.
  * Modifies the document directly to avoid VFS sync issues.
  */
-class RemoveAllInvalidPathsAction : AnAction(), DumbAware {
+class RemoveAllInvalidPathsAction : DumbAwareAction() {
   override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
   
   override fun update(e: AnActionEvent) {
