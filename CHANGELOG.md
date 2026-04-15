@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.6.10
+### Gradle Plugin
+* Ensure that `checkAllProjectsList` and `fixAllProjectsList` tasks use equivalent formatting
+
 ### 1.6.9
 #### IDE plugin
 * Add "Replace Spotlight with Selection" action (Cmd+Shift+I) to replace the entire module selection with the currently selected project(s)
