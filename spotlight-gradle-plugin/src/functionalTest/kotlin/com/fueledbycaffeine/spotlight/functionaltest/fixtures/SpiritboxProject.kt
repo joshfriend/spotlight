@@ -214,7 +214,7 @@ class SpiritboxProject : AbstractGradleProject() {
     project.gradleDir.mkdirs()
     project.allProjects.createNewFile()
     project.ideProjects.createNewFile()
-    project.allProjects.writeText(projectPaths.joinToString("\n"))
+    project.allProjects.writeText(projectPaths.joinToString(separator = "\n", postfix = "\n"))
 
     return project
   }

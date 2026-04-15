@@ -5,6 +5,7 @@ import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT
 import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT_KOTLIN
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
+import com.fueledbycaffeine.spotlight.utils.asSortedProjectsContent
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -92,8 +93,8 @@ public abstract class FixSpotlightProjectListTask : DefaultTask() {
   }
 
   private fun writeSortedProjects(projects: Set<GradlePath>) {
-    val sortedProjectPaths = projects.map { it.path }.sorted()
-    projectsFile.asFile.get().writeText(sortedProjectPaths.joinToString("\n"))
+    val sortedProjectPaths = projects.map { it.path }
+    projectsFile.asFile.get().writeText(sortedProjectPaths.asSortedProjectsContent())
   }
 
   private fun logResults(removedCount: Int, addedCount: Int) {

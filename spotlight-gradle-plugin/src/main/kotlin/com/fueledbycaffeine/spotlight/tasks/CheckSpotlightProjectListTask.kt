@@ -4,6 +4,7 @@ import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT
 import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT_KOTLIN
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
+import com.fueledbycaffeine.spotlight.utils.asSortedProjectsContent
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.DirectoryProperty
@@ -43,7 +44,7 @@ public abstract class CheckSpotlightProjectListTask : DefaultTask() {
     val file = projectsFile.asFile.get()
     val current = file.readLines()
 
-    if (current != current.sorted()) {
+    if (file.readText() != current.asSortedProjectsContent()) {
       throw InvalidUserDataException(
         """
         Spotlight's list of all projects is not sorted: ${file.path}

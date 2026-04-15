@@ -21,7 +21,7 @@ class SpotlightLintTasksFunctionalTest {
     val project = SpiritboxProject().build()
     project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
-    allProjects.writeText(allProjects.readLines().sorted().reversed().joinToString("\n"))
+    allProjects.writeText(allProjects.readLines().sorted().reversed().joinToString(separator = "\n", postfix = "\n"))
 
     // When
     val result = project.buildAndFail(":${CheckSpotlightProjectListTask.NAME}")
@@ -31,12 +31,27 @@ class SpotlightLintTasksFunctionalTest {
   }
 
   @Test
-  fun `check all-projects list succeeds when sorted`() {
+  fun `check all-projects list fails when sorted but not formatted`() {
     // Given
     val project = SpiritboxProject().build()
     project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
     allProjects.writeText(allProjects.readLines().sorted().joinToString("\n"))
+
+    // When
+    val result = project.buildAndFail(":${CheckSpotlightProjectListTask.NAME}")
+
+    // Then
+    assertThat(result).task(":${CheckSpotlightProjectListTask.NAME}").failed()
+  }
+
+  @Test
+  fun `check all-projects list succeeds when sorted and formatted`() {
+    // Given
+    val project = SpiritboxProject().build()
+    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
+    allProjects.writeText(allProjects.readLines().sorted().joinToString(separator = "\n", postfix = "\n"))
 
     // When
     val result = project.build(":${CheckSpotlightProjectListTask.NAME}")
@@ -52,7 +67,7 @@ class SpotlightLintTasksFunctionalTest {
     project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
     val allProjectsList = allProjects.readLines().sorted().reversed()
-    allProjects.writeText(allProjectsList.joinToString("\n"))
+    allProjects.writeText(allProjectsList.joinToString(separator = "\n", postfix = "\n"))
 
     // When
     val result = project.build(":${FixSpotlightProjectListTask.NAME}")
@@ -69,7 +84,7 @@ class SpotlightLintTasksFunctionalTest {
     val project = SpiritboxProject().build()
     project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
-    allProjects.writeText(allProjects.readLines().sorted().joinToString("\n"))
+    allProjects.writeText(allProjects.readLines().sorted().joinToString(separator = "\n", postfix = "\n"))
 
     // When
     val result = project.build(":check")
@@ -87,7 +102,7 @@ class SpotlightLintTasksFunctionalTest {
 
     // Ensure all-projects list is sorted first
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
-    allProjects.writeText(allProjects.readLines().sorted().joinToString("\n"))
+    allProjects.writeText(allProjects.readLines().sorted().joinToString(separator = "\n", postfix = "\n"))
 
     // Create a build file for a project that would be included
     val someProject = project.rootDir.resolve("some-project")
@@ -118,7 +133,7 @@ class SpotlightLintTasksFunctionalTest {
     val project = SpiritboxProject().build(dslKind = dslKind)
     project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
-    allProjects.writeText(allProjects.readLines().sorted().joinToString("\n"))
+    allProjects.writeText(allProjects.readLines().sorted().joinToString(separator = "\n", postfix = "\n"))
 
     // When
     val result = project.build(":${CheckSpotlightProjectListTask.NAME}")
@@ -137,7 +152,7 @@ class SpotlightLintTasksFunctionalTest {
     // Add a project path that doesn't have a build file
     val projectsList = allProjects.readLines().toMutableList()
     projectsList.add(":missing-build-file")
-    allProjects.writeText(projectsList.sorted().joinToString("\n"))
+    allProjects.writeText(projectsList.sorted().joinToString(separator = "\n", postfix = "\n"))
 
     // Create the directory but no build file
     project.rootDir.resolve("missing-build-file").mkdirs()
@@ -164,7 +179,7 @@ class SpotlightLintTasksFunctionalTest {
     val projectsList = allProjects.readLines()
       .filterNot { it.startsWith(":rotoscope:") }
       .sorted() // Keep it sorted so checkSorted() passes
-    allProjects.writeText(projectsList.joinToString("\n"))
+    allProjects.writeText(projectsList.joinToString(separator = "\n", postfix = "\n"))
 
     // When
     val result = project.buildAndFail(":${CheckSpotlightProjectListTask.NAME}")
@@ -211,7 +226,7 @@ class SpotlightLintTasksFunctionalTest {
     val originalProjectsList = allProjects.readLines()
     val projectsList = originalProjectsList
       .filterNot { it.startsWith(":rotoscope:") }
-    allProjects.writeText(projectsList.joinToString("\n"))
+    allProjects.writeText(projectsList.joinToString(separator = "\n", postfix = "\n"))
     
     val expectedMissingCount = originalProjectsList.count { it.startsWith(":rotoscope:") }
 
@@ -264,7 +279,7 @@ class SpotlightLintTasksFunctionalTest {
 
     // Unsort the list
     val projectsList = allProjects.readLines().sorted().reversed()
-    allProjects.writeText(projectsList.joinToString("\n"))
+    allProjects.writeText(projectsList.joinToString(separator = "\n", postfix = "\n"))
 
     // When
     val result = project.build(":${FixSpotlightProjectListTask.NAME}")
@@ -287,7 +302,7 @@ class SpotlightLintTasksFunctionalTest {
       .filterNot { it.startsWith(":rotoscope:") }
       .toMutableList()
     projectsList.add(":invalid-project")
-    allProjects.writeText(projectsList.joinToString("\n"))
+    allProjects.writeText(projectsList.joinToString(separator = "\n", postfix = "\n"))
     project.rootDir.resolve("invalid-project").mkdirs()
 
     // When: First fix to resolve issues

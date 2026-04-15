@@ -23,3 +23,7 @@ private val String.projectPathGuess get() = this.replace(Regex("\\w+$"), "")
 internal fun Settings.include(paths: Iterable<GradlePath>) {
   include(paths.map { it.path })
 }
+
+internal fun List<String>.asSortedProjectsContent(): String {
+  return sorted().joinToString(separator = "\n", postfix = "\n")
+}
