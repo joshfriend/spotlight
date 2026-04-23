@@ -53,7 +53,10 @@ fun GradleProject.sync(gradleVersion: GradleVersion): SyncResult =
         .setStandardOutput(stdout)
         .setStandardError(stderr)
         .addArguments("--info")
-        .addJvmArguments("-Didea.sync.active=true")
+        .addJvmArguments(
+          "-Didea.sync.active=true",
+          "-Dorg.gradle.internal.isolated-projects.caching=tooling",
+        )
         .get()
       stdout.close()
       stderr.close()
