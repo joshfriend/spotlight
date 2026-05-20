@@ -89,7 +89,6 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
       }
     }.toSet()
 
-    logger.lifecycle("Spotlight included {} projects", mainBuildProjects.size)
     return mainBuildProjects
   }
 

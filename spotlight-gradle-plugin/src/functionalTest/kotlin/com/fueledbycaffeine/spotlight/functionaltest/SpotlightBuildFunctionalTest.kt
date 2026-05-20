@@ -231,6 +231,7 @@ class SpotlightBuildFunctionalTest {
     // Then
     assertThat(result).task(":help").succeeded()
     assertThat(result).output().contains("Requested targets include 0 projects transitively")
+    assertThat(result.output.lines().filter { it.contains("Spotlight included") }).hasSize(1)
     val includedProjects = result.includedProjects()
     assertThat(includedProjects).containsExactly(project.rootProject.settingsScript.rootProjectName)
     val ccReport = result.ccReport()
