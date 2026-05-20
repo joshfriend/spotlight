@@ -14,8 +14,11 @@ import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.logging.Logging
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import javax.inject.Inject
+
+private val logger = Logging.getLogger(SpotlightSettingsPlugin::class.java)
 
 /**
  * A [Settings] plugin to ease management of projects included in large builds.
@@ -47,6 +50,7 @@ public abstract class SpotlightSettingsPlugin @Inject constructor(
 public fun Settings.applySpotlightConfiguration(): Unit = settings.run {
   val extension = extensions.getSpotlightExtension()
   val includedProjects = SpotlightIncludedProjectsValueSource.of(this, extension).get()
+  logger.lifecycle("Spotlight included {} projects", includedProjects.size)
   include(includedProjects)
 
   // Report Spotlight metrics to Develocity if available
