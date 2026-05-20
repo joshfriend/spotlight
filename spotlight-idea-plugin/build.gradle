@@ -94,7 +94,7 @@ intellijPlatform {
 
   pluginVerification {
     ides {
-      ide(
+      create(
         IntelliJPlatformType.IntellijIdea,
         intellijTarget
       )
