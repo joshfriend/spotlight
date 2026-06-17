@@ -9,10 +9,7 @@ import com.fueledbycaffeine.spotlight.utils.asSortedProjectsContent
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
 import org.gradle.work.DisableCachingByDefault
@@ -35,8 +32,8 @@ public abstract class FixSpotlightProjectListTask : DefaultTask() {
     public const val NAME: String = "fixAllProjectsList"
   }
 
-  @get:InputFile
-  @get:PathSensitive(PathSensitivity.RELATIVE)
+  // Not an @InputFile: the file may not exist yet, and this task creates it if missing.
+  @get:Internal
   internal abstract val projectsFile: RegularFileProperty
 
   @get:Internal
@@ -94,7 +91,9 @@ public abstract class FixSpotlightProjectListTask : DefaultTask() {
 
   private fun writeSortedProjects(projects: Set<GradlePath>) {
     val sortedProjectPaths = projects.map { it.path }
-    projectsFile.asFile.get().writeText(sortedProjectPaths.asSortedProjectsContent())
+    val file = projectsFile.asFile.get()
+    file.parentFile?.mkdirs()
+    file.writeText(sortedProjectPaths.asSortedProjectsContent())
   }
 
   private fun logResults(removedCount: Int, addedCount: Int) {

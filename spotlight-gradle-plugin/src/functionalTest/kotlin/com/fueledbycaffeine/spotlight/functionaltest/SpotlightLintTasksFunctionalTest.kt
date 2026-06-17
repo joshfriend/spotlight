@@ -79,6 +79,37 @@ class SpotlightLintTasksFunctionalTest {
   }
 
   @Test
+  fun `fix creates all-projects list when it does not exist`() {
+    // Given
+    val project = SpiritboxProject().build()
+    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
+    val settingsFile = project.rootDir.resolve("settings.gradle")
+
+    // Create a test project with a build file and include it via settings
+    val testProject = project.rootDir.resolve("test-project")
+    testProject.mkdirs()
+    testProject.resolve("build.gradle").createNewFile()
+    settingsFile.appendText("\ninclude ':test-project'\n")
+
+    // Remove the all-projects.txt file to reproduce the missing-file scenario
+    assertThat(allProjects.delete()).isTrue()
+    assertThat(allProjects.exists()).isFalse()
+
+    // When
+    val result = project.build(":${FixSpotlightProjectListTask.NAME}")
+
+    // Then
+    assertThat(result).task(":${FixSpotlightProjectListTask.NAME}").succeeded()
+    assertThat(allProjects.exists()).isTrue()
+    assertThat(allProjects.readLines()).contains(":test-project")
+
+    // Verify check passes after fix
+    val checkResult = project.build(":${CheckSpotlightProjectListTask.NAME}")
+    assertThat(checkResult).task(":${CheckSpotlightProjectListTask.NAME}").succeeded()
+  }
+
+  @Test
   fun `check runs check all-projects task`() {
     // Given
     val project = SpiritboxProject().build()
