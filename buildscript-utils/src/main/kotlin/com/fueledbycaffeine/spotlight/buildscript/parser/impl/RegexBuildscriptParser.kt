@@ -19,7 +19,7 @@ public object RegexBuildscriptParser : BuildscriptParser {
   }
 
   private val PROJECT_DEP_PATTERN = Regex("""project\s*\((['"])(.*?)\1\)""")
-  private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("""\b(projects\.[\w.]+)\b""")
+  private val TYPESAFE_PROJECT_DEP_PATTERN = Regex("""\b(projects(?:\.(?:`[^`]+`|\w+))+)""")
   private val STRING_LITERAL_PATTERN = Regex("\"[^\"]*\"|'[^']*'")
   private val BLOCK_COMMENT_PATTERN = Regex("/\\*.*?\\*/", RegexOption.DOT_MATCHES_ALL)
 
@@ -58,7 +58,8 @@ public object RegexBuildscriptParser : BuildscriptParser {
   }
 
   private fun String.removeTypeSafeAccessorJunk(rootProjectAccessor: String): String =
-    this.removePrefix("projects.")
+    this.replace("`", "") // accessors for kotlin keywords (e.g. `interface`) are escaped with backticks
+      .removePrefix("projects.")
       .removePrefix("$rootProjectAccessor.")
       .removeSuffix(".dependencyProject") // deprecated in gradle, to be removed in 9.0
       .removeSuffix(".path") // GeneratedClassCompilationException if you try to name a project `:path` lol

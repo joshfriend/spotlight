@@ -161,6 +161,30 @@ class BuildFileTest {
 
 
 
+  @Test
+  fun `reads type-safe project accessor dependencies that use backticks for kotlin keywords`() {
+    // Backtick-escaped accessors are only valid in the Kotlin DSL, where `interface` is a keyword.
+    val project = buildRoot.createProject(":foo", BuildFileType.KOTLIN)
+    val interfaceProject = buildRoot.createProject(":foo:interface", BuildFileType.KOTLIN)
+    val implProject = buildRoot.createProject(":foo:impl", BuildFileType.KOTLIN)
+
+    project.buildFilePath.writeText("""
+      dependencies {
+        api(projects.foo.`interface`)
+        implementation(projects.foo.impl)
+      }
+      """.trimIndent())
+
+    val buildFile = BuildFile(project)
+    val accessorMap = mapOf(
+      "foo.interface" to interfaceProject,
+      "foo.impl" to implProject,
+    )
+    val rule = TypeSafeProjectAccessorRule("spotlight", accessorMap)
+    assertThat(buildFile.parseDependencies(setOf(rule)))
+      .containsExactlyInAnyOrder(interfaceProject, implProject)
+  }
+
   @ParameterizedTest
   @EnumSource(BuildFileType::class)
   fun `reads type-safe project accessor dependencies that use explicit root project`(buildFileType: BuildFileType) {
