@@ -19,7 +19,7 @@ jobs:
         gradle_version:
           - 8.8
           - 8.14.2
-          - 9.5.1
+          - 9.6.0
     runs-on: ubuntu-latest
     permissions:
       contents: read
