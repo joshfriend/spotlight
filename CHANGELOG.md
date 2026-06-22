@@ -4,7 +4,7 @@
 ### Gradle Plugin
 * Create `gradle/all-projects.txt` automatically in `:fixAllProjectsList` if it doesn't exist
 * Include suggestion to use `:fixAllProjectsList` task in `:checkAllProjectsList` error output
-* Resolve project accessors with backticks (e.g. `projects.foo.\`interface\``)
+* Resolve project accessors with backticks (e.g. <code>projects.foo.\`interface\`</code>)
 * Fix duplicated log messages
 
 ### 1.6.10
