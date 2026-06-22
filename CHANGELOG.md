@@ -1,5 +1,12 @@
 # Changelog
 
+### 1.6.11
+### Gradle Plugin
+* Create `gradle/all-projects.txt` automatically in `:fixAllProjectsList` if it doesn't exist
+* Include suggestion to use `:fixAllProjectsList` task in `:checkAllProjectsList` error output
+* Resolve project accessors with backticks (e.g. `projects.foo.\`interface\``)
+* Fix duplicated log messages
+
 ### 1.6.10
 ### Gradle Plugin
 * Ensure that `checkAllProjectsList` and `fixAllProjectsList` tasks use equivalent formatting
