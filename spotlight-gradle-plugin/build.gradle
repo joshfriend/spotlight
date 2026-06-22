@@ -72,7 +72,7 @@ java {
 }
 
 gradleTestKitSupport {
-  withSupportLibrary()
+  withSupportLibrary(libs.versions.testkit.support.get())
   withTruthLibrary()
 }
 
