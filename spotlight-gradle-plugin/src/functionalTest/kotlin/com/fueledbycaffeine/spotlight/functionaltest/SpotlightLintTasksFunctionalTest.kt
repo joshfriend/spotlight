@@ -166,6 +166,14 @@ class SpotlightLintTasksFunctionalTest {
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
     allProjects.writeText(allProjects.readLines().sorted().joinToString(separator = "\n", postfix = "\n"))
 
+    val settingsFile = project.rootDir.resolve(dslKind.settingsFile)
+    val currentContent = settingsFile.readText()
+    val warningAboutIncludeStatements = when (dslKind) {
+      GradleProject.DslKind.GROOVY -> "\n// DON'T DO THIS: include ':commented-out-project'\n"
+      GradleProject.DslKind.KOTLIN -> "\n// DON'T DO THIS: include(\":commented-out-project\")\n"
+    }
+    settingsFile.writeText(currentContent + warningAboutIncludeStatements)
+
     // When
     val result = project.build(":${CheckSpotlightProjectListTask.NAME}")
 
