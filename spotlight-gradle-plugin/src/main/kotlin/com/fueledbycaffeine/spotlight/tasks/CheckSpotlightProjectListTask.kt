@@ -79,6 +79,8 @@ public abstract class CheckSpotlightProjectListTask : DefaultTask() {
           "Please remove these 'include' statements and add the project paths to " +
             "${SpotlightProjectList.ALL_PROJECTS_LOCATION} instead."
         )
+        appendLine()
+        appendLine("You can also run the ':fixAllProjectsList' task to resolve this issue.")
       }
       throw InvalidUserDataException(errorMessage)
     }
