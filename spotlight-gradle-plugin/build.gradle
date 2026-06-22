@@ -20,6 +20,11 @@ gradlePlugin {
       displayName = "Spotlight"
       description = "A plugin that makes managing `settings.gradle(.kts)` for large projects easier"
       tags = ["IDE", "dependencies"]
+      compatibility {
+        features {
+          configurationCache = true
+        }
+      }
     }
   }
 }
