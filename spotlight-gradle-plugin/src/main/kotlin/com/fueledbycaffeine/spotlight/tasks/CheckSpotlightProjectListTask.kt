@@ -63,6 +63,9 @@ public abstract class CheckSpotlightProjectListTask : DefaultTask() {
 
     val includeLines = settingsFile.readLines()
       .withIndex()
+      // Only check lines that start with `include` (ignoring whitespace). This will filter out "include statements"
+      // that are only in comments, for example.
+      .filter { (_, line) -> line.trim().startsWith("include") }
       .filter { (_, line) -> INCLUDE_PROJECT_PATH.containsMatchIn(line) }
 
     if (includeLines.isNotEmpty()) {
