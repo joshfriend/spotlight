@@ -22,7 +22,6 @@ public final class com/fueledbycaffeine/spotlight/buildscript/BuildFile {
 
 public final class com/fueledbycaffeine/spotlight/buildscript/BuildGraph : com/fueledbycaffeine/spotlight/buildscript/graph/Graph {
 	public static final field Companion Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph$Companion;
-	public synthetic fun <init> (Ljava/util/Set;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public static final fun create (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
 	public static final fun create (Ljava/util/Set;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
 	public fun getDependencyMap ()Ljava/util/Map;

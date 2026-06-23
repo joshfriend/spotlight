@@ -137,8 +137,6 @@ class GradleProjectSearchContributor(event: AnActionEvent) :
     return GradleProjectSearchRenderer()
   }
 
-  override fun getDataForItem(element: GradleProjectItem, dataId: String): Any? = null
-
   override fun processSelectedItem(
     selected: GradleProjectItem,
     modifiers: Int,

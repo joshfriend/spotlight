@@ -1,4 +1,5 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -18,6 +19,10 @@ repositories {
 kotlin {
   compilerOptions {
     jvmTarget.set(JvmTarget.JVM_21)
+    // Inherit platform interface default methods directly instead of generating
+    // legacy compatibility bridges, which otherwise reference deprecated APIs
+    // (e.g. StatusBarWidget.getPresentation(PlatformType)).
+    jvmDefault.set(JvmDefaultMode.NO_COMPATIBILITY)
   }
 }
 
@@ -27,7 +32,7 @@ java {
   }
 }
 
-def intellijTarget = "2025.3.4"
+def intellijTarget = "2026.1.3"
 
 dependencies {
   implementation project(":buildscript-utils")
