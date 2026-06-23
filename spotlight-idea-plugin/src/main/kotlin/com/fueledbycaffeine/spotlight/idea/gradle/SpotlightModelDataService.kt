@@ -6,6 +6,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider
 import com.intellij.openapi.externalSystem.service.project.manage.AbstractProjectDataService
 import com.intellij.openapi.project.Project
+import com.intellij.ui.EditorNotifications
 
 /**
  * Data service that processes [SpotlightIdeModelData] after Gradle sync and updates the
@@ -23,8 +24,11 @@ class SpotlightModelDataService : AbstractProjectDataService<SpotlightIdeModelDa
   ) {
     val projectsService = SpotlightGradleProjectsService.getInstance(project)
     when (val data = toImport.firstOrNull()?.data) {
-      null -> projectsService.clearProjects()
+      // No Spotlight model means the Gradle plugin isn't applied to this project
+      null -> projectsService.markSpotlightNotApplied()
       else -> projectsService.updateProjects(data.includedProjectPaths)
     }
+    // Recompute editor banners now that we know whether Spotlight is applied
+    EditorNotifications.getInstance(project).updateAllNotifications()
   }
 }
