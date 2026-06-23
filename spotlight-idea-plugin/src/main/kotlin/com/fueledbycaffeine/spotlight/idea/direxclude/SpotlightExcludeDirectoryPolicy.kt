@@ -4,6 +4,7 @@ import com.fueledbycaffeine.spotlight.buildscript.GradlePath
 import com.fueledbycaffeine.spotlight.buildscript.minimize
 import com.fueledbycaffeine.spotlight.idea.SpotlightProjectService
 import com.fueledbycaffeine.spotlight.idea.gradle.SpotlightGradleProjectsService
+import com.fueledbycaffeine.spotlight.idea.gradle.SpotlightPluginStatus
 import com.fueledbycaffeine.spotlight.idea.settings.ExclusionPolicyMode
 import com.fueledbycaffeine.spotlight.idea.settings.SpotlightSettings
 import com.intellij.openapi.components.service
@@ -61,6 +62,9 @@ class SpotlightExcludeDirectoryPolicy(private val project: Project) : DirectoryI
     val service = project.service<SpotlightProjectService>()
     val gradleProjectsService = project.service<SpotlightGradleProjectsService>()
 
+    // The Spotlight Gradle plugin isn't applied, so don't exclude anything
+    if (gradleProjectsService.pluginStatus == SpotlightPluginStatus.NOT_APPLIED) return emptyArray()
+
     val allProjects = service.allProjects.value
     if (allProjects.isEmpty()) return emptyArray()
 
@@ -85,6 +89,9 @@ class SpotlightExcludeDirectoryPolicy(private val project: Project) : DirectoryI
   private fun getExcludedProjectDirectories(): Array<String> {
     val service = project.service<SpotlightProjectService>()
     val gradleProjectsService = project.service<SpotlightGradleProjectsService>()
+
+    // The Spotlight Gradle plugin isn't applied, so don't exclude anything
+    if (gradleProjectsService.pluginStatus == SpotlightPluginStatus.NOT_APPLIED) return emptyArray()
 
     // all-projects.txt is always the authoritative source for ALL projects
     val allProjects = service.allProjects.value

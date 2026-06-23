@@ -5,6 +5,7 @@ import com.fueledbycaffeine.spotlight.idea.SpotlightBundle
 import com.fueledbycaffeine.spotlight.idea.SpotlightProjectService
 import com.fueledbycaffeine.spotlight.idea.gradle.GradleSystemUtils
 import com.fueledbycaffeine.spotlight.idea.gradle.SpotlightGradleProjectsService
+import com.fueledbycaffeine.spotlight.idea.gradle.SpotlightPluginStatus
 import com.fueledbycaffeine.spotlight.idea.utils.findContainingProject
 import com.intellij.openapi.components.service
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
@@ -33,6 +34,12 @@ class ProjectStaleNotificationProvider(project: Project) : EditorNotificationPro
     project: Project,
     file: VirtualFile
   ): Function<in FileEditor, out JComponent?>? {
+    // If the most recent sync proved the Spotlight Gradle plugin isn't applied, there's
+    // nothing to index and no banner should ever be shown.
+    if (gradleProjectsService.pluginStatus == SpotlightPluginStatus.NOT_APPLIED) {
+      return null
+    }
+
     // Prefer gradle state over spotlight service state if available
     val hasGradleState = gradleProjectsService.hasSyncedProjects
     val indexedProjects = if (hasGradleState) {
