@@ -1,5 +1,13 @@
 # Changelog
 
+### 1.6.12
+#### Gradle Plugin
+* Declare support for configuration cache
+* Don't flag `include` statements that are commented-out in `:checkAllProjectsList`
+
+#### IDE plugin
+* Don't show IDE banners when Spotlight plugin isn't applied
+
 ### 1.6.11
 ### Gradle Plugin
 * Create `gradle/all-projects.txt` automatically in `:fixAllProjectsList` if it doesn't exist
