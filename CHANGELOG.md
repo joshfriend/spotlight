@@ -1,5 +1,9 @@
 # Changelog
 
+### Unreleased
+#### Gradle Plugin
+* Add `taskInvocationRules` to `spotlight-rules.json` for including projects (or all projects) when specific tasks are invoked
+
 ### 1.6.12
 #### Gradle Plugin
 * Declare support for configuration cache

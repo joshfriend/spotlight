@@ -57,24 +57,39 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
           allProjects.value
         }
       } else {
-        // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
-        val taskPaths = guessProjectsFromTaskRequests(rootDirectory, parameters.taskRequests.get())
-        if (!taskPaths.isEmpty() && taskPaths.none { it.path.isEmpty() }) {
-          logger.info("Using transitives for projects of requested tasks")
-          implicitAndTransitiveDependenciesOf(taskPaths)
+        val taskRequests = parameters.taskRequests.get()
+        val matchedTaskRules = getSpotlightRules().taskInvocationRules
+          .filter { rule -> taskRequests.any { rule.matches(it.args) } }
+        if (matchedTaskRules.any { it.includeAllProjects }) {
+          logger.info(
+            "Task invocation rules matched the requested tasks, all projects will be loaded from {}",
+            SpotlightProjectList.ALL_PROJECTS_LOCATION,
+          )
+          getAllProjects()
         } else {
-          val projectDir = parameters.projectDir.getOrNull()?.asFile?.toPath()
-          val target = projectDir?.gradlePathRelativeTo(rootDirectory)
-          if (target != null && !target.isRootProject) {
-            val childProjects = target.expandChildProjects()
-            val projectsFromWorkingDir = when (target.hasBuildFile) {
-              true -> childProjects + target
-              else -> childProjects
-            }
-            logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
-            implicitAndTransitiveDependenciesOf(projectsFromWorkingDir)
+          val taskRuleProjects = matchedTaskRules.flatMapTo(mutableSetOf()) { it.includedProjects }
+          if (taskRuleProjects.isNotEmpty()) {
+            logger.info("Task invocation rules matched the requested tasks, adding {} projects", taskRuleProjects.size)
+          }
+          // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
+          val taskPaths = guessProjectsFromTaskRequests(rootDirectory, taskRequests)
+          if (!taskPaths.isEmpty() && taskPaths.none { it.path.isEmpty() }) {
+            logger.info("Using transitives for projects of requested tasks")
+            implicitAndTransitiveDependenciesOf(taskPaths + taskRuleProjects)
           } else {
-            getAllProjects()
+            val projectDir = parameters.projectDir.getOrNull()?.asFile?.toPath()
+            val target = projectDir?.gradlePathRelativeTo(rootDirectory)
+            if (target != null && !target.isRootProject) {
+              val childProjects = target.expandChildProjects()
+              val projectsFromWorkingDir = when (target.hasBuildFile) {
+                true -> childProjects + target
+                else -> childProjects
+              }
+              logger.info("Gradle project dir given (-p), using child projects and transitives of {}", target.path)
+              implicitAndTransitiveDependenciesOf(projectsFromWorkingDir + taskRuleProjects)
+            } else {
+              getAllProjects()
+            }
           }
         }
       }

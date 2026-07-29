@@ -96,6 +96,33 @@ Implicit rules apply to all Gradle invocations (sync and task execution).
 
 If you are using the `buildscript-utils` package by itself, you can read this rules list using the `SpotlightRulesList` class.
 
+### Task invocation rules
+Some plugins register tasks that operate on projects Spotlight cannot discover by parsing buildscripts. For example, [Dependency Analysis Gradle Plugin][dagp]'s `:buildHealth` root project task aggregates results from every project in the build, but the root project's buildscript doesn't necessarily declare a dependency on every other project in the build.
+
+Task invocation rules include additional projects (or all of them) when specific tasks are requested on the command line:
+
+```json5
+// gradle/spotlight-rules.json
+{
+  "taskInvocationRules": [
+    // Include all projects when :buildHealth is invoked
+    {
+      "taskNames": ["buildHealth"],
+      "includeAllProjects": true
+    },
+    // Include specific projects when a task is invoked
+    {
+      "taskNames": ["generateProtos"],
+      "includedProjects": [
+        ":proto-common"
+      ]
+    }
+  ]
+}
+```
+
+`taskNames` entries are the full, unqualified task names and are matched exactly, so abbreviated invocations (`./gradlew :bH`) will not match a rule declaring `buildHealth`. Project path qualifiers are ignored, so `./gradlew :foo:buildHealth` matches a rule declaring `buildHealth`.
+
 ### Type-safe Project Accessors
 Spotlight automatically parses [type-safe project accessors][typesafe-project-accessors] in your buildscripts and maps them to the corresponding project paths. This works with any project naming convention.
 
@@ -209,3 +236,4 @@ You can still add `include`s to `settings.gradle(.kts)` in your build outside of
 [typesafe-project-accessors]: https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html#sec:type-safe-project-accessors
 [kts-accessors-bad]: https://www.zacsweers.dev/dont-use-type-safe-project-accessors-with-kotlin-gradle-dsl/
 [serviceloader]: https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/ServiceLoader.html
+[dagp]: https://github.com/autonomousapps/dependency-analysis-gradle-plugin

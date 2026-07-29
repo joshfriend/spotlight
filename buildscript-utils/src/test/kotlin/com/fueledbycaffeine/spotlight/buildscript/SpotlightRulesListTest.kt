@@ -109,6 +109,44 @@ class SpotlightRulesListTest {
   }
 
   @Test
+  fun `can read task invocation rules from file`() {
+    val rulesFile = tempDir.resolve(SpotlightRulesList.SPOTLIGHT_RULES_LOCATION)
+    rulesFile.createParentDirectories()
+    rulesFile.writeText(
+      """
+      {
+        "implicitRules": [
+          {
+            "type": "project-path-match-rule",
+            "pattern": ":foo",
+            "includedProjects": [":bar"]
+          }
+        ],
+        "taskInvocationRules": [
+          {
+            "taskNames": ["buildHealth"],
+            "includeAllProjects": true
+          },
+          {
+            "taskNames": ["checkThing", "verifyThing"],
+            "includedProjects": [":thing-support"]
+          }
+        ]
+      }
+      """.trimIndent()
+    )
+    val rules = SpotlightRulesList(tempDir).read()
+    assertThat(rules.implicitRules).hasSize(1)
+    assertThat(rules.taskInvocationRules).hasSize(2)
+    val includeAllRule = rules.taskInvocationRules.first { it.includeAllProjects }
+    assertThat(includeAllRule.taskNames).isEqualTo(setOf("buildHealth"))
+    assertThat(includeAllRule.includedProjects).isEmpty()
+    val includedProjectsRule = rules.taskInvocationRules.first { !it.includeAllProjects }
+    assertThat(includedProjectsRule.taskNames).isEqualTo(setOf("checkThing", "verifyThing"))
+    assertThat(includedProjectsRule.includedProjects).isEqualTo(setOf(GradlePath(tempDir, ":thing-support")))
+  }
+
+  @Test
   fun `can read buildscript-capture-rule from file`() {
     val rulesFile = tempDir.resolve(SpotlightRulesList.SPOTLIGHT_RULES_LOCATION)
     rulesFile.createParentDirectories()

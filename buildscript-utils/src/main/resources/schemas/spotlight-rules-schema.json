@@ -11,6 +11,13 @@
       "items": {
         "$ref": "#/definitions/implicitDependencyRule"
       }
+    },
+    "taskInvocationRules": {
+      "type": "array",
+      "description": "A set of rules for including projects when specific tasks are requested on the command line",
+      "items": {
+        "$ref": "#/definitions/taskInvocationRule"
+      }
     }
   },
   "additionalProperties": false,
@@ -89,6 +96,30 @@
         }
       },
       "required": ["type", "pattern", "projectTemplate"],
+      "additionalProperties": false
+    },
+    "taskInvocationRule": {
+      "type": "object",
+      "title": "Task Invocation Rule",
+      "description": "Includes additional projects when one of the named tasks is requested on the command line",
+      "properties": {
+        "taskNames": {
+          "type": "array",
+          "description": "Full task names (unqualified, e.g. 'buildHealth') that trigger this rule. Names are matched exactly, ignoring any project path qualifier.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "includedProjects": {
+          "$ref": "#/definitions/projectPathArray"
+        },
+        "includeAllProjects": {
+          "type": "boolean",
+          "description": "When true, all projects are included in the build when this rule matches",
+          "default": false
+        }
+      },
+      "required": ["taskNames"],
       "additionalProperties": false
     },
     "projectPathArray": {
