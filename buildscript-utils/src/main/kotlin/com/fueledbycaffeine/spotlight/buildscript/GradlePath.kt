@@ -25,8 +25,14 @@ private val SRC_AND_BUILD_DIRS = listOf("build", "src", "src-gen")
 public data class GradlePath(
   public val root: Path,
   public val path: String,
-): GraphNode<GradlePath>, Serializable {
+): GraphNode<GradlePath>, Serializable, Comparable<GradlePath> {
   public constructor(root: File, path: String): this(root.toPath(), path)
+
+  override fun compareTo(other: GradlePath): Int {
+    return compareBy<GradlePath>(GradlePath::root)
+      .thenBy(GradlePath::path)
+      .compare(this, other)
+  }
 
   /**
    * The [Path] where this project is located

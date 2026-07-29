@@ -586,11 +586,16 @@ class BuildFileTest {
         GradlePath(project.root, ":bar")
     )
   }
+}
 
-  private fun Path.createProject(path: String, buildFileType: BuildFileType = BuildFileType.GROOVY): GradlePath {
-    return GradlePath(this, path).apply {
-      projectDir.createDirectories()
-      projectDir.resolve(buildFileType.buildFile).createFile()
-    }
+internal fun Path.createProjects(
+  vararg paths: String,
+  buildFileType: BuildFileType = BuildFileType.GROOVY,
+): Set<GradlePath> = paths.mapTo(sortedSetOf()) { p -> createProject(p, buildFileType) }
+
+internal fun Path.createProject(path: String, buildFileType: BuildFileType = BuildFileType.GROOVY): GradlePath {
+  return GradlePath(this, path).apply {
+    projectDir.createDirectories()
+    projectDir.resolve(buildFileType.buildFile).createFile()
   }
 }

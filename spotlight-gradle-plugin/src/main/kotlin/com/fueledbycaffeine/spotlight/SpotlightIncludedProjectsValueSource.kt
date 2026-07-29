@@ -58,8 +58,8 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
         }
       } else {
         // TODO: why does start parameters never have a nonnull project path and the task paths are just listed in the args?
-        val taskPaths = guessProjectsFromTaskRequests(rootDirectory, parameters.taskRequests.get())
-        if (!taskPaths.isEmpty() && taskPaths.none { it.path.isEmpty() }) {
+        val taskPaths = guessProjectsFromTaskRequests(rootDirectory, parameters.taskRequests.get(), getAllProjects())
+        if (taskPaths.isNotEmpty() && taskPaths.none { it.path.isEmpty() }) {
           logger.info("Using transitives for projects of requested tasks")
           implicitAndTransitiveDependenciesOf(taskPaths)
         } else {

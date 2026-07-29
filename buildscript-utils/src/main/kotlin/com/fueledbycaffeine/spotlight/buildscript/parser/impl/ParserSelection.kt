@@ -4,6 +4,7 @@ import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.BuildscriptMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.graph.ImplicitDependencyRule.ProjectPathMatchRule
 import com.fueledbycaffeine.spotlight.buildscript.parser.BuildscriptParser
+import com.fueledbycaffeine.spotlight.buildscript.parser.TaskRequestParser
 
 /**
  * Utility functions for selecting and combining parsers.
@@ -47,6 +48,31 @@ internal object ParserSelection {
     return when (parsersToRun.size) {
       0 -> null
       else -> CompositeParser(parsersToRun)
+    }
+  }
+
+  /**
+   * Collect all parsers from [TaskRequestParserProvider]s and add rule-based parsers.
+   * All parsers are additive and their results are merged together.
+   *
+   * @param providers List of parser providers
+   * @return Combined [TaskRequestParser] or null if no parsers available
+   */
+  fun selectParser(
+    providers: List<TaskRequestParserProvider>,
+  ): TaskRequestParser? {
+    val parsersToRun = buildList {
+      // Collect all parsers
+      providers
+        .map { it.getParser() }
+        .forEach { add(it) }
+
+      // No rules for task-request-based parsing yet
+    }
+
+    return when (parsersToRun.size) {
+      0 -> null
+      else -> CompositeTaskRequestParser(parsersToRun)
     }
   }
 }

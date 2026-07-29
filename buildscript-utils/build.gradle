@@ -71,6 +71,7 @@ dependencies {
 
   testImplementation gradleApi()
   testImplementation libs.assertk
+  testImplementation libs.jimfs
   testImplementation platform(libs.junit.platform)
   testImplementation libs.junit.jupiter
   testRuntimeOnly libs.junit.launcher
