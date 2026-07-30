@@ -55,6 +55,8 @@ dependencies {
     // Needed so build.gradle/build.gradle.kts fixtures parse as Groovy/Kotlin in completion tests
     testBundledPlugin("org.intellij.groovy")
     testBundledPlugin("org.jetbrains.kotlin")
+    // Needed so spotlight-rules.json fixtures parse as JSON and load the optional plugin descriptor
+    testBundledModule("com.intellij.modules.json")
 
     intellijPlatformTesting.runIde.register("runLocalIde") {
       // https://plugins.jetbrains.com/docs/intellij/android-studio.html#configuring-the-plugin-gradle-build-script

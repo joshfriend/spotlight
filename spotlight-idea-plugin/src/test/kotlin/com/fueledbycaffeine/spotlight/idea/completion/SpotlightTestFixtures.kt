@@ -4,12 +4,30 @@ import com.fueledbycaffeine.spotlight.idea.spotlightService
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.ui.UIUtil
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.writeText
 
 internal object SpotlightTestFixtures {
+  /**
+   * Creates real project directories with build.gradle files on disk under the project root
+   * and refreshes them into the VFS, so [com.fueledbycaffeine.spotlight.buildscript.GradlePath.hasBuildFile]
+   * checks and reference resolution work.
+   */
+  fun createProjectsOnDisk(project: Project, vararg gradlePaths: String) {
+    val rootDir = Path.of(project.basePath!!)
+    val app = ApplicationManager.getApplication()
+    for (path in gradlePaths) {
+      val projectDir = rootDir.resolve(path.removePrefix(":").replace(':', '/')).createDirectories()
+      val buildFile = projectDir.resolve("build.gradle")
+      buildFile.writeText("// test project\n")
+      val refresh = { VfsUtil.findFile(buildFile, true) }
+      if (app.isDispatchThread) refresh() else app.invokeAndWait { refresh() }
+    }
+  }
+
   /**
    * Writes gradle/all-projects.txt to the real project root on disk and waits for
    * [com.fueledbycaffeine.spotlight.idea.SpotlightProjectService] to pick it up via VFS events.
