@@ -147,7 +147,6 @@ class SpotlightSyncFunctionalTest {
     val project = SpiritboxProject().build()
     project.ideProjects.writeText(":rotoscope")
     project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
-    1
     // When
     val syncResult1 = project.sync()
     val syncResult2 = project.sync()
@@ -163,7 +162,6 @@ class SpotlightSyncFunctionalTest {
     val project = SpiritboxProject().build()
     project.ideProjects.writeText(":rotoscope")
     project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
-    1
     // When
     val syncResult1 = project.sync()
     project.rootDir.resolve("settings.gradle")

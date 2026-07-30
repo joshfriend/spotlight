@@ -65,6 +65,10 @@ mavenPublishing {
 kotlin {
   explicitApi()
 
+  compilerOptions {
+    allWarningsAsErrors.set(true)
+  }
+
   abiValidation {
     enabled.set(true)
   }

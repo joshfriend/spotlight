@@ -37,21 +37,15 @@ private val GITHUB_ACTIONS_STUFF = listOf(
   "DEVELOCITY_INJECTION_ENABLED",
   "develocity-injection.enabled",
 )
-private val DEVELOCITY_PLUGIN_STUFF = listOf<String>(
-  "com.gradle.scan.multi-application",
-  "develocity.deprecation.muteWarnings",
-  "develocity.deprecation.captureOrigin",
-  "develocity.deprecation.displayFullStackTrace",
-  "develocity.projectId",
-  "DEVELOCITY_SERVER_HTTP_PROXY_HOST",
-  "DEVELOCITY_SERVER_HTTP_PROXY_PORT",
-  "DEVELOCITY_SERVER_HTTPS_PROXY_HOST",
-  "DEVELOCITY_SERVER_HTTPS_PROXY_PORT",
-  "DEVELOCITY_SERVER_SOCKS_PROXY_HOST",
-  "DEVELOCITY_SERVER_SOCKS_PROXY_PORT",
-  "develocity.server.publicOverride",
-  "com.gradle.enterprise.server.publicOverride",
-)
+// The Develocity plugin reads many of its own properties, environment variables, and files at
+// configuration time (proxy settings, mTLS certs, artifact cache markers, etc). The exact set
+// varies by plugin version, so match by prefix rather than exact name.
+private fun CCDiagnostic.Input.isDevelocityInput(): Boolean {
+  return name.startsWith("develocity.") ||
+    name.startsWith("DEVELOCITY_") ||
+    name.startsWith("com.gradle.") ||
+    ".develocity/" in name
+}
 
 data class CCReport(
   val diagnostics: List<CCDiagnostic>,
@@ -147,7 +141,7 @@ private fun readConfigurationCacheReport(logLines: List<String>): CCReport {
   return report.copy(
     diagnostics = report.diagnostics
       .filter { it.input.name !in GITHUB_ACTIONS_STUFF }
-      .filter { it.input.name !in DEVELOCITY_PLUGIN_STUFF }
+      .filter { !it.input.isDevelocityInput() }
   )
 }
 
