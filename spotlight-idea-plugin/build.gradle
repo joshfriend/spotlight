@@ -1,4 +1,5 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -49,6 +50,11 @@ dependencies {
 
     bundledPlugin("com.intellij.gradle")
     bundledModule("com.intellij.modules.json")
+
+    testFramework(TestFrameworkType.Platform.INSTANCE)
+    // Needed so build.gradle/build.gradle.kts fixtures parse as Groovy/Kotlin in completion tests
+    testBundledPlugin("org.intellij.groovy")
+    testBundledPlugin("org.jetbrains.kotlin")
 
     intellijPlatformTesting.runIde.register("runLocalIde") {
       // https://plugins.jetbrains.com/docs/intellij/android-studio.html#configuring-the-plugin-gradle-build-script
