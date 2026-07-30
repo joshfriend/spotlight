@@ -6,6 +6,8 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapter
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.ConfigurationCacheOutcome
+import org.gradle.util.GradleVersion
 import java.net.URI
 import kotlin.io.path.readLines
 import kotlin.io.path.toPath
@@ -145,29 +147,72 @@ private fun readConfigurationCacheReport(logLines: List<String>): CCReport {
   )
 }
 
-val BuildResult.configurationCacheReused: Boolean get() {
-  return output.lines().any { "Configuration cache entry reused" in it }
+typealias CCOutcome = ConfigurationCacheOutcome
+
+/** The Gradle version that added [BuildResult.getConfigurationCacheOutcome]. */
+private val CC_OUTCOME_API_VERSION = GradleVersion.version("9.8")
+
+private val targetHasCcOutcomeApi: Boolean
+  get() = testGradleVersion.baseVersion >= CC_OUTCOME_API_VERSION
+
+val BuildResult.ccOutcome: CCOutcome get() = when {
+  targetHasCcOutcomeApi -> configurationCacheOutcome
+  // Older target Gradle versions do not report the outcome to TestKit; parse console output instead
+  else -> parseCcOutcome(output.lines())
 }
 
-val BuildResult.configurationCacheStored: Boolean get() {
-  return output.lines().any { "Configuration cache entry stored" in it }
+// The Tooling API equivalent (OperationType.CONFIGURATION_CACHE progress events) also
+// requires a 9.8+ client and target, so sync results parse output until then.
+val ToolingResult.ccOutcome: CCOutcome get() = parseCcOutcome(stdout.lines())
+
+private fun parseCcOutcome(logLines: List<String>): CCOutcome {
+  val entryLine = logLines.lastOrNull { "Configuration cache entry" in it }
+    ?: return CCOutcome.NOT_ENABLED
+  return when {
+    "reused" in entryLine -> CCOutcome.REUSED
+    "updated" in entryLine -> CCOutcome.UPDATED
+    "discarded" in entryLine -> CCOutcome.DISCARDED
+    "not stored" in entryLine -> CCOutcome.NOT_STORED
+    "stored" in entryLine -> CCOutcome.STORED
+    else -> CCOutcome.UNDETERMINED
+  }
 }
 
-val BuildResult.configurationCacheUpdated: Boolean get() {
-  return output.lines().any { "Configuration cache entry updated" in it }
+/**
+ * The extent of a [CCOutcome.UPDATED] partial cache hit: how many projects were invalidated and
+ * re-configured versus reused as-is from the existing entry.
+ */
+data class CCUpdateStats(
+  val updatedProjects: Int,
+  val reusedProjects: Int,
+)
+
+// Message format is stable since Gradle 8.8:
+// "Configuration cache entry updated for 1 project, 4 projects up-to-date."
+// "Configuration cache entry updated for 2 projects with 1 problem, no projects up-to-date."
+// Gradle 9.8's ConfigurationCacheEntryUpdatedResult does not expose these counts, so they must be
+// parsed from output even when the native outcome API is available.
+private val CC_UPDATED_STATS =
+  "Configuration cache entry updated for (no projects|\\d+ projects?)(?: with [^,]+)?, (no projects|\\d+ projects?) up-to-date\\.".toRegex()
+
+/**
+ * The partial hit stats for this build, or null if the entry was not [CCOutcome.UPDATED].
+ */
+val BuildResult.ccUpdateStats: CCUpdateStats? get() = parseCcUpdateStats(output.lines())
+
+val ToolingResult.ccUpdateStats: CCUpdateStats? get() = parseCcUpdateStats(stdout.lines())
+
+private fun parseCcUpdateStats(logLines: List<String>): CCUpdateStats? {
+  val match = logLines.firstNotNullOfOrNull { CC_UPDATED_STATS.find(it) } ?: return null
+  val (updated, reused) = match.destructured
+  return CCUpdateStats(
+    updatedProjects = parseProjectCount(updated),
+    reusedProjects = parseProjectCount(reused),
+  )
 }
 
-val ToolingResult.configurationCacheReused: Boolean get() {
-  return stdout.lines().any { "Configuration cache entry reused" in it }
-}
-
-val ToolingResult.configurationCacheStored: Boolean get() {
-  return stdout.lines().any { "Configuration cache entry stored" in it }
-}
-
-val ToolingResult.configurationCacheUpdated: Boolean get() {
-  return stdout.lines().any { "Configuration cache entry updated" in it }
-}
+private fun parseProjectCount(counter: String): Int =
+  if (counter.startsWith("no ")) 0 else counter.substringBefore(' ').toInt()
 
 val BuildResult.configurationCacheInvalidationReason: String get() {
   val match = output.lines().firstNotNullOf { CC_INVALIDATION_REASON.find(it) }

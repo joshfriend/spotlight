@@ -8,13 +8,14 @@ import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.SpiritboxProject
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.allProjects
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.build
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.ccOutcome
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.ccReport
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheInvalidationReason
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheReused
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheStored
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.includedProjects
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.setGradleProperties
 import com.google.common.truth.Truth.assertThat
+import org.gradle.testkit.runner.ConfigurationCacheOutcome.REUSED
+import org.gradle.testkit.runner.ConfigurationCacheOutcome.STORED
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -88,8 +89,8 @@ class SpotlightBuildFunctionalTest {
     val result2 = project.build(":rotoscope:assemble", "--dry-run")
 
     // Then
-    assertThat(result.configurationCacheStored).isTrue()
-    assertThat(result2.configurationCacheReused).isTrue()
+    assertThat(result.ccOutcome).isEqualTo(STORED)
+    assertThat(result2.ccOutcome).isEqualTo(REUSED)
 
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(SPOTLIGHT_INPUTS)
@@ -109,8 +110,8 @@ class SpotlightBuildFunctionalTest {
     val result2 = project.build(":rotoscope:assemble", "--dry-run")
 
     // Then
-    assertThat(result.configurationCacheStored).isTrue()
-    assertThat(result2.configurationCacheReused).isTrue()
+    assertThat(result.ccOutcome).isEqualTo(STORED)
+    assertThat(result2.ccOutcome).isEqualTo(REUSED)
 
     val ccReport = result.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(SPOTLIGHT_INPUTS)
@@ -128,9 +129,8 @@ class SpotlightBuildFunctionalTest {
     val result2 = project.build(":rotoscope:assemble", "--dry-run")
 
     // Then
-    assertThat(result.configurationCacheStored).isTrue()
-    assertThat(result2.configurationCacheStored).isTrue()
-    assertThat(result2.configurationCacheReused).isFalse()
+    assertThat(result.ccOutcome).isEqualTo(STORED)
+    assertThat(result2.ccOutcome).isEqualTo(STORED)
     assertThat(result2.configurationCacheInvalidationReason)
       .isEqualTo("file 'rotoscope/build.gradle' has changed.")
   }
@@ -489,8 +489,8 @@ class SpotlightBuildFunctionalTest {
     )
 
     // Then
-    assertThat(result1.configurationCacheStored).isTrue()
-    assertThat(result2.configurationCacheReused).isFalse()
+    assertThat(result1.ccOutcome).isEqualTo(STORED)
+    assertThat(result2.ccOutcome).isNotEqualTo(REUSED)
     val includedProjects = result2.includedProjects()
     val expectedProjects = listOf(
       project.rootProject.settingsScript.rootProjectName,
@@ -540,8 +540,8 @@ class SpotlightBuildFunctionalTest {
     )
 
     // Then
-    assertThat(result1.configurationCacheStored).isTrue()
-    assertThat(result2.configurationCacheReused).isFalse()
+    assertThat(result1.ccOutcome).isEqualTo(STORED)
+    assertThat(result2.ccOutcome).isNotEqualTo(REUSED)
     val includedProjects = result2.includedProjects()
     val expectedProjects = listOf(
       project.rootProject.settingsScript.rootProjectName,
@@ -627,7 +627,7 @@ class SpotlightBuildFunctionalTest {
     )
 
     val result1 = project.build(":rotoscope:assemble")
-    assertThat(result1.configurationCacheStored).isTrue()
+    assertThat(result1.ccOutcome).isEqualTo(STORED)
     assertThat(result1).task(":rotoscope:assemble").succeeded()
 
     val includedProjects = result1.includedProjects()

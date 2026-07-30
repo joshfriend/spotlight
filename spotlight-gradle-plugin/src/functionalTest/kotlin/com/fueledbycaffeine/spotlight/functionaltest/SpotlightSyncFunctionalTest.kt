@@ -2,17 +2,20 @@ package com.fueledbycaffeine.spotlight.functionaltest
 
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Companion.SPOTLIGHT_INPUTS
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Companion.SpotlightValueSource
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCUpdateStats
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.SpiritboxProject
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.allProjects
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.ccOutcome
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.ccReport
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.ccUpdateStats
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheInvalidationReason
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheReused
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheStored
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheUpdated
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.ideProjects
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.setGradleProperties
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.sync
 import com.google.common.truth.Truth.assertThat
+import org.gradle.testkit.runner.ConfigurationCacheOutcome.REUSED
+import org.gradle.testkit.runner.ConfigurationCacheOutcome.STORED
+import org.gradle.testkit.runner.ConfigurationCacheOutcome.UPDATED
 import org.junit.jupiter.api.Test
 import kotlin.io.path.appendText
 
@@ -84,7 +87,7 @@ class SpotlightSyncFunctionalTest {
     val allProjects = project.allProjects.readLines() + ":"
     val projectsSynced = syncResult.model.includedProjectPaths
     assertThat(projectsSynced).containsExactlyElementsIn(allProjects)
-    assertThat(syncResult.configurationCacheStored).isTrue()
+    assertThat(syncResult.ccOutcome).isEqualTo(STORED)
     val ccReport = syncResult.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(SPOTLIGHT_INPUTS)
   }
@@ -110,7 +113,7 @@ class SpotlightSyncFunctionalTest {
     val projectsSynced = syncResult.model.includedProjectPaths
     assertThat(projectsSynced).containsExactlyElementsIn(expectedProjects)
     assertThat(syncResult.stdout).contains("gradle/ide-projects.txt matches 1 targets")
-    assertThat(syncResult.configurationCacheStored).isTrue()
+    assertThat(syncResult.ccOutcome).isEqualTo(STORED)
     val ccReport = syncResult.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(SPOTLIGHT_INPUTS)
   }
@@ -136,7 +139,7 @@ class SpotlightSyncFunctionalTest {
     val projectsSynced = syncResult.model.includedProjectPaths
     assertThat(projectsSynced).containsExactlyElementsIn(expectedProjects)
     assertThat(syncResult.stdout).contains("gradle/ide-projects.txt matches 3 targets")
-    assertThat(syncResult.configurationCacheStored).isTrue()
+    assertThat(syncResult.ccOutcome).isEqualTo(STORED)
     val ccReport = syncResult.ccReport()
     assertThat(ccReport.inputs).containsExactlyElementsIn(SPOTLIGHT_INPUTS)
   }
@@ -152,8 +155,8 @@ class SpotlightSyncFunctionalTest {
     val syncResult2 = project.sync()
 
     // Then
-    assertThat(syncResult1.configurationCacheStored).isTrue()
-    assertThat(syncResult2.configurationCacheReused).isTrue()
+    assertThat(syncResult1.ccOutcome).isEqualTo(STORED)
+    assertThat(syncResult2.ccOutcome).isEqualTo(REUSED)
   }
 
   @Test
@@ -169,10 +172,10 @@ class SpotlightSyncFunctionalTest {
     val syncResult2 = project.sync()
 
     // Then
-    assertThat(syncResult1.configurationCacheStored).isTrue()
+    assertThat(syncResult1.ccOutcome).isEqualTo(STORED)
     assertThat(syncResult2.configurationCacheInvalidationReason)
       .isEqualTo("file 'settings.gradle' has changed.")
-    assertThat(syncResult2.configurationCacheStored).isTrue()
+    assertThat(syncResult2.ccOutcome).isEqualTo(STORED)
   }
 
   @Test
@@ -188,13 +191,19 @@ class SpotlightSyncFunctionalTest {
       .appendText("\n// some buildscript change")
 
     val syncResult2 = project.sync()
+    val syncResult3 = project.sync()
 
     // Then
-    assertThat(syncResult1.configurationCacheStored).isTrue()
+    assertThat(syncResult1.ccOutcome).isEqualTo(STORED)
     assertThat(syncResult2.configurationCacheInvalidationReason)
       .isEqualTo("file 'rotoscope/rotoscope/build.gradle' has changed.")
-    assertThat(syncResult2.configurationCacheReused).isFalse()
-    assertThat(syncResult2.configurationCacheUpdated).isTrue()
+    // The entry was a partial hit: only the invalidated project's model was rebuilt and re-stored,
+    // the models of the other four projects were reused from the existing entry.
+    assertThat(syncResult2.ccOutcome).isEqualTo(UPDATED)
+    assertThat(syncResult2.ccUpdateStats)
+      .isEqualTo(CCUpdateStats(updatedProjects = 1, reusedProjects = 4))
+    // The updated bits were saved, so the next sync is a full hit.
+    assertThat(syncResult3.ccOutcome).isEqualTo(REUSED)
   }
 
   @Test
@@ -210,10 +219,9 @@ class SpotlightSyncFunctionalTest {
     val syncResult2 = project.sync()
 
     // Then
-    assertThat(syncResult1.configurationCacheStored).isTrue()
+    assertThat(syncResult1.ccOutcome).isEqualTo(STORED)
     assertThat(syncResult2.configurationCacheInvalidationReason)
       .isEqualTo("a build logic input of type '${SpotlightValueSource.name}' has changed.")
-    assertThat(syncResult2.configurationCacheReused).isFalse()
-    assertThat(syncResult2.configurationCacheStored).isTrue()
+    assertThat(syncResult2.ccOutcome).isEqualTo(STORED)
   }
 }
