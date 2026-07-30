@@ -97,7 +97,7 @@ private class SpotlightRulesCompletionProvider : CompletionProvider<CompletionPa
     while (current != null && current !is JsonStringLiteral) {
       current = current.parent
     }
-    return current as? JsonStringLiteral
+    return current
   }
   
   /**
