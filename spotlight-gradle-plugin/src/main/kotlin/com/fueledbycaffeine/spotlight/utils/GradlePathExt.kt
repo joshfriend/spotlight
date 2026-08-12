@@ -1,6 +1,7 @@
 package com.fueledbycaffeine.spotlight.utils
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
+import com.fueledbycaffeine.spotlight.buildscript.TaskRequests
 import org.gradle.TaskExecutionRequest
 import org.gradle.api.initialization.Settings
 import java.nio.file.Path
@@ -8,11 +9,18 @@ import java.nio.file.Path
 internal fun guessProjectsFromTaskRequests(
   rootDir: Path,
   taskRequests: List<TaskExecutionRequest>,
+  allProjects: Set<GradlePath>,
 ): Set<GradlePath> {
-  return taskRequests.flatMap { it.args }
+  val taskNames = taskNames(taskRequests)
+  return taskNames
     .map { GradlePath(rootDir, it.projectPathGuess) }
+    .plus(TaskRequests(taskNames, allProjects).parseDependencies())
     .filter { it.hasBuildFile }
     .toSet()
+}
+
+internal fun taskNames(taskRequests: List<TaskExecutionRequest>): Set<String> {
+  return taskRequests.flatMapTo(sortedSetOf()) { it.args }
 }
 
 // Try removing characters that could be the task name, then assume whatever is left is the task's

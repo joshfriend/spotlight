@@ -34,9 +34,11 @@ public final class com/fueledbycaffeine/spotlight/buildscript/BuildGraph$Compani
 	public static synthetic fun create$default (Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph$Companion;Ljava/util/Set;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/BuildGraph;
 }
 
-public final class com/fueledbycaffeine/spotlight/buildscript/GradlePath : com/fueledbycaffeine/spotlight/buildscript/graph/GraphNode, java/io/Serializable {
+public final class com/fueledbycaffeine/spotlight/buildscript/GradlePath : com/fueledbycaffeine/spotlight/buildscript/graph/GraphNode, java/io/Serializable, java/lang/Comparable {
 	public fun <init> (Ljava/io/File;Ljava/lang/String;)V
 	public fun <init> (Ljava/nio/file/Path;Ljava/lang/String;)V
+	public fun compareTo (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)I
+	public synthetic fun compareTo (Ljava/lang/Object;)I
 	public final fun component1 ()Ljava/nio/file/Path;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun copy (Ljava/nio/file/Path;Ljava/lang/String;)Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;
@@ -127,6 +129,20 @@ public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightRulesList
 public final class com/fueledbycaffeine/spotlight/buildscript/SpotlightRulesListKt {
 	public static final fun computeSpotlightRules (Ljava/nio/file/Path;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/functions/Function0;)Ljava/util/Set;
 	public static synthetic fun computeSpotlightRules$default (Ljava/nio/file/Path;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/functions/Function0;ILjava/lang/Object;)Ljava/util/Set;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/TaskRequests {
+	public fun <init> (Ljava/util/Set;Ljava/util/Set;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun component2 ()Ljava/util/Set;
+	public final fun copy (Ljava/util/Set;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/TaskRequests;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/TaskRequests;Ljava/util/Set;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/TaskRequests;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAllProjects ()Ljava/util/Set;
+	public final fun getTaskNames ()Ljava/util/Set;
+	public fun hashCode ()I
+	public final fun parseDependencies ()Ljava/util/Set;
+	public fun toString ()Ljava/lang/String;
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/TypeSafeAccessorInference : java/lang/Enum {
@@ -296,6 +312,10 @@ public abstract interface class com/fueledbycaffeine/spotlight/buildscript/parse
 	public abstract fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
 }
 
+public abstract interface class com/fueledbycaffeine/spotlight/buildscript/parser/TaskRequestParser {
+	public abstract fun parse (Ljava/util/Set;)Ljava/util/Set;
+}
+
 public final class com/fueledbycaffeine/spotlight/buildscript/parser/impl/BuildscriptMatchingParser : com/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParser {
 	public fun <init> (Ljava/util/Set;)V
 	public fun parse (Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;Ljava/util/Set;)Ljava/util/Set;
@@ -318,5 +338,9 @@ public final class com/fueledbycaffeine/spotlight/buildscript/parser/impl/RegexB
 public final class com/fueledbycaffeine/spotlight/buildscript/parser/impl/RegexBuildscriptParser$Provider : com/fueledbycaffeine/spotlight/buildscript/parser/impl/BuildscriptParserProvider {
 	public fun <init> ()V
 	public fun getParser ()Lcom/fueledbycaffeine/spotlight/buildscript/parser/BuildscriptParser;
+}
+
+public abstract interface class com/fueledbycaffeine/spotlight/buildscript/parser/impl/TaskRequestParserProvider {
+	public abstract fun getParser ()Lcom/fueledbycaffeine/spotlight/buildscript/parser/TaskRequestParser;
 }
 

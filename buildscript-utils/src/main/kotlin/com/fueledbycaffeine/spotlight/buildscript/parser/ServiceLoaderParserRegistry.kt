@@ -3,6 +3,7 @@ package com.fueledbycaffeine.spotlight.buildscript.parser
 import com.fueledbycaffeine.spotlight.buildscript.graph.DependencyRule
 import com.fueledbycaffeine.spotlight.buildscript.parser.impl.BuildscriptParserProvider
 import com.fueledbycaffeine.spotlight.buildscript.parser.impl.ParserSelection
+import com.fueledbycaffeine.spotlight.buildscript.parser.impl.TaskRequestParserProvider
 import java.util.ServiceLoader
 
 /**
@@ -11,10 +12,17 @@ import java.util.ServiceLoader
  * All parsers are additive and their results are merged together.
  */
 internal object ServiceLoaderParserRegistry {
-  private val providers: List<BuildscriptParserProvider> by lazy {
+  private val buildscriptParserProviders: List<BuildscriptParserProvider> by lazy {
     ServiceLoader.load(
       BuildscriptParserProvider::class.java,
       BuildscriptParserProvider::class.java.classLoader,
+    ).toList()
+  }
+
+  private val taskRequestParserProviders: List<TaskRequestParserProvider> by lazy {
+    ServiceLoader.load(
+      TaskRequestParserProvider::class.java,
+      TaskRequestParserProvider::class.java.classLoader,
     ).toList()
   }
 
@@ -24,7 +32,17 @@ internal object ServiceLoaderParserRegistry {
    *
    * Returns null if no providers are available.
    */
-  fun findParser(rules: Set<DependencyRule>): BuildscriptParser? {
-    return ParserSelection.selectParser(providers, rules)
+  fun findBuildScriptParser(rules: Set<DependencyRule>): BuildscriptParser? {
+    return ParserSelection.selectParser(buildscriptParserProviders, rules)
+  }
+
+  /**
+   * Find a parser for the given project.
+   * All discovered parsers are collected and wrapped in a composite parser.
+   *
+   * Returns null if no providers are available.
+   */
+  fun findTaskRequestParser(): TaskRequestParser? {
+    return ParserSelection.selectParser(taskRequestParserProviders)
   }
 }
