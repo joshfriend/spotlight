@@ -29,6 +29,16 @@ fun GradleProject.setGradleProperties(vararg props: Pair<String, String>) {
     })
 }
 
+fun GradleProject.enableIsolatedProjects() {
+  // Isolated projects became incubating in Gradle 9.7.0 and the property lost its "unsafe" prefix
+  val isolatedProjectsProperty = if (gradleVersion.baseVersion >= GradleVersion.version("9.7")) {
+    "org.gradle.isolated-projects"
+  } else {
+    "org.gradle.unsafe.isolated-projects"
+  }
+  setGradleProperties(isolatedProjectsProperty to "true")
+}
+
 interface ToolingResult {
   val stdout: String
   val stderr: String

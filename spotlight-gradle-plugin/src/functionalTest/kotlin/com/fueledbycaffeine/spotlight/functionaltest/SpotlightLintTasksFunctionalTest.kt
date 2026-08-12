@@ -6,7 +6,7 @@ import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.SpiritboxProject
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.build
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.buildAndFail
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.setGradleProperties
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.enableIsolatedProjects
 import com.fueledbycaffeine.spotlight.tasks.CheckSpotlightProjectListTask
 import com.fueledbycaffeine.spotlight.tasks.FixSpotlightProjectListTask
 import com.google.common.truth.Truth.assertThat
@@ -19,7 +19,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `check all-projects list fails when not sorted`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
     allProjects.writeText(allProjects.readLines().sorted().reversed().joinToString(separator = "\n", postfix = "\n"))
 
@@ -34,7 +34,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `check all-projects list fails when sorted but not formatted`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
     allProjects.writeText(allProjects.readLines().sorted().joinToString("\n"))
 
@@ -49,7 +49,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `check all-projects list succeeds when sorted and formatted`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
     allProjects.writeText(allProjects.readLines().sorted().joinToString(separator = "\n", postfix = "\n"))
 
@@ -64,7 +64,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `fix all-projects list sorts it`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
     val allProjectsList = allProjects.readLines().sorted().reversed()
     allProjects.writeText(allProjectsList.joinToString(separator = "\n", postfix = "\n"))
@@ -82,7 +82,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `fix creates all-projects list when it does not exist`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
     val settingsFile = project.rootDir.resolve("settings.gradle")
 
@@ -113,7 +113,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `check runs check all-projects task`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
     allProjects.writeText(allProjects.readLines().sorted().joinToString(separator = "\n", postfix = "\n"))
 
@@ -129,7 +129,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `check all-projects list fails when settings has include statements`(dslKind: GradleProject.DslKind) {
     // Given
     val project = SpiritboxProject().build(dslKind = dslKind)
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
 
     // Ensure all-projects list is sorted first
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
@@ -162,7 +162,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `check all-projects list succeeds when no include statements present`(dslKind: GradleProject.DslKind) {
     // Given
     val project = SpiritboxProject().build(dslKind = dslKind)
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
     allProjects.writeText(allProjects.readLines().sorted().joinToString(separator = "\n", postfix = "\n"))
 
@@ -185,7 +185,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `check all-projects list fails when project has no build file`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
 
     // Add a project path that doesn't have a build file
@@ -210,7 +210,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `check all-projects list fails when missing discovered projects`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
 
     // Remove all child projects of :rotoscope but keep :rotoscope itself
@@ -233,7 +233,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `fix removes invalid projects`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
 
     // Add a project that doesn't have a build file
@@ -258,7 +258,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `fix adds missing discovered projects`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
 
     // Remove child projects that would be discovered via BFS from :rotoscope
@@ -283,7 +283,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `fix removes invalid and adds missing projects in one pass`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
 
     // Add an invalid project and remove a valid one that will be discovered via BFS
@@ -313,7 +313,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `fix keeps file sorted`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
 
     // Unsort the list
@@ -333,7 +333,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `check succeeds after fix resolves issues`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
 
     // Create issues: remove valid projects and add invalid one
@@ -357,7 +357,7 @@ class SpotlightLintTasksFunctionalTest {
   fun `fix migrates include statements from settings to all-projects`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
     val allProjects = project.rootDir.resolve(SpotlightProjectList.ALL_PROJECTS_LOCATION)
     val settingsFile = project.rootDir.resolve("settings.gradle")
 
