@@ -13,7 +13,7 @@ import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCache
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheReused
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.configurationCacheStored
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.includedProjects
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.setGradleProperties
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.enableIsolatedProjects
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -99,7 +99,7 @@ class SpotlightBuildFunctionalTest {
   fun `supports isolated projects`() {
     // Given
     val project = SpiritboxProject().build()
-    project.setGradleProperties("org.gradle.unsafe.isolated-projects" to "true")
+    project.enableIsolatedProjects()
 
     // When
     val result = project.build(":rotoscope:assemble", "--dry-run")
