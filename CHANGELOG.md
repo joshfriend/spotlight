@@ -1,6 +1,6 @@
 # Changelog
 
-### Unreleased
+### 1.7.0
 #### Gradle Plugin
 * Add `taskInvocationRules` to `spotlight-rules.json` for including projects (or all projects) when specific tasks are invoked
 
