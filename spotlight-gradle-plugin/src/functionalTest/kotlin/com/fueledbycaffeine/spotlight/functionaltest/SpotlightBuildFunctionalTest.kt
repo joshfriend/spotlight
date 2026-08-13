@@ -221,6 +221,102 @@ class SpotlightBuildFunctionalTest {
   }
 
   @Test
+  fun `task invocation rules can include all projects`() {
+    // Given
+    val project = SpiritboxProject().build()
+    project.rootDir.resolve("build.gradle")
+      .appendText("\ntasks.register('buildHealth') { doLast {} }\n")
+    val rules = project.rootDir.resolve("gradle/spotlight-rules.json")
+    rules.writeText("""
+    {
+      "taskInvocationRules": [
+        {
+          "taskNames": ["buildHealth"],
+          "includeAllProjects": true
+        }
+      ]
+    }
+    """.trimIndent())
+
+    // When
+    val result = project.build(":buildHealth")
+
+    // Then
+    assertThat(result).task(":buildHealth").succeeded()
+    val includedProjects = result.includedProjects()
+    val expectedProjects = listOf(project.rootProject.settingsScript.rootProjectName) +
+      project.allProjects.readLines().filter { it.isNotBlank() }
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+    val ccReport = result.ccReport()
+    assertThat(ccReport.inputs).containsExactlyElementsIn(SPOTLIGHT_INPUTS)
+  }
+
+  @Test
+  fun `task invocation rules can include specific projects`() {
+    // Given
+    val project = SpiritboxProject().build()
+    val rules = project.rootDir.resolve("gradle/spotlight-rules.json")
+    rules.writeText("""
+    {
+      "taskInvocationRules": [
+        {
+          "taskNames": ["assemble"],
+          "includedProjects": [":the-fear-of-fear"]
+        }
+      ]
+    }
+    """.trimIndent())
+
+    // When
+    val result = project.build(":rotoscope:assemble")
+
+    // Then
+    assertThat(result).task(":rotoscope:assemble").succeeded()
+    val includedProjects = result.includedProjects()
+    val expectedProjects = listOf(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+      // Included by the task invocation rule, along with its transitive dependencies
+      ":the-fear-of-fear",
+      ":the-fear-of-fear:cellar-door",
+      ":the-fear-of-fear:jaded",
+      ":the-fear-of-fear:too-close-too-late",
+      ":the-fear-of-fear:angel-eyes",
+      ":the-fear-of-fear:the-void",
+      ":the-fear-of-fear:ultraviolet",
+    )
+    assertThat(includedProjects).containsExactlyElementsIn(expectedProjects)
+  }
+
+  @Test
+  fun `task invocation rules do not match unrelated tasks`() {
+    // Given
+    val project = SpiritboxProject().build()
+    val rules = project.rootDir.resolve("gradle/spotlight-rules.json")
+    rules.writeText("""
+    {
+      "taskInvocationRules": [
+        {
+          "taskNames": ["buildHealth"],
+          "includeAllProjects": true
+        }
+      ]
+    }
+    """.trimIndent())
+
+    // When
+    val result = project.build(":help")
+
+    // Then
+    assertThat(result).task(":help").succeeded()
+    val includedProjects = result.includedProjects()
+    assertThat(includedProjects).containsExactly(project.rootProject.settingsScript.rootProjectName)
+  }
+
+  @Test
   fun `can include only the root project`() {
     // Given
     val project = SpiritboxProject().build()

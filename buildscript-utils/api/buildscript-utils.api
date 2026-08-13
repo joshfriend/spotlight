@@ -270,13 +270,15 @@ public abstract interface class com/fueledbycaffeine/spotlight/buildscript/model
 public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules {
 	public static final field Companion Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules$Companion;
 	public fun <init> ()V
-	public fun <init> (Ljava/util/Set;)V
-	public synthetic fun <init> (Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/util/Set;Ljava/util/Set;)V
+	public synthetic fun <init> (Ljava/util/Set;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/util/Set;
-	public final fun copy (Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
-	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
+	public final fun component2 ()Ljava/util/Set;
+	public final fun copy (Ljava/util/Set;Ljava/util/Set;)Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;Ljava/util/Set;Ljava/util/Set;ILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/models/SpotlightRules;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getImplicitRules ()Ljava/util/Set;
+	public final fun getTaskInvocationRules ()Ljava/util/Set;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -286,6 +288,30 @@ public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRu
 }
 
 public final class com/fueledbycaffeine/spotlight/buildscript/models/SpotlightRulesJsonAdapter : com/squareup/moshi/JsonAdapter {
+	public fun <init> (Lcom/squareup/moshi/Moshi;)V
+	public fun fromJson (Lcom/squareup/moshi/JsonReader;)Ljava/lang/Object;
+	public fun toJson (Lcom/squareup/moshi/JsonWriter;Ljava/lang/Object;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/models/TaskInvocationRule {
+	public fun <init> (Ljava/util/Set;Ljava/util/Set;Z)V
+	public synthetic fun <init> (Ljava/util/Set;Ljava/util/Set;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun component2 ()Ljava/util/Set;
+	public final fun component3 ()Z
+	public final fun copy (Ljava/util/Set;Ljava/util/Set;Z)Lcom/fueledbycaffeine/spotlight/buildscript/models/TaskInvocationRule;
+	public static synthetic fun copy$default (Lcom/fueledbycaffeine/spotlight/buildscript/models/TaskInvocationRule;Ljava/util/Set;Ljava/util/Set;ZILjava/lang/Object;)Lcom/fueledbycaffeine/spotlight/buildscript/models/TaskInvocationRule;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getIncludeAllProjects ()Z
+	public final fun getIncludedProjects ()Ljava/util/Set;
+	public final fun getTaskNames ()Ljava/util/Set;
+	public fun hashCode ()I
+	public final fun matches (Ljava/util/List;)Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/fueledbycaffeine/spotlight/buildscript/models/TaskInvocationRuleJsonAdapter : com/squareup/moshi/JsonAdapter {
 	public fun <init> (Lcom/squareup/moshi/Moshi;)V
 	public fun fromJson (Lcom/squareup/moshi/JsonReader;)Ljava/lang/Object;
 	public fun toJson (Lcom/squareup/moshi/JsonWriter;Ljava/lang/Object;)V
