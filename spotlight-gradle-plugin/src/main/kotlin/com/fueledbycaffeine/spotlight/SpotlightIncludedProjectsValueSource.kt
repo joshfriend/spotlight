@@ -58,8 +58,17 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
         }
       } else {
         val taskRequests = parameters.taskRequests.get()
+        val currentProjectPath = parameters.currentDir.asFile.get().toPath()
+          .gradlePathRelativeTo(rootDirectory)
         val matchedTaskRules = getSpotlightRules().taskInvocationRules
-          .filter { rule -> taskRequests.any { rule.matches(it.args) } }
+          .filter { rule ->
+            taskRequests.any { request ->
+              val defaultProjectPath = request.projectPath
+                ?.let { GradlePath(rootDirectory, it) }
+                ?: currentProjectPath
+              rule.matches(request.args, defaultProjectPath)
+            }
+          }
         if (matchedTaskRules.any { it.includeAllProjects }) {
           logger.info(
             "Task invocation rules matched the requested tasks, all projects will be loaded from {}",
@@ -138,6 +147,7 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
     val spotlightEnabled: Property<Boolean>
     val ideSync: Property<Boolean>
     val rootDirectory: DirectoryProperty
+    val currentDir: DirectoryProperty
     val projectDir: DirectoryProperty
     val taskRequests: ListProperty<TaskExecutionRequest>
     val rootProjectName: Property<String>
@@ -153,6 +163,7 @@ internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<G
       return settings.providers.of(SpotlightIncludedProjectsValueSource::class.java) {
         it.parameters.rootDirectory.set(settings.settingsDir)
         it.parameters.rootProjectName.set(settings.rootProject.name)
+        it.parameters.currentDir.set(settings.gradle.startParameter.currentDir)
         it.parameters.projectDir.set(settings.gradle.startParameter.projectDir)
         it.parameters.taskRequests.set(settings.gradle.startParameter.taskRequests)
         it.parameters.targetsOverride.set(spotlightOptions.targetsOverride)

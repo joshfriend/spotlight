@@ -105,7 +105,7 @@
       "properties": {
         "taskNames": {
           "type": "array",
-          "description": "Full task names (unqualified, e.g. 'buildHealth') that trigger this rule. Names are matched exactly, ignoring any project path qualifier.",
+          "description": "Full task names that trigger this rule. Unqualified names (e.g. 'buildHealth') match at any project path. Fully qualified task paths (e.g. ':reports:aggregateReports') match invocations that select that exact task, including selectors relative to the default project.",
           "items": {
             "type": "string"
           }

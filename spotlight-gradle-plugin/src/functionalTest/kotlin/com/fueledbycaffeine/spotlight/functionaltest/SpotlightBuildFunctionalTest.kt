@@ -252,7 +252,7 @@ class SpotlightBuildFunctionalTest {
   }
 
   @Test
-  fun `task invocation rules can include specific projects`() {
+  fun `qualified task invocation rules match selectors from project dir`() {
     // Given
     val project = SpiritboxProject().build()
     val rules = project.rootDir.resolve("gradle/spotlight-rules.json")
@@ -260,7 +260,7 @@ class SpotlightBuildFunctionalTest {
     {
       "taskInvocationRules": [
         {
-          "taskNames": ["assemble"],
+          "taskNames": [":rotoscope:assemble"],
           "includedProjects": [":the-fear-of-fear"]
         }
       ]
@@ -268,7 +268,7 @@ class SpotlightBuildFunctionalTest {
     """.trimIndent())
 
     // When
-    val result = project.build(":rotoscope:assemble")
+    val result = project.build("-p", "rotoscope", "assemble")
 
     // Then
     assertThat(result).task(":rotoscope:assemble").succeeded()
@@ -292,15 +292,17 @@ class SpotlightBuildFunctionalTest {
   }
 
   @Test
-  fun `task invocation rules do not match unrelated tasks`() {
+  fun `qualified root task invocation rules do not match subproject tasks`() {
     // Given
     val project = SpiritboxProject().build()
+    project.projectDir(":rotoscope").resolve("build.gradle")
+      .appendText("\ntasks.register('buildHealth') { doLast {} }\n")
     val rules = project.rootDir.resolve("gradle/spotlight-rules.json")
     rules.writeText("""
     {
       "taskInvocationRules": [
         {
-          "taskNames": ["buildHealth"],
+          "taskNames": [":buildHealth"],
           "includeAllProjects": true
         }
       ]
@@ -308,12 +310,18 @@ class SpotlightBuildFunctionalTest {
     """.trimIndent())
 
     // When
-    val result = project.build(":help")
+    val result = project.build(":rotoscope:buildHealth")
 
     // Then
-    assertThat(result).task(":help").succeeded()
+    assertThat(result).task(":rotoscope:buildHealth").succeeded()
     val includedProjects = result.includedProjects()
-    assertThat(includedProjects).containsExactly(project.rootProject.settingsScript.rootProjectName)
+    assertThat(includedProjects).containsExactly(
+      project.rootProject.settingsScript.rootProjectName,
+      ":rotoscope",
+      ":rotoscope:rotoscope",
+      ":rotoscope:hysteria",
+      ":rotoscope:sew-me-up",
+    )
   }
 
   @Test
