@@ -7,15 +7,18 @@ import com.fueledbycaffeine.spotlight.idea.SpotlightBundle
 import com.fueledbycaffeine.spotlight.idea.gradle.GradleProjectPathUtils
 import com.fueledbycaffeine.spotlight.idea.lang.RemoveInvalidPathIntentionAction
 import com.fueledbycaffeine.spotlight.idea.spotlightService
+import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.LowPriorityAction
 import com.intellij.codeInsight.intention.PriorityAction
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
@@ -239,12 +242,23 @@ class CompleteWithSuggestionAction(
   
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
     editor ?: return
+    file ?: return
+    if (!FileModificationService.getInstance().prepareFileForWrite(file)) return
     
     WriteCommandAction.runWriteCommandAction(project) {
-      val document = editor.document
-      val replacementText = if (isTypeSafeAccessor) "projects.$suggestion" else suggestion
-      document.replaceString(range.startOffset, range.endOffset, replacementText)
+      replaceWithSuggestion(editor.document)
     }
+  }
+  
+  override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo {
+    // Preview documents must be modified directly, without a write command
+    replaceWithSuggestion(editor.document)
+    return IntentionPreviewInfo.DIFF
+  }
+  
+  private fun replaceWithSuggestion(document: Document) {
+    val replacementText = if (isTypeSafeAccessor) "projects.$suggestion" else suggestion
+    document.replaceString(range.startOffset, range.endOffset, replacementText)
   }
   
   override fun startInWriteAction(): Boolean = false
@@ -269,18 +283,29 @@ class RemoveInvalidLineAction(
   
   override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
     editor ?: return
+    file ?: return
+    if (!FileModificationService.getInstance().prepareFileForWrite(file)) return
     
-    val document = editor.document
+    WriteCommandAction.runWriteCommandAction(project) {
+      removeInvalidLine(editor.document)
+    }
+  }
+  
+  override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo {
+    // Preview documents must be modified directly, without a write command
+    removeInvalidLine(editor.document)
+    return IntentionPreviewInfo.DIFF
+  }
+  
+  private fun removeInvalidLine(document: Document) {
     val lineNumber = document.getLineNumber(offsetInLine)
     val lineStartOffset = document.getLineStartOffset(lineNumber)
     val lineEndOffset = document.getLineEndOffset(lineNumber)
     
-    WriteCommandAction.runWriteCommandAction(project) {
-      // Delete the line including the newline character if not the last line
-      val deleteEnd = if (lineEndOffset < document.textLength) lineEndOffset + 1 else lineEndOffset
-      val deleteStart = if (lineStartOffset > 0 && deleteEnd == lineEndOffset) lineStartOffset - 1 else lineStartOffset
-      document.deleteString(deleteStart, deleteEnd)
-    }
+    // Delete the line including the newline character if not the last line
+    val deleteEnd = if (lineEndOffset < document.textLength) lineEndOffset + 1 else lineEndOffset
+    val deleteStart = if (lineStartOffset > 0 && deleteEnd == lineEndOffset) lineStartOffset - 1 else lineStartOffset
+    document.deleteString(deleteStart, deleteEnd)
   }
   
   override fun startInWriteAction(): Boolean = false
