@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
   id 'org.jetbrains.kotlin.jvm'
   id 'dev.zacsweers.moshix'
@@ -81,6 +83,7 @@ kotlin {
 
   compilerOptions {
     allWarningsAsErrors.set(true)
+    jvmTarget.set(JvmTarget.fromTarget(libs.versions.javaTarget.get()))
   }
 
   abiValidation {
@@ -90,8 +93,12 @@ kotlin {
 
 java {
   toolchain {
-    languageVersion.set(JavaLanguageVersion.of(libs.versions.javaTarget.get()))
+    languageVersion.set(JavaLanguageVersion.of(libs.versions.jdk.get()))
   }
+}
+
+tasks.withType(JavaCompile).configureEach {
+  options.release.set(libs.versions.javaTarget.get().toInteger())
 }
 
 test {

@@ -20,6 +20,9 @@ repositories {
 kotlin {
   compilerOptions {
     allWarningsAsErrors.set(true)
+    // Bytecode target must match the Java version of the minimum supported
+    // IDE (sinceBuild 252 = 2025.2, which runs on JBR 21):
+    // https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html
     jvmTarget.set(JvmTarget.JVM_21)
     // Inherit platform interface default methods directly instead of generating
     // legacy compatibility bridges, which otherwise reference deprecated APIs
@@ -30,7 +33,7 @@ kotlin {
 
 java {
   toolchain {
-    languageVersion.set(JavaLanguageVersion.of(21))
+    languageVersion.set(JavaLanguageVersion.of(libs.versions.jdk.get()))
   }
 }
 

@@ -1,4 +1,9 @@
 [versions]
+# JDK used to compile and run the build (the daemon JDK is set in gradle/gradle-daemon-jvm.properties).
+# Must be >= 21 (the JBR version of the minimum supported IDE) and <= 22 (the highest Java version
+# supported by the oldest Gradle covered by functional tests, currently 8.8)
+jdk = "21"
+# Bytecode target for the gradle plugin and buildscript-utils
 javaTarget = "17"
 # This is currently the minimum Gradle version that has the APIs we need to use.
 minGradle = "8.8"
