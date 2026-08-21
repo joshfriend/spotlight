@@ -1,6 +1,9 @@
 package com.fueledbycaffeine.spotlight.idea.completion
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.completion.CompletionContributorEP
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.testFramework.ExtensionTestUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 
 /**
@@ -9,12 +12,14 @@ import com.intellij.testFramework.fixtures.BasePlatformTestCase
  */
 class SpotlightGradleCompletionTest : BasePlatformTestCase() {
 
-  // Disabled under IntelliJ 2026.2: the bundled MavenDependenciesGradleCompletionContributor
-  // (registered order="first" with no id, so we cannot anchor before it) calls stopHere() for
-  // string literals in dependencies blocks in the test fixture, suppressing Spotlight's results.
-  // This test passes against Android Studio 2026.1.1.10, which does not bundle that contributor.
-  // Renamed so the JUnit 3 runner skips it.
-  fun ignoredTestGroovyProjectCallCompletion() {
+  // IntelliJ 2026.2 bundles MavenDependenciesGradleCompletionContributor (gradle-maven bridge
+  // module), which is registered order="first" with no id and calls stopHere() for string
+  // literals in dependencies blocks, suppressing Spotlight's results. Ties between two
+  // order="first" contributors go to the earlier-registered (bundled) one, so Spotlight cannot
+  // win via registration order. Mask it here so we can still cover Spotlight's own Groovy
+  // completion logic; this matches IDEs without the Maven plugin (e.g. Android Studio).
+  fun testGroovyProjectCallCompletion() {
+    maskMavenDependenciesContributor()
     SpotlightTestFixtures.writeAllProjects(project, ":foo:bar", ":foo:baz", ":lib:core")
 
     myFixture.configureByText(
@@ -177,5 +182,18 @@ class SpotlightGradleCompletionTest : BasePlatformTestCase() {
     assertThat(lookups).containsAtLeast(":feature-flags:api", ":lib:feature-toggle")
     assertThat(lookups.indexOf(":feature-flags:api"))
       .isLessThan(lookups.indexOf(":lib:feature-toggle"))
+  }
+
+  private fun maskMavenDependenciesContributor() {
+    val epName = ExtensionPointName<CompletionContributorEP>("com.intellij.completion.contributor")
+    val remaining = epName.extensionList.filterNot {
+      it.implementationClass == MAVEN_GRADLE_CONTRIBUTOR
+    }
+    ExtensionTestUtil.maskExtensions(epName, remaining, testRootDisposable)
+  }
+
+  private companion object {
+    const val MAVEN_GRADLE_CONTRIBUTOR =
+      "org.jetbrains.plugins.gradle.integrations.maven.codeInsight.completion.MavenDependenciesGradleCompletionContributor"
   }
 }
