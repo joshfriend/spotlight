@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.7.1
+#### IDE plugin
+* Add diff preview support to quick-fix actions
+
 ### 1.7.0
 #### Gradle Plugin
 * Add `taskInvocationRules` to `spotlight-rules.json` for including projects (or all projects) when specific tasks are invoked
