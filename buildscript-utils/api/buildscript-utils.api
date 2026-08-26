@@ -308,6 +308,8 @@ public final class com/fueledbycaffeine/spotlight/buildscript/models/TaskInvocat
 	public final fun getTaskNames ()Ljava/util/Set;
 	public fun hashCode ()I
 	public final fun matches (Ljava/util/List;)Z
+	public final fun matches (Ljava/util/List;Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;)Z
+	public static synthetic fun matches$default (Lcom/fueledbycaffeine/spotlight/buildscript/models/TaskInvocationRule;Ljava/util/List;Lcom/fueledbycaffeine/spotlight/buildscript/GradlePath;ILjava/lang/Object;)Z
 	public fun toString ()Ljava/lang/String;
 }
 

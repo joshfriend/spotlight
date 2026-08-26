@@ -105,9 +105,9 @@ Task invocation rules include additional projects (or all of them) when specific
 // gradle/spotlight-rules.json
 {
   "taskInvocationRules": [
-    // Include all projects when :buildHealth is invoked
+    // Include all projects when the root :buildHealth task is invoked
     {
-      "taskNames": ["buildHealth"],
+      "taskNames": [":buildHealth"],
       "includeAllProjects": true
     },
     // Include specific projects when a task is invoked
@@ -121,7 +121,11 @@ Task invocation rules include additional projects (or all of them) when specific
 }
 ```
 
-`taskNames` entries are the full, unqualified task names and are matched exactly, so abbreviated invocations (`./gradlew :bH`) will not match a rule declaring `buildHealth`. Project path qualifiers are ignored, so `./gradlew :foo:buildHealth` matches a rule declaring `buildHealth`.
+The fully qualified `:buildHealth` entry only matches invocations that select the root project's task, not `:other:buildHealth`.
+
+Fully qualified task paths are also useful when an aggregating task is registered on a dedicated project. A rule declaring `:reports:aggregateReports` matches `./gradlew -p reports aggregateReports` because Gradle task selectors are resolved relative to the default project. A root invocation of `./gradlew aggregateReports` already includes all projects through Spotlight's normal unqualified-task behavior, so it does not need a task invocation rule.
+
+Unqualified entries continue to match at any project path, so `./gradlew :foo:buildHealth` matches a rule declaring `buildHealth`. All entries are matched exactly, so abbreviated invocations (`./gradlew :bH`) will not match a rule declaring `buildHealth`.
 
 ### Type-safe Project Accessors
 Spotlight automatically parses [type-safe project accessors][typesafe-project-accessors] in your buildscripts and maps them to the corresponding project paths. This works with any project naming convention.
