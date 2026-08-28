@@ -16,7 +16,6 @@ import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
 import kotlin.io.path.writeText
-import org.gradle.internal.scripts.ScriptingLanguages
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
 import org.junit.jupiter.api.assertThrows
@@ -54,8 +53,8 @@ class GradlePathTest {
     val gradlePath = GradlePath(buildRoot, ":foo:bar")
     val projectDir = buildRoot.resolve("foo/bar")
     projectDir.createDirectories()
-    val buildscripts = ScriptingLanguages.all().map { lang ->
-      val buildScriptPath = projectDir.resolve("build${lang.extension}")
+    val buildscripts = listOf(".gradle", ".gradle.kts").map { extension ->
+      val buildScriptPath = projectDir.resolve("build$extension")
       buildScriptPath.createFile()
     }
     assertThat(gradlePath.buildFilePath).equals(buildscripts.first())

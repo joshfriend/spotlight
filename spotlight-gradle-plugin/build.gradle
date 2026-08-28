@@ -121,6 +121,13 @@ functionalTestSourceSet.runtimeClasspath += functionalTestSourceSet.output + fun
 dependencies {
   api project(':buildscript-utils')
 
+  // Experimental replacement for gradleApi():
+  // https://github.com/gradle/gradle/issues/29483#issuecomment-2791668178
+  compileOnly("org.gradle.experimental:gradle-public-api:${gradle.gradleVersion}") {
+    capabilities {
+      requireCapability('org.gradle.experimental:gradle-public-api-internal')
+    }
+  }
   compileOnly(libs.develocity)
 
   lintChecks(libs.lint.gradle)

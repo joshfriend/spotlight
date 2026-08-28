@@ -32,6 +32,12 @@ dependencyResolutionManagement {
     mavenCentral()
     google()
     gradlePluginPortal()
+    maven {
+      url = 'https://repo.gradle.org/gradle/libs-releases'
+      content {
+        includeModule('org.gradle.experimental', 'gradle-public-api')
+      }
+    }
   }
 }
 
