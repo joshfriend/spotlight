@@ -1,5 +1,9 @@
 # Changelog
 
+### Unreleased
+#### Gradle Plugin
+* Improve configuration cache invalidation messages for changes to included projects
+
 ### 1.7.1
 #### IDE plugin
 * Add diff preview support to quick-fix actions

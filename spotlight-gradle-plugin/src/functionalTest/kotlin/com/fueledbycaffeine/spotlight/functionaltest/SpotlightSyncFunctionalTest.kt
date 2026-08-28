@@ -1,7 +1,6 @@
 package com.fueledbycaffeine.spotlight.functionaltest
 
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Companion.SPOTLIGHT_INPUTS
-import com.fueledbycaffeine.spotlight.functionaltest.fixtures.CCDiagnostic.Input.Companion.SpotlightValueSource
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.SpiritboxProject
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.allProjects
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.ccReport
@@ -212,7 +211,7 @@ class SpotlightSyncFunctionalTest {
     // Then
     assertThat(syncResult1.configurationCacheStored).isTrue()
     assertThat(syncResult2.configurationCacheInvalidationReason)
-      .isEqualTo("a build logic input of type '${SpotlightValueSource.name}' has changed.")
+      .isEqualTo("the set of projects included by Spotlight has changed.")
     assertThat(syncResult2.configurationCacheReused).isFalse()
     assertThat(syncResult2.configurationCacheStored).isTrue()
   }
