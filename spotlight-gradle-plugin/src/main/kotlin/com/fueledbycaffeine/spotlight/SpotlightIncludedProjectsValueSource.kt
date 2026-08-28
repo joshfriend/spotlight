@@ -12,6 +12,7 @@ import com.fueledbycaffeine.spotlight.utils.guessProjectsFromTaskRequests
 import com.fueledbycaffeine.spotlight.utils.isIdeSync
 import com.fueledbycaffeine.spotlight.utils.isSpotlightEnabled
 import org.gradle.TaskExecutionRequest
+import org.gradle.api.Describable
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.initialization.Settings
 import org.gradle.api.logging.Logging
@@ -30,7 +31,9 @@ import kotlin.time.measureTimedValue
  * Wraps the operations to determine the list of included projects so that reading files here does
  * not get captured in configuration cache.
  */
-internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<GradlePath>, Params> {
+internal abstract class SpotlightIncludedProjectsValueSource : ValueSource<Set<GradlePath>, Params>, Describable {
+  override fun getDisplayName(): String = "the set of projects included by Spotlight"
+
   override fun obtain(): Set<GradlePath> {
     val projectsOverride = targetPathsOverride
     val projects = if (!parameters.spotlightEnabled.get()) {
