@@ -1,10 +1,10 @@
 # Changelog
 
-### Unreleased
+### 1.7.1
 #### Gradle Plugin
+* Support fully qualified task paths in `taskInvocationRules` (e.g., `:buildHealth` matches only the root project's task)
 * Improve configuration cache invalidation messages for changes to included projects
 
-### 1.7.1
 #### IDE plugin
 * Add diff preview support to quick-fix actions
 
