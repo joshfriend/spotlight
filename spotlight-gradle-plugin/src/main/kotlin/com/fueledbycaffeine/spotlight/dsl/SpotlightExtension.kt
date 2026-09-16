@@ -2,6 +2,7 @@ package com.fueledbycaffeine.spotlight.dsl
 
 import com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList.Companion.IDE_PROJECTS_LOCATION
+import org.gradle.api.Action
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.file.BuildLayout
 import org.gradle.api.initialization.Settings
@@ -29,6 +30,13 @@ public abstract class SpotlightExtension @Inject constructor(
         create(NAME, SpotlightExtension::class.java)
       }
     }
+  }
+
+  internal val projectDiscoveryHandler = objects.newInstance(ProjectDiscoveryHandler::class.java)
+
+  /** Configures project discovery for the project-list tasks. */
+  public fun projectDiscovery(action: Action<ProjectDiscoveryHandler>) {
+    action.execute(projectDiscoveryHandler)
   }
 
   /**

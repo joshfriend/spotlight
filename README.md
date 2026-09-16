@@ -139,12 +139,37 @@ Spotlight provides several tasks for managing its config files:
   * Verifies alphabetic sorting
   * Verifies that `settings.gradle(.kts)` does not have any `include`s
   * Validates that all listed projects have build files
-  * Ensures all projects discovered via dependency graph are listed
+  * Ensures all projects found on disk or through dependencies are listed
 * `./gradlew :fixAllProjectsList` - Auto-fix issues in the `all-projects.txt` file
   * Migrates any `include` statements from `settings.gradle(.kts)` to `all-projects.txt`
   * Removes invalid projects (those without build files)
-  * Adds missing projects discovered via dependency graph
+  * Adds missing projects found on disk or through dependencies
   * Sorts the file alphabetically
+
+#### Directory scanning
+Both tasks scan directories for `build.gradle` or `build.gradle.kts` files belonging to projects absent from `all-projects.txt`. Configure this scan in `settings.gradle(.kts)` through the Spotlight DSL. The same configuration applies to both check and fix tasks.
+
+```groovy
+spotlight {
+  // ...
+  projectDiscovery {
+    directoryScan {
+      discoverUnlistedProjects true
+      excludeProjectPaths ':optional-tool:public', ':another-project'
+      excludeDirectoriesMatchingRegex 'generated/.*', 'fixtures/.*'
+    }
+  }
+}
+```
+
+* `discoverUnlistedProjects` defaults to `true`. Set it to `false` to disable only the directory scan. **Dependency-graph traversal always runs:** required projects are still checked and added by the fix task.
+* `excludeProjectPaths` excludes exact Gradle project paths from the scan.
+* `excludeDirectoriesMatchingRegex` matches the entire root-relative directory path, using `/` separators and no trailing slash. Matching directories and their descendants are skipped. For example, `generated/.*` excludes `generated/example`, but not `tools/generated/example`.
+
+> [!TIP]
+> Both tasks fail if an excluded project is required by the dependency graph.
+
+The scan also skips directories named `build`, `buildSrc`, `src`, `src-gen`, or `tmp`, and nested builds identified by their own `settings.gradle(.kts)` file.
 
 ### Custom Parsers
 Spotlight uses an extensible parser system to extract project dependencies from your buildscripts. By default, it uses a regex-based parser (`RegexBuildscriptParser`), but you can provide your own parser implementations for more sophisticated parsing strategies (e.g., AST-based parsing, PSI-based parsing, or custom DSL support).
@@ -224,7 +249,7 @@ dependencies {
 
 The `projectDir` for projects listed in `all-projects.txt` cannot be relocated because the list of all your projects is now a flat text file and not a dynamic script.
 
-You can still add `include`s to `settings.gradle(.kts)` in your build outside of this plugin. Those will be flagged by the `:checkAllProjectsList` lint task, but you can move them to a new script plugin that you apply in settings to "hide" that from the lint check.
+When directory scanning is enabled, projects conditionally included by applied scripts must still be listed or explicitly excluded, even when their inclusion condition is false. `:checkAllProjectsList` rejects direct `include` statements in `settings.gradle(.kts)` regardless of the directory scan setting.
 
 [plugin-portal-page]: https://plugins.gradle.org/plugin/com.fueledbycaffeine.spotlight
 [jb-marketplace-page]: https://plugins.jetbrains.com/plugin/27451-spotlight
