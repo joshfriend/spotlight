@@ -1,5 +1,9 @@
 # Changelog
 
+### 1.8.0
+#### Gradle Plugin
+* Detect and fix unlisted Gradle projects
+
 ### 1.7.1
 #### Gradle Plugin
 * Support fully qualified task paths in `taskInvocationRules` (e.g., `:buildHealth` matches only the root project's task)
