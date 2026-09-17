@@ -8,19 +8,32 @@ public final class com/fueledbycaffeine/spotlight/SpotlightSettingsPluginKt {
 	public static final fun applySpotlightConfiguration (Lorg/gradle/api/initialization/Settings;)V
 }
 
+public abstract class com/fueledbycaffeine/spotlight/dsl/DirectoryScanHandler {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun discoverUnlistedProjects (Z)V
+	public final fun excludeDirectoriesMatchingRegex ([Ljava/lang/String;)V
+	public final fun excludeProjectPaths ([Ljava/lang/String;)V
+}
+
+public abstract class com/fueledbycaffeine/spotlight/dsl/ProjectDiscoveryHandler {
+	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
+	public final fun directoryScan (Lorg/gradle/api/Action;)V
+}
+
 public abstract class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension {
 	public static final field Companion Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension$Companion;
 	public static final field NAME Ljava/lang/String;
 	public fun <init> (Lorg/gradle/api/file/BuildLayout;Lorg/gradle/api/model/ObjectFactory;)V
 	public static final fun getSpotlightExtension (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension;
 	public final fun getTargetsOverride ()Lorg/gradle/api/provider/Property;
+	public final fun projectDiscovery (Lorg/gradle/api/Action;)V
 }
 
 public final class com/fueledbycaffeine/spotlight/dsl/SpotlightExtension$Companion {
 	public final fun getSpotlightExtension (Lorg/gradle/api/plugins/ExtensionContainer;)Lcom/fueledbycaffeine/spotlight/dsl/SpotlightExtension;
 }
 
-public abstract class com/fueledbycaffeine/spotlight/tasks/CheckSpotlightProjectListTask : org/gradle/api/DefaultTask {
+public abstract class com/fueledbycaffeine/spotlight/tasks/CheckSpotlightProjectListTask : com/fueledbycaffeine/spotlight/tasks/SpotlightProjectListTask {
 	public static final field Companion Lcom/fueledbycaffeine/spotlight/tasks/CheckSpotlightProjectListTask$Companion;
 	public static final field NAME Ljava/lang/String;
 	public fun <init> ()V
@@ -29,13 +42,18 @@ public abstract class com/fueledbycaffeine/spotlight/tasks/CheckSpotlightProject
 public final class com/fueledbycaffeine/spotlight/tasks/CheckSpotlightProjectListTask$Companion {
 }
 
-public abstract class com/fueledbycaffeine/spotlight/tasks/FixSpotlightProjectListTask : org/gradle/api/DefaultTask {
+public abstract class com/fueledbycaffeine/spotlight/tasks/FixSpotlightProjectListTask : com/fueledbycaffeine/spotlight/tasks/SpotlightProjectListTask {
 	public static final field Companion Lcom/fueledbycaffeine/spotlight/tasks/FixSpotlightProjectListTask$Companion;
 	public static final field NAME Ljava/lang/String;
 	public fun <init> ()V
 }
 
 public final class com/fueledbycaffeine/spotlight/tasks/FixSpotlightProjectListTask$Companion {
+}
+
+public abstract class com/fueledbycaffeine/spotlight/tasks/SpotlightProjectListTask : org/gradle/api/DefaultTask {
+	public fun <init> ()V
+	public abstract fun getExcludedProjectPaths ()Lorg/gradle/api/provider/SetProperty;
 }
 
 public final class com/fueledbycaffeine/spotlight/tooling/SpotlightModelBuilder : org/gradle/tooling/provider/model/ToolingModelBuilder {

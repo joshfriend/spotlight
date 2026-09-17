@@ -3,34 +3,29 @@ package com.fueledbycaffeine.spotlight.tasks
 import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT
 import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT_KOTLIN
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
-import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
 import com.fueledbycaffeine.spotlight.utils.asSortedProjectsContent
-import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
+import kotlin.io.path.exists
 
 @DisableCachingByDefault(because = "Has no outputs")
-public abstract class CheckSpotlightProjectListTask : DefaultTask() {
+public abstract class CheckSpotlightProjectListTask : SpotlightProjectListTask() {
   public companion object {
     public const val NAME: String = "checkAllProjectsList"
   }
 
   @get:InputFile
   @get:PathSensitive(PathSensitivity.RELATIVE)
-  internal abstract val projectsFile: RegularFileProperty
+  internal abstract override val projectsFile: RegularFileProperty
 
-  // Use @Internal instead of @InputDirectory to avoid conflicts with other tasks
-  // that output to subdirectories of the root directory. The projectsFile input
-  // is sufficient for tracking changes that matter to this task.
-  @get:Internal
-  internal abstract val rootDirectory: DirectoryProperty
+  init {
+    description = "Checks if ${SpotlightProjectList.ALL_PROJECTS_LOCATION} is set up correctly"
+  }
 
   @TaskAction
   internal fun action() {
@@ -38,6 +33,7 @@ public abstract class CheckSpotlightProjectListTask : DefaultTask() {
     checkForIncludeStatements()
     checkValidProjects()
     checkAllProjectsAreDiscovered()
+    checkForUnlistedProjects()
   }
 
   private fun checkSorted() {
@@ -118,7 +114,7 @@ public abstract class CheckSpotlightProjectListTask : DefaultTask() {
     val listedProjects = allProjects.read()
 
     // Use BFS to discover all projects starting from the listed ones
-    val discoveredProjects = BreadthFirstSearch.flatten(listedProjects)
+    val discoveredProjects = discoverProjectsWithDependencies(listedProjects)
 
     // Find projects discovered by BFS that are not in the all-projects.txt file
     val missingProjects = discoveredProjects.filterNot { listedProjects.contains(it) }
@@ -133,6 +129,46 @@ public abstract class CheckSpotlightProjectListTask : DefaultTask() {
         }
         appendLine()
         appendLine("Run :${FixSpotlightProjectListTask.NAME} to add these missing projects.")
+      }
+      throw InvalidUserDataException(errorMessage)
+    }
+  }
+
+  private fun checkForUnlistedProjects() {
+    val rootDir = rootDirectory.asFile.get().toPath()
+    val listedProjects = SpotlightProjectList.allProjects(rootDir).read()
+    val unlistedProjects = (discoverProjectsOnDisk() - listedProjects).sortedBy { it.path }
+
+    if (unlistedProjects.isNotEmpty()) {
+      val isKotlinDsl = !rootDir.resolve(SETTINGS_SCRIPT).exists() && rootDir.resolve(SETTINGS_SCRIPT_KOTLIN).exists()
+      val settingsFileName = if (isKotlinDsl) SETTINGS_SCRIPT_KOTLIN else SETTINGS_SCRIPT
+      val errorMessage = buildString {
+        appendLine("Found unlisted projects:")
+        appendLine()
+        appendLine(
+          "The following project directories have a build.gradle(.kts) file but are not listed " +
+            "in ${SpotlightProjectList.ALL_PROJECTS_LOCATION}:"
+        )
+        unlistedProjects.forEach { project ->
+          appendLine("  ${project.path}")
+        }
+        appendLine()
+        appendLine("Run :${FixSpotlightProjectListTask.NAME} to add these projects, or remove their build files.")
+        appendLine("For intentionally unlisted projects, configure the directory scan in $settingsFileName:")
+        appendLine()
+        appendLine("spotlight {")
+        appendLine("  projectDiscovery {")
+        appendLine("    directoryScan {")
+        unlistedProjects.forEach { project ->
+          if (isKotlinDsl) {
+            appendLine("      excludeProjectPaths(\"${project.path}\")")
+          } else {
+            appendLine("      excludeProjectPaths '${project.path}'")
+          }
+        }
+        appendLine("    }")
+        appendLine("  }")
+        appendLine("}")
       }
       throw InvalidUserDataException(errorMessage)
     }
