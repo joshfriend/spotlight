@@ -4,22 +4,26 @@ import com.autonomousapps.kit.GradleBuilder
 import com.autonomousapps.kit.GradleProject
 import com.fueledbycaffeine.spotlight.buildscript.models.SpotlightModel
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.events.OperationType
+import org.gradle.tooling.events.problems.Problem
+import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.util.GradleVersion
 import java.io.File
 
-private val gradleVersion: GradleVersion get() = GradleVersion.version(
+internal val testedGradleVersion: GradleVersion get() = GradleVersion.version(
   System.getProperty("gradleVersion").ifBlank { GradleVersion.current().version }
 )
 
 fun GradleProject.build(rootDir: File, vararg args: String): BuildResult =
-  GradleBuilder.build(gradleVersion, rootDir, *args, "--info")
+  GradleBuilder.build(testedGradleVersion, rootDir, *args, "--info")
 
 fun GradleProject.build(vararg args: String): BuildResult =
-  GradleBuilder.build(gradleVersion, rootDir, *args, "--info")
+  GradleBuilder.build(testedGradleVersion, rootDir, *args, "--info")
 
 fun GradleProject.buildAndFail(vararg args: String): BuildResult =
-  GradleBuilder.buildAndFail(gradleVersion, rootDir, *args, "--info")
+  GradleBuilder.buildAndFail(testedGradleVersion, rootDir, *args, "--info")
 
 fun GradleProject.setGradleProperties(vararg props: Pair<String, String>) {
   rootDir.resolve("gradle.properties")
@@ -31,7 +35,7 @@ fun GradleProject.setGradleProperties(vararg props: Pair<String, String>) {
 
 fun GradleProject.enableIsolatedProjects() {
   // Isolated projects became incubating in Gradle 9.7.0 and the property lost its "unsafe" prefix
-  val isolatedProjectsProperty = if (gradleVersion.baseVersion >= GradleVersion.version("9.7")) {
+  val isolatedProjectsProperty = if (testedGradleVersion.baseVersion >= GradleVersion.version("9.7")) {
     "org.gradle.isolated-projects"
   } else {
     "org.gradle.unsafe.isolated-projects"
@@ -50,7 +54,41 @@ data class SyncResult(
   override val stderr: String,
 ): ToolingResult
 
-fun GradleProject.sync(): SyncResult = sync(gradleVersion)
+data class FailedBuildProblems(
+  val problems: List<Problem>,
+  override val stdout: String,
+  override val stderr: String,
+): ToolingResult
+
+fun GradleProject.buildAndFailWithProblems(vararg tasks: String): FailedBuildProblems =
+  GradleConnector.newConnector()
+    .useGradleVersion(testedGradleVersion.version)
+    .forProjectDirectory(rootDir)
+    .connect().use { connection ->
+      val stdout = TeeOutputStream(System.out)
+      val stderr = TeeOutputStream(System.err)
+      val problems = mutableListOf<Problem>()
+      val launcher = connection.newBuild()
+        .forTasks(*tasks)
+        .addArguments("--info")
+        .setStandardOutput(stdout)
+        .setStandardError(stderr)
+        .addProgressListener({ event ->
+          if (event is SingleProblemEvent) problems.add(event.problem)
+        }, OperationType.PROBLEMS)
+
+      try {
+        launcher.run()
+        error("Expected Gradle build to fail")
+      } catch (_: BuildException) {
+        FailedBuildProblems(problems, stdout.output, stderr.output)
+      } finally {
+        stdout.close()
+        stderr.close()
+      }
+    }
+
+fun GradleProject.sync(): SyncResult = sync(testedGradleVersion)
 
 fun GradleProject.sync(gradleVersion: GradleVersion): SyncResult =
   GradleConnector.newConnector()

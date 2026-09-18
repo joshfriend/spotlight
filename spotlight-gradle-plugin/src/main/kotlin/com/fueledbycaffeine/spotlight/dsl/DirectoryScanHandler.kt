@@ -1,10 +1,15 @@
 package com.fueledbycaffeine.spotlight.dsl
 
+import com.fueledbycaffeine.spotlight.throwingSpotlightProblem
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.problems.Problems
 import javax.inject.Inject
 
 /** Configures scanning directories for build.gradle or build.gradle.kts files. */
-public abstract class DirectoryScanHandler @Inject constructor(objects: ObjectFactory) {
+public abstract class DirectoryScanHandler @Inject constructor(
+  objects: ObjectFactory,
+  private val problems: Problems,
+) {
   internal val discoverUnlistedProjects = objects.property(Boolean::class.java).convention(true)
   internal val excludedProjectPaths = objects.setProperty(String::class.java).convention(emptySet())
   internal val excludedDirectoryPatterns = objects.setProperty(Regex::class.java).convention(emptySet())
@@ -42,6 +47,21 @@ public abstract class DirectoryScanHandler @Inject constructor(objects: ObjectFa
    * Both `:checkAllProjectsList` and `:fixAllProjectsList` fail if an excluded project is a required dependency.
    */
   public fun excludeDirectoriesMatchingRegex(vararg patterns: String) {
-    excludedDirectoryPatterns.addAll(patterns.map(::Regex))
+    excludedDirectoryPatterns.addAll(patterns.map { pattern ->
+      try {
+        Regex(pattern)
+      } catch (failure: IllegalArgumentException) {
+        val solution = "Use a valid regular expression in excludeDirectoriesMatchingRegex."
+        problems.throwingSpotlightProblem(
+          id = "invalid-directory-exclusion-regex",
+          displayName = "Invalid directory exclusion regex",
+          contextualLabel = "Directory exclusion regex '$pattern' is invalid",
+          details = failure.message,
+          solution = solution,
+          exceptionMessage = "Invalid directory exclusion regex '$pattern': ${failure.message}\n$solution",
+          stackLocation = true,
+        )
+      }
+    })
   }
 }

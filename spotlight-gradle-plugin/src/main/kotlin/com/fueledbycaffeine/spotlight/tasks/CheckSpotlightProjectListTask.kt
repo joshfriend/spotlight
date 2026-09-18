@@ -3,8 +3,8 @@ package com.fueledbycaffeine.spotlight.tasks
 import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT
 import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT_KOTLIN
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
+import com.fueledbycaffeine.spotlight.throwingSpotlightProblem
 import com.fueledbycaffeine.spotlight.utils.asSortedProjectsContent
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.PathSensitive
@@ -41,11 +41,15 @@ public abstract class CheckSpotlightProjectListTask : SpotlightProjectListTask()
     val current = file.readLines()
 
     if (file.readText() != current.asSortedProjectsContent()) {
-      throw InvalidUserDataException(
-        """
-        Spotlight's list of all projects is not sorted: ${file.path}
-        Run :${FixSpotlightProjectListTask.NAME} to fix it.
-        """.trimIndent().trim()
+      val label = "Spotlight's list of all projects is not sorted: ${file.path}"
+      val solution = "Run :${FixSpotlightProjectListTask.NAME} to fix it."
+      problems.throwingSpotlightProblem(
+        id = "project-list-not-sorted",
+        displayName = "Project list is not sorted",
+        contextualLabel = label,
+        solution = solution,
+        exceptionMessage = "$label\n$solution",
+        file = file.path,
       )
     }
   }
@@ -65,23 +69,23 @@ public abstract class CheckSpotlightProjectListTask : SpotlightProjectListTask()
       .filter { (_, line) -> INCLUDE_PROJECT_PATH.containsMatchIn(line) }
 
     if (includeLines.isNotEmpty()) {
-      val errorMessage = buildString {
-        appendLine("Found 'include' statements in ${settingsFile.name}:")
-        appendLine()
-        includeLines.forEach { (index, line) ->
-          // Format as "filename:line: message" for IDE parsing
-          appendLine("  ${settingsFile.name}:${index + 1}: ${line.trim()}")
-        }
-        appendLine()
-        appendLine("Spotlight manages project inclusion automatically.")
-        appendLine(
-          "Please remove these 'include' statements and add the project paths to " +
-            "${SpotlightProjectList.ALL_PROJECTS_LOCATION} instead."
-        )
-        appendLine()
-        appendLine("You can also run the ':fixAllProjectsList' task to resolve this issue.")
+      val label = "Found 'include' statements in ${settingsFile.name}:"
+      val details = buildString {
+        includeLines.forEach { (index, line) -> appendLine("  ${settingsFile.name}:${index + 1}: ${line.trim()}") }
+        append("Spotlight manages project inclusion automatically.")
       }
-      throw InvalidUserDataException(errorMessage)
+      val solution = "Remove these 'include' statements and add the project paths to " +
+        "${SpotlightProjectList.ALL_PROJECTS_LOCATION}, or run :${FixSpotlightProjectListTask.NAME}."
+      problems.throwingSpotlightProblem(
+        id = "settings-include-statements",
+        displayName = "Settings contains project include statements",
+        contextualLabel = label,
+        details = details,
+        solution = solution,
+        exceptionMessage = "$label\n\n$details\n\n$solution",
+        file = settingsFile.path,
+        lines = includeLines.map { (index) -> index + 1 },
+      )
     }
   }
 
@@ -94,17 +98,28 @@ public abstract class CheckSpotlightProjectListTask : SpotlightProjectListTask()
     val invalidProjects = projects.filterNot { it.hasBuildFile }
 
     if (invalidProjects.isNotEmpty()) {
-      val errorMessage = buildString {
-        appendLine("Found invalid projects in ${SpotlightProjectList.ALL_PROJECTS_LOCATION}:")
-        appendLine()
+      val label = "Found invalid projects in ${SpotlightProjectList.ALL_PROJECTS_LOCATION}:"
+      val details = buildString {
         appendLine("The following projects do not have a build.gradle(.kts) file:")
         invalidProjects.sortedBy { it.path }.forEach { project ->
           appendLine("  ${project.path} (expected at ${project.projectDir})")
         }
-        appendLine()
-        appendLine("Run :${FixSpotlightProjectListTask.NAME} to remove these invalid projects.")
-      }
-      throw InvalidUserDataException(errorMessage)
+      }.trim()
+      val solution = "Run :${FixSpotlightProjectListTask.NAME} to remove these invalid projects."
+      val invalidPaths = invalidProjects.mapTo(mutableSetOf()) { it.path }
+      val invalidLines = projectsFile.asFile.get().readLines().withIndex()
+        .filter { (_, line) -> line.trim() in invalidPaths }
+        .map { (index) -> index + 1 }
+      problems.throwingSpotlightProblem(
+        id = "invalid-listed-projects",
+        displayName = "Project list contains invalid projects",
+        contextualLabel = label,
+        details = details,
+        solution = solution,
+        exceptionMessage = "$label\n\n$details\n\n$solution",
+        file = projectsFile.asFile.get().path,
+        lines = invalidLines,
+      )
     }
   }
 
@@ -120,17 +135,23 @@ public abstract class CheckSpotlightProjectListTask : SpotlightProjectListTask()
     val missingProjects = discoveredProjects.filterNot { listedProjects.contains(it) }
 
     if (missingProjects.isNotEmpty()) {
-      val errorMessage = buildString {
-        appendLine("Found projects missing from ${SpotlightProjectList.ALL_PROJECTS_LOCATION}:")
-        appendLine()
+      val label = "Found projects missing from ${SpotlightProjectList.ALL_PROJECTS_LOCATION}:"
+      val details = buildString {
         appendLine("The following projects were discovered via dependency graph but are not listed:")
         missingProjects.sortedBy { it.path }.forEach { project ->
           appendLine("  ${project.path}")
         }
-        appendLine()
-        appendLine("Run :${FixSpotlightProjectListTask.NAME} to add these missing projects.")
-      }
-      throw InvalidUserDataException(errorMessage)
+      }.trim()
+      val solution = "Run :${FixSpotlightProjectListTask.NAME} to add these missing projects."
+      problems.throwingSpotlightProblem(
+        id = "missing-dependency-projects",
+        displayName = "Dependency projects are missing from the project list",
+        contextualLabel = label,
+        details = details,
+        solution = solution,
+        exceptionMessage = "$label\n\n$details\n\n$solution",
+        file = projectsFile.asFile.get().path,
+      )
     }
   }
 
@@ -142,9 +163,8 @@ public abstract class CheckSpotlightProjectListTask : SpotlightProjectListTask()
     if (unlistedProjects.isNotEmpty()) {
       val isKotlinDsl = !rootDir.resolve(SETTINGS_SCRIPT).exists() && rootDir.resolve(SETTINGS_SCRIPT_KOTLIN).exists()
       val settingsFileName = if (isKotlinDsl) SETTINGS_SCRIPT_KOTLIN else SETTINGS_SCRIPT
-      val errorMessage = buildString {
-        appendLine("Found unlisted projects:")
-        appendLine()
+      val label = "Found unlisted projects:"
+      val details = buildString {
         appendLine(
           "The following project directories have a build.gradle(.kts) file but are not listed " +
             "in ${SpotlightProjectList.ALL_PROJECTS_LOCATION}:"
@@ -152,7 +172,8 @@ public abstract class CheckSpotlightProjectListTask : SpotlightProjectListTask()
         unlistedProjects.forEach { project ->
           appendLine("  ${project.path}")
         }
-        appendLine()
+      }.trim()
+      val solution = buildString {
         appendLine("Run :${FixSpotlightProjectListTask.NAME} to add these projects, or remove their build files.")
         appendLine("For intentionally unlisted projects, configure the directory scan in $settingsFileName:")
         appendLine()
@@ -169,8 +190,16 @@ public abstract class CheckSpotlightProjectListTask : SpotlightProjectListTask()
         appendLine("    }")
         appendLine("  }")
         appendLine("}")
-      }
-      throw InvalidUserDataException(errorMessage)
+      }.trim()
+      problems.throwingSpotlightProblem(
+        id = "unlisted-projects",
+        displayName = "Projects are missing from the project list",
+        contextualLabel = label,
+        details = details,
+        solution = solution,
+        exceptionMessage = "$label\n\n$details\n\n$solution",
+        file = projectsFile.asFile.get().path,
+      )
     }
   }
 }

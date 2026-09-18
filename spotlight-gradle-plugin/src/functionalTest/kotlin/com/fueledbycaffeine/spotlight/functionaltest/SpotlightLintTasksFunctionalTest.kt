@@ -3,14 +3,18 @@ package com.fueledbycaffeine.spotlight.functionaltest
 import com.autonomousapps.kit.GradleProject
 import com.autonomousapps.kit.truth.TestKitTruth.Companion.assertThat
 import com.fueledbycaffeine.spotlight.buildscript.SpotlightProjectList
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.FailedBuildProblems
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.SpiritboxProject
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.build
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.buildAndFail
+import com.fueledbycaffeine.spotlight.functionaltest.fixtures.buildAndFailWithProblems
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.enableIsolatedProjects
 import com.fueledbycaffeine.spotlight.functionaltest.fixtures.setGradleProperties
 import com.fueledbycaffeine.spotlight.tasks.CheckSpotlightProjectListTask
 import com.fueledbycaffeine.spotlight.tasks.FixSpotlightProjectListTask
 import com.google.common.truth.Truth.assertThat
+import org.gradle.tooling.events.problems.FileLocation
+import org.gradle.tooling.events.problems.LineInFileLocation
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -26,10 +30,13 @@ class SpotlightLintTasksFunctionalTest {
     allProjects.writeText(allProjects.readLines().sorted().reversed().joinToString(separator = "\n", postfix = "\n"))
 
     // When
-    val result = project.buildAndFail(":${CheckSpotlightProjectListTask.NAME}")
+    val result = project.buildAndFailWithProblems(":${CheckSpotlightProjectListTask.NAME}")
 
     // Then
-    assertThat(result).task(":${CheckSpotlightProjectListTask.NAME}").failed()
+    result.assertSpotlightProblem(
+      id = "project-list-not-sorted",
+      label = "Spotlight's list of all projects is not sorted",
+    )
   }
 
   @Test
@@ -152,11 +159,15 @@ class SpotlightLintTasksFunctionalTest {
     settingsFile.writeText(currentContent + includeStatement)
 
     // When
-    val result = project.buildAndFail(":${CheckSpotlightProjectListTask.NAME}")
+    val result = project.buildAndFailWithProblems(":${CheckSpotlightProjectListTask.NAME}")
 
     // Then
-    assertThat(result).task(":${CheckSpotlightProjectListTask.NAME}").failed()
-    assertThat(result.output).contains("Found 'include' statements in ${dslKind.settingsFile}:")
+    result.assertSpotlightProblem(
+      id = "settings-include-statements",
+      label = "Found 'include' statements in ${dslKind.settingsFile}:",
+      details = listOf(":some-project", "Spotlight manages project inclusion automatically"),
+      lineLocated = true,
+    )
   }
 
   @ParameterizedTest
@@ -199,13 +210,15 @@ class SpotlightLintTasksFunctionalTest {
     project.rootDir.resolve("missing-build-file").mkdirs()
 
     // When
-    val result = project.buildAndFail(":${CheckSpotlightProjectListTask.NAME}")
+    val result = project.buildAndFailWithProblems(":${CheckSpotlightProjectListTask.NAME}")
 
     // Then
-    assertThat(result).task(":${CheckSpotlightProjectListTask.NAME}").failed()
-    assertThat(result.output).contains("Found invalid projects in ${SpotlightProjectList.ALL_PROJECTS_LOCATION}")
-    assertThat(result.output).contains(":missing-build-file")
-    assertThat(result.output).contains("do not have a build.gradle(.kts) file")
+    result.assertSpotlightProblem(
+      id = "invalid-listed-projects",
+      label = "Found invalid projects in ${SpotlightProjectList.ALL_PROJECTS_LOCATION}:",
+      details = listOf(":missing-build-file", "do not have a build.gradle(.kts) file"),
+      lineLocated = true,
+    )
   }
 
   @Test
@@ -224,13 +237,14 @@ class SpotlightLintTasksFunctionalTest {
     }
 
     // When
-    val result = project.buildAndFail(":${CheckSpotlightProjectListTask.NAME}")
+    val result = project.buildAndFailWithProblems(":${CheckSpotlightProjectListTask.NAME}")
 
     // Then
-    assertThat(result).task(":${CheckSpotlightProjectListTask.NAME}").failed()
-    assertThat(result.output).contains("Found unlisted projects:")
-    assertThat(result.output).contains("\n  :unlisted-groovy\n")
-    assertThat(result.output).contains("\n  :unlisted-kotlin\n")
+    result.assertSpotlightProblem(
+      id = "unlisted-projects",
+      label = "Found unlisted projects:",
+      details = listOf(":unlisted-groovy", ":unlisted-kotlin"),
+    )
 
     val fixResult = project.build(":${FixSpotlightProjectListTask.NAME}")
     assertThat(fixResult).task(":${FixSpotlightProjectListTask.NAME}").succeeded()
@@ -267,10 +281,13 @@ class SpotlightLintTasksFunctionalTest {
     assertThat(result.output).contains("configure the directory scan in ${dslKind.settingsFile}:")
     assertThat(result.output).contains("spotlight {")
     // Extract the complete example, including all three nested closing braces.
-    val snippet = result.output.lineSequence()
-      .dropWhile { it.trim() != "spotlight {" }
-      .takeWhile { it.isNotBlank() }
-      .joinToString("\n") { it.removePrefix("  ") }
+    val snippet = buildList {
+      var closingBraces = 0
+      for (line in result.output.lineSequence().dropWhile { it.trim() != "spotlight {" }) {
+        add(line.removePrefix("  "))
+        if (line.trim() == "}" && ++closingBraces == 3) break
+      }
+    }.joinToString("\n")
     when (dslKind) {
       GradleProject.DslKind.GROOVY -> {
         assertThat(snippet).contains("excludeProjectPaths ':unlisted-groovy'")
@@ -342,8 +359,15 @@ class SpotlightLintTasksFunctionalTest {
     val originalSettings = settingsFile.readText()
 
     val result = project.buildAndFail(":${FixSpotlightProjectListTask.NAME}")
+    val reportedProblems = project.buildAndFailWithProblems(":${FixSpotlightProjectListTask.NAME}")
 
-    assertThat(result.output).contains("java.util.regex.PatternSyntaxException: Unclosed character class")
+    reportedProblems.assertSpotlightProblem(
+      id = "invalid-directory-exclusion-regex",
+      label = "Directory exclusion regex '[' is invalid",
+      lineLocated = true,
+    )
+    assertThat(result.output).contains("Invalid directory exclusion regex")
+    assertThat(result.output).contains("Use a valid regular expression in excludeDirectoriesMatchingRegex")
     assertThat(result.task(":${FixSpotlightProjectListTask.NAME}")).isNull()
     assertThat(allProjects.readText()).isEqualTo(originalContents)
     assertThat(settingsFile.readText()).isEqualTo(originalSettings)
@@ -483,12 +507,13 @@ class SpotlightLintTasksFunctionalTest {
     settingsFile.appendText("\n${configuration.trimIndent()}\n")
     val originalSettings = settingsFile.readText()
 
-    val result = project.buildAndFail(":${FixSpotlightProjectListTask.NAME}")
+    val result = project.buildAndFailWithProblems(":${FixSpotlightProjectListTask.NAME}")
 
-    assertThat(result).task(":${FixSpotlightProjectListTask.NAME}").failed()
-    assertThat(result.output).contains("Found excluded projects required by the dependency graph:")
-    assertThat(result.output).contains("\n  :excluded-project\n")
-    assertThat(result.output).contains("\n  :excluded-transitive\n")
+    result.assertSpotlightProblem(
+      id = "excluded-required-projects",
+      label = "Found excluded projects required by the dependency graph",
+      details = listOf(":excluded-project", ":excluded-transitive"),
+    )
     assertThat(allProjects.readText()).isEqualTo(originalContents)
     assertThat(settingsFile.readText()).isEqualTo(originalSettings)
   }
@@ -544,12 +569,14 @@ class SpotlightLintTasksFunctionalTest {
     allProjects.writeText(projectsList.joinToString(separator = "\n", postfix = "\n"))
 
     // When
-    val result = project.buildAndFail(":${CheckSpotlightProjectListTask.NAME}")
+    val result = project.buildAndFailWithProblems(":${CheckSpotlightProjectListTask.NAME}")
 
     // Then
-    assertThat(result).task(":${CheckSpotlightProjectListTask.NAME}").failed()
-    assertThat(result.output).contains("Found projects missing from ${SpotlightProjectList.ALL_PROJECTS_LOCATION}")
-    assertThat(result.output).contains("discovered via dependency graph but are not listed")
+    result.assertSpotlightProblem(
+      id = "missing-dependency-projects",
+      label = "Found projects missing from ${SpotlightProjectList.ALL_PROJECTS_LOCATION}:",
+      details = listOf("discovered via dependency graph but are not listed"),
+    )
   }
 
   @Test
@@ -627,5 +654,26 @@ class SpotlightLintTasksFunctionalTest {
     // Verify check passes after fix
     val checkResult = project.build(":${CheckSpotlightProjectListTask.NAME}")
     assertThat(checkResult).task(":${CheckSpotlightProjectListTask.NAME}").succeeded()
+  }
+
+  private fun FailedBuildProblems.assertSpotlightProblem(
+    id: String,
+    label: String,
+    details: List<String> = emptyList(),
+    lineLocated: Boolean = false,
+  ) {
+    val spotlightProblems = problems.filter { problem -> problem.definition.id.group.name == "spotlight" }
+    assertThat(spotlightProblems.map { problem -> problem.definition.id.name }).containsExactly(id)
+
+    val problem = spotlightProblems.single()
+    assertThat(problem.definition.id.displayName).isNotEmpty()
+    assertThat(problem.contextualLabel.contextualLabel).contains(label)
+    details.forEach { expected -> assertThat(problem.details.details).contains(expected) }
+    assertThat(problem.solutions).isNotEmpty()
+    assertThat(problem.failure).isNotNull()
+    assertThat(problem.originLocations.filterIsInstance<FileLocation>()).isNotEmpty()
+    if (lineLocated) {
+      assertThat(problem.originLocations.filterIsInstance<LineInFileLocation>()).isNotEmpty()
+    }
   }
 }

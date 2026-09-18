@@ -1,12 +1,15 @@
 package com.fueledbycaffeine.spotlight.tasks
 
 import com.fueledbycaffeine.spotlight.buildscript.GradlePath
+import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT
+import com.fueledbycaffeine.spotlight.buildscript.SETTINGS_SCRIPT_KOTLIN
 import com.fueledbycaffeine.spotlight.buildscript.gradlePathRelativeTo
 import com.fueledbycaffeine.spotlight.buildscript.graph.BreadthFirstSearch
+import com.fueledbycaffeine.spotlight.throwingSpotlightProblem
 import org.gradle.api.DefaultTask
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.problems.Problems
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Input
@@ -16,8 +19,10 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.invariantSeparatorsPathString
 import kotlin.io.path.isDirectory
+import kotlin.io.path.exists
 import kotlin.io.path.name
 import kotlin.io.path.relativeTo
+import javax.inject.Inject
 
 /** Shared disk inventory and exclusions for checking and fixing the project list. */
 @DisableCachingByDefault(because = "Has no outputs")
@@ -47,6 +52,9 @@ public abstract class SpotlightProjectListTask : DefaultTask() {
    */
   @get:Input
   public abstract val excludedProjectPaths: SetProperty<String>
+
+  @get:Inject
+  internal abstract val problems: Problems
 
   init {
     group = "spotlight"
@@ -90,12 +98,22 @@ public abstract class SpotlightProjectListTask : DefaultTask() {
         .any { it.matchesExclusion(rootDir, patterns) }
     }.sortedBy { it.path }
     if (conflicts.isNotEmpty()) {
-      throw InvalidUserDataException(buildString {
-        appendLine("Found excluded projects required by the dependency graph:")
-        conflicts.forEach { project -> appendLine("  ${project.path}") }
-        appendLine()
-        appendLine("Update excludeProjectPaths or excludeDirectoriesMatchingRegex in spotlight.projectDiscovery.directoryScan.")
-      })
+      val label = "Found excluded projects required by the dependency graph"
+      val details = conflicts.joinToString("\n") { project -> "  ${project.path}" }
+      val solution =
+        "Update excludeProjectPaths or excludeDirectoriesMatchingRegex in spotlight.projectDiscovery.directoryScan."
+      val settingsFile = rootDir.resolve(SETTINGS_SCRIPT).takeIf { it.exists() }
+        ?: rootDir.resolve(SETTINGS_SCRIPT_KOTLIN).takeIf { it.exists() }
+      problems.throwingSpotlightProblem(
+        id = "excluded-required-projects",
+        displayName = "Required projects are excluded",
+        contextualLabel = label,
+        details = details,
+        solution = solution,
+        exceptionMessage = "$label:\n$details\n\n$solution",
+        file = settingsFile?.toString(),
+        stackLocation = settingsFile == null,
+      )
     }
     return projects + dependencies
   }
