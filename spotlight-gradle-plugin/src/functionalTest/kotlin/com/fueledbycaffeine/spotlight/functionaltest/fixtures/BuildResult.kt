@@ -6,6 +6,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapter
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.util.GradleVersion
 import java.net.URI
 import kotlin.io.path.readLines
 import kotlin.io.path.toPath
@@ -121,28 +122,50 @@ fun BuildResult.ccReport(): CCReport = readConfigurationCacheReport(output.lines
 fun SyncResult.ccReport(): CCReport = readConfigurationCacheReport(stdout.lines())
 
 @OptIn(ExperimentalStdlibApi::class)
-private fun readConfigurationCacheReport(logLines: List<String>): CCReport {
+internal fun readConfigurationCacheReport(
+  logLines: List<String>,
+  version: GradleVersion = gradleVersion,
+): CCReport {
   val match = logLines.firstNotNullOf { CC_REPORT_REGEX.find(it, 0) }
   val (reportUrl) = match.destructured
   val reportPath = URI.create(reportUrl).toPath()
-
-  val ccInputsJson = reportPath.readLines().run {
-    get(indexOf(BEGIN_CC_REPORT_JSON) + 1)
-  }
+  val reportLines = reportPath.readLines()
 
   val moshi = Moshi.Builder()
     .addLast(KotlinJsonAdapterFactory())
     .build()
 
-  val adapter = moshi.adapter<CCReport>()
-
-  val report = adapter.fromJson(ccInputsJson)!!
+  val report = if (version.baseVersion >= GradleVersion.version("9.9")) {
+    // Gradle 9.9 streams diagnostics and summary as separate JSON script elements.
+    val diagnosticsJson = reportLines.reportData(
+      "<script type=\"application/json\" id=\"diagnostics\">", "</script>",
+    )
+    val summaryJson = reportLines.reportData(
+      "<script type=\"application/json\" id=\"configuration-cache-summary\">", "</script>",
+    )
+    val diagnostics = moshi.adapter<List<CCDiagnostic>>().fromJson(diagnosticsJson)!!
+    val summary = moshi.adapter<CCReportSummary>().fromJson(summaryJson)!!
+    CCReport(diagnostics, summary.totalProblemCount)
+  } else {
+    val reportJson = reportLines.reportData(BEGIN_CC_REPORT_JSON, END_CC_REPORT_JSON)
+    moshi.adapter<CCReport>().fromJson(reportJson)!!
+  }
 
   return report.copy(
     diagnostics = report.diagnostics
       .filter { it.input.name !in GITHUB_ACTIONS_STUFF }
       .filter { !it.input.isDevelocityInput() }
   )
+}
+
+private data class CCReportSummary(val totalProblemCount: Int)
+
+private fun List<String>.reportData(begin: String, end: String): String {
+  val beginIndex = indexOf(begin)
+  require(beginIndex >= 0) { "Malformed configuration cache report: missing $begin" }
+  val endIndex = (beginIndex + 1 until size).firstOrNull { this[it] == end }
+  require(endIndex != null) { "Malformed configuration cache report: missing $end after $begin" }
+  return subList(beginIndex + 1, endIndex).joinToString("\n")
 }
 
 val BuildResult.configurationCacheReused: Boolean get() {
