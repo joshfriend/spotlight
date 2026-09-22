@@ -8,7 +8,7 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.util.GradleVersion
 import java.io.File
 
-private val gradleVersion: GradleVersion get() = GradleVersion.version(
+internal val gradleVersion: GradleVersion get() = GradleVersion.version(
   System.getProperty("gradleVersion").ifBlank { GradleVersion.current().version }
 )
 
