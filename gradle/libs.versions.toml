@@ -8,6 +8,13 @@ javaTarget = "17"
 # This is currently the minimum Gradle version that has the APIs we need to use.
 minGradle = "8.8"
 
+kotlin = "2.4.10"
+plugin-publish = "2.2.1"
+android-lint = "9.3.1"
+intellij-platform = "2.18.1"
+foojay = "1.0.0"
+build-health = "3.18.0"
+autoservice = "0.1.5"
 develocity = "4.5.0"
 junit = "6.1.2"
 junit4 = "4.13.2"
@@ -15,12 +22,21 @@ assertk = "0.28.1"
 truth = "1.4.5"
 testkit = "0.19"
 testkit-support = "0.27"
+maven-publish = "0.37.0"
 lint-gradle = "1.0.0"
 moshi = "1.15.2"
 moshix = "0.37.0"
 okio = "3.18.1"
 
 [libraries]
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+gradle-plugin-publish = { module = "com.gradle.plugin-publish:com.gradle.plugin-publish.gradle.plugin", version.ref = "plugin-publish" }
+android-lint-plugin = { module = "com.android.lint:com.android.lint.gradle.plugin", version.ref = "android-lint" }
+intellij-platform-plugin = { module = "org.jetbrains.intellij.platform:org.jetbrains.intellij.platform.gradle.plugin", version.ref = "intellij-platform" }
+foojay-plugin = { module = "org.gradle.toolchains.foojay-resolver-convention:org.gradle.toolchains.foojay-resolver-convention.gradle.plugin", version.ref = "foojay" }
+build-health-plugin = { module = "com.autonomousapps.build-health:com.autonomousapps.build-health.gradle.plugin", version.ref = "build-health" }
+moshix-plugin = { module = "dev.zacsweers.moshix:dev.zacsweers.moshix.gradle.plugin", version.ref = "moshix" }
+autoservice-plugin = { module = "com.fueledbycaffeine.autoservice:com.fueledbycaffeine.autoservice.gradle.plugin", version.ref = "autoservice" }
 develocity = { module = "com.gradle:develocity-gradle-plugin", version.ref = "develocity" }
 junit4 = { module = "junit:junit", version.ref = "junit4" }
 junit-platform = { module = "org.junit:junit-bom", version.ref = "junit" }
@@ -30,6 +46,8 @@ assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assert
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 autonomousapps-testkit = { module = "com.autonomousapps:gradle-testkit", version.ref = "testkit" }
 autonomousapps-testkit-support = { module = "com.autonomousapps:gradle-testkit-support", version.ref = "testkit-support" }
+autonomousapps-testkit-plugin = { module = "com.autonomousapps:gradle-testkit-plugin", version.ref = "testkit" }
+vanniktech-maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "maven-publish" }
 lint-gradle = { module = "androidx.lint:lint-gradle", version.ref = "lint-gradle" }
 moshi = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
@@ -37,3 +55,6 @@ moshi-adapters = { module = "com.squareup.moshi:moshi-adapters", version.ref = "
 moshix-sealed-runtime = { module = "dev.zacsweers.moshix:moshi-sealed-runtime", version.ref = "moshix" }
 moshix-runtime = { module = "dev.zacsweers.moshix:moshix-runtime", version.ref = "moshix" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

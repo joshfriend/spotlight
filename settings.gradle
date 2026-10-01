@@ -1,18 +1,5 @@
 pluginManagement {
-  plugins {
-    id 'com.gradle.develocity' version '4.5.0'
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
-    id 'org.jetbrains.kotlin.jvm' version '2.4.10'
-    id 'dev.zacsweers.moshix' version '0.37.0'
-    id 'com.autonomousapps.testkit' version '0.19'
-    id 'com.autonomousapps.build-health' version '3.18.0'
-    id 'com.gradle.plugin-publish' version '2.2.1'
-    id 'org.gradle.plugin-compatibility' version '1.1.0'
-    id 'com.vanniktech.maven.publish' version '0.37.0'
-    id 'com.android.lint' version '9.3.1'
-    id 'org.jetbrains.intellij.platform' version '2.18.1'
-    id 'com.fueledbycaffeine.autoservice' version '0.1.5'
-  }
+  includeBuild('build-logic')
   repositories {
     gradlePluginPortal()
     mavenCentral()
@@ -21,38 +8,7 @@ pluginManagement {
 }
 
 plugins {
-  id 'com.gradle.develocity'
-  id 'org.gradle.toolchains.foojay-resolver-convention'
-  id 'org.jetbrains.kotlin.jvm' apply false
-  id 'com.autonomousapps.build-health'
-}
-
-dependencyResolutionManagement {
-  repositories {
-    mavenCentral()
-    google()
-    gradlePluginPortal()
-    maven {
-      url = 'https://repo.gradle.org/gradle/libs-releases'
-      content {
-        includeModule('org.gradle.experimental', 'gradle-public-api')
-      }
-    }
-  }
-}
-
-develocity {
-  buildScan {
-    publishing.onlyIf { true }
-    termsOfUseUrl = "https://gradle.com/terms-of-service"
-    termsOfUseAgree = "yes"
-
-    if (System.getenv("CI")) {
-      tag("CI")
-    } else {
-      tag("Local")
-    }
-  }
+  id 'conventions.settings'
 }
 
 rootProject.name = 'spotlight'

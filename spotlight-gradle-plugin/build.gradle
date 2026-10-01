@@ -1,154 +1,30 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-  id 'java-gradle-plugin'
-  id 'com.gradle.plugin-publish'
-  id 'com.vanniktech.maven.publish'
-  id 'com.autonomousapps.testkit'
-  id 'org.jetbrains.kotlin.jvm'
-  id 'com.android.lint'
+  id 'conventions.gradle-plugin'
 }
 
-group = "com.fueledbycaffeine.spotlight"
-version = VERSION_NAME
-
-gradlePlugin {
-  vcsUrl = "https://github.com/joshfriend/spotlight"
-  website = "https://github.com/joshfriend/spotlight"
-  plugins {
-    spotlight {
-      id = "com.fueledbycaffeine.spotlight"
-      implementationClass = "com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin"
-      displayName = "Spotlight"
-      description = "A plugin that makes managing `settings.gradle(.kts)` for large projects easier"
-      tags = ["IDE", "dependencies"]
-      compatibility {
-        features {
-          isolatedProjects = true
-          configurationCache = true
-        }
-      }
-    }
+conventions {
+  gradlePlugin('spotlight') {
+    id = "com.fueledbycaffeine.spotlight"
+    implementationClass = "com.fueledbycaffeine.spotlight.SpotlightSettingsPlugin"
+    displayName = "Spotlight"
+    description = "A plugin that makes managing `settings.gradle(.kts)` for large projects easier"
+    tags = ["IDE", "dependencies"]
   }
 }
 
 mavenPublishing {
-  publishToMavenCentral(true)
-  if (providers.gradleProperty("signingInMemoryKey").isPresent()) {
-    signAllPublications()
-  }
-
   pom {
     name = "Spotlight Gradle plugin"
     description = "A Gradle plugin that and makes managing `settings.gradle(.kts)` for large projects easier"
-    inceptionYear = "2025"
-    url = "https://github.com/joshfriend/spotlight/"
-    licenses {
-      license {
-        name = "MIT License"
-        url = "https://choosealicense.com/licenses/mit/"
-        distribution = "https://choosealicense.com/licenses/mit/"
-      }
-    }
-    developers {
-      developer {
-        id = "joshfriend"
-        name = "Josh Friend"
-        url = "https://github.com/joshfriend/"
-      }
-    }
-    scm {
-      url = "https://github.com/joshfriend/spotlight/"
-      connection = "scm:git:git://github.com/joshfriend/spotlight.git"
-      developerConnection = "scm:git:ssh://git@github.com/joshfriend/spotlight.git"
-    }
   }
 }
-
-kotlin {
-  explicitApi()
-
-  compilerOptions {
-    allWarningsAsErrors.set(true)
-    jvmTarget.set(JvmTarget.fromTarget(libs.versions.javaTarget.get()))
-  }
-
-  abiValidation {
-    enabled.set(true)
-  }
-}
-
-java {
-  toolchain {
-    languageVersion.set(JavaLanguageVersion.of(libs.versions.jdk.get()))
-  }
-}
-
-tasks.withType(JavaCompile).configureEach {
-  options.release.set(libs.versions.javaTarget.get().toInteger())
-}
-
-gradleTestKitSupport {
-  withSupportLibrary(libs.versions.testkit.support.get())
-  withTruthLibrary()
-}
-
-dependencyAnalysis {
-  issues {
-    onIncorrectConfiguration {
-      exclude libs.autonomousapps.testkit.support
-    }
-  }
-}
-
-["runtimeElements", "apiElements"].each { configurationName ->
-  configurations.named(configurationName).configure {
-    attributes {
-      attribute(
-        GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE,
-        objects.named(GradlePluginApiVersion, libs.versions.minGradle.get())
-      )
-    }
-  }
-}
-
-def main = sourceSets["main"]
-
-// Add a source set for the functional test suite. This must come _above_ the `dependencies` block.
-def functionalTestSourceSet = sourceSets.maybeCreate("functionalTest")
-functionalTestSourceSet.compileClasspath += main.output + configurations["testRuntimeClasspath"]
-functionalTestSourceSet.runtimeClasspath += functionalTestSourceSet.output + functionalTestSourceSet.compileClasspath
 
 dependencies {
   api project(':buildscript-utils')
 
-  // Experimental replacement for gradleApi():
-  // https://github.com/gradle/gradle/issues/29483#issuecomment-2791668178
-  compileOnly("org.gradle.experimental:gradle-public-api:${gradle.gradleVersion}") {
-    capabilities {
-      requireCapability('org.gradle.experimental:gradle-public-api-internal')
-    }
-  }
   compileOnly(libs.develocity)
-
-  lintChecks(libs.lint.gradle)
 
   functionalTestApi libs.moshi
   functionalTestImplementation libs.truth
   functionalTestImplementation libs.moshi.kotlin
-
-  testImplementation libs.assertk
-  testImplementation platform(libs.junit.platform)
-  testImplementation libs.junit.jupiter
-  testRuntimeOnly libs.junit.launcher
-}
-
-tasks.withType(ValidatePlugins).configureEach {
-  enableStricterValidation = true
-}
-
-tasks.withType(Test).configureEach {
-  systemProperty("gradleVersion", System.getProperty("gradleVersion"))
-  systemProperty("develocityVersion", libs.versions.develocity.get())
-  useJUnitPlatform()
 }

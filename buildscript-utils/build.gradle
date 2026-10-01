@@ -1,66 +1,13 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-  id 'org.jetbrains.kotlin.jvm'
-  id 'dev.zacsweers.moshix'
-  id 'com.vanniktech.maven.publish'
-  id 'com.autonomousapps.testkit'
-  id 'com.fueledbycaffeine.autoservice'
+  id 'conventions.library'
+  id 'conventions.moshi'
+  id 'conventions.autoservice'
 }
 
-group = 'com.fueledbycaffeine.spotlight'
-version = VERSION_NAME
-
 mavenPublishing {
-  publishToMavenCentral(true)
-  if (providers.gradleProperty("signingInMemoryKey").isPresent()) {
-    signAllPublications()
-  }
-
   pom {
     name = "Spotlight buildscript utils"
     description = "Parse and build a DAG of your gradle projects"
-    inceptionYear = "2025"
-    url = "https://github.com/joshfriend/spotlight/"
-    licenses {
-      license {
-        name = "MIT License"
-        url = "https://choosealicense.com/licenses/mit/"
-        distribution = "https://choosealicense.com/licenses/mit/"
-      }
-    }
-    developers {
-      developer {
-        id = "joshfriend"
-        name = "Josh Friend"
-        url = "https://github.com/joshfriend/"
-      }
-    }
-    scm {
-      url = "https://github.com/joshfriend/spotlight/"
-      connection = "scm:git:git://github.com/joshfriend/spotlight.git"
-      developerConnection = "scm:git:ssh://git@github.com/joshfriend/spotlight.git"
-    }
-  }
-}
-
-moshi {
-  enableSealed = true
-}
-
-dependencyAnalysis {
-  issues {
-    onUnusedDependencies {
-      // Moshix IR compiler adds these and we dont use them in some configurations
-      exclude(libs.moshix.runtime)
-      exclude(libs.moshi)
-      exclude(libs.moshix.sealed.runtime)
-    }
-    onIncorrectConfiguration {
-      // Moshix IR compiler adds these incorrectly
-      exclude(libs.moshi)
-      exclude(libs.moshix.sealed.runtime)
-    }
   }
 }
 
@@ -70,36 +17,4 @@ dependencies {
 
   implementation(libs.moshi.adapters)
   implementation(libs.okio)
-
-  testImplementation libs.assertk
-  testImplementation platform(libs.junit.platform)
-  testImplementation libs.junit.jupiter
-  testRuntimeOnly libs.junit.launcher
-}
-
-kotlin {
-  explicitApi()
-
-  compilerOptions {
-    allWarningsAsErrors.set(true)
-    jvmTarget.set(JvmTarget.fromTarget(libs.versions.javaTarget.get()))
-  }
-
-  abiValidation {
-    enabled.set(true)
-  }
-}
-
-java {
-  toolchain {
-    languageVersion.set(JavaLanguageVersion.of(libs.versions.jdk.get()))
-  }
-}
-
-tasks.withType(JavaCompile).configureEach {
-  options.release.set(libs.versions.javaTarget.get().toInteger())
-}
-
-test {
-  useJUnitPlatform()
 }

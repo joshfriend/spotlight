@@ -1,37 +1,3 @@
 plugins {
-  id 'org.jetbrains.kotlin.jvm' apply false
-  id 'com.autonomousapps.testkit' apply false
-  id 'com.gradle.plugin-publish' apply false
-  id 'com.vanniktech.maven.publish' apply false
-  id 'com.android.lint' apply false
-  id 'org.jetbrains.intellij.platform' apply false
-}
-
-group = 'com.fueledbycaffeine'
-
-dependencyAnalysis {
-  reporting {
-    printBuildHealth true
-  }
-  issues {
-    all {
-      onAny {
-        severity 'fail'
-      }
-    }
-  }
-  structure {
-    bundle('jupiter') {
-      primary libs.junit.jupiter
-      includeGroup 'org.junit.jupiter'
-    }
-    bundle('testkit') {
-      primary libs.autonomousapps.testkit
-      includeDependency libs.autonomousapps.testkit.support
-      includeDependency libs.truth
-    }
-    bundle('moshi') {
-      primary libs.moshi
-    }
-  }
+  id 'conventions.root'
 }

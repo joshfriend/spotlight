@@ -1,49 +1,14 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
-import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-  id 'java'
-  id 'org.jetbrains.kotlin.jvm'
-  id 'org.jetbrains.intellij.platform'
-}
-
-// Configure project's dependencies
-repositories {
-  mavenCentral()
-  intellijPlatform {
-    defaultRepositories()
-  }
-}
-
-kotlin {
-  compilerOptions {
-    allWarningsAsErrors.set(true)
-    // Bytecode target must match the Java version of the minimum supported
-    // IDE (sinceBuild 252 = 2025.2, which runs on JBR 21):
-    // https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html
-    jvmTarget.set(JvmTarget.JVM_21)
-    // Inherit platform interface default methods directly instead of generating
-    // legacy compatibility bridges, which otherwise reference deprecated APIs
-    // (e.g. StatusBarWidget.getPresentation(PlatformType)).
-    jvmDefault.set(JvmDefaultMode.NO_COMPATIBILITY)
-  }
-}
-
-java {
-  toolchain {
-    languageVersion.set(JavaLanguageVersion.of(libs.versions.jdk.get()))
-  }
+  id 'conventions.ij-plugin'
 }
 
 def intellijTarget = "2026.2.0.1"
 
 dependencies {
   implementation project(":buildscript-utils")
-
-  testImplementation libs.junit4
-  testImplementation libs.truth
 
   intellijPlatform {
     intellijIdea(intellijTarget) {
@@ -71,16 +36,6 @@ dependencies {
   }
 }
 
-boolean isSnapshot() {
-  return VERSION_NAME.endsWith("SNAPSHOT")
-}
-
-if (isSnapshot()) {
-  version = "$VERSION_NAME-${System.currentTimeMillis()}"
-} else {
-  version = VERSION_NAME
-}
-
 intellijPlatformTesting.runIde.configureEach {
   plugins {
     // This throws a bunch of errors in the IDE
@@ -90,23 +45,8 @@ intellijPlatformTesting.runIde.configureEach {
 
 // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
-  caching {
-    ides {
-      enabled = true
-    }
-  }
   pluginConfiguration {
     name = "Spotlight"
-
-    ideaVersion {
-      sinceBuild = "252"
-    }
-  }
-
-  publishing {
-    token = providers.environmentVariable("JETBRAINS_MARKETPLACE_TOKEN")
-      .orElse(providers.gradleProperty("jetbrainsMarketplaceToken"))
-    channels = [ isSnapshot() ? "EAP" : "Stable" ]
   }
 
   pluginVerification {

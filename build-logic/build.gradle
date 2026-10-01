@@ -1,0 +1,47 @@
+plugins {
+  id 'java-gradle-plugin'
+  alias(libs.plugins.kotlin.jvm)
+}
+
+tasks.withType(ValidatePlugins).configureEach {
+  enableStricterValidation = true
+}
+
+dependencies {
+  // The root build suppresses the Gradle API dependency normally added by java-gradle-plugin.
+  compileOnly gradleApi()
+  implementation libs.autonomousapps.testkit.plugin
+  implementation libs.vanniktech.maven.publish
+  implementation libs.kotlin.gradle.plugin
+  implementation libs.gradle.plugin.publish
+  implementation libs.android.lint.plugin
+  implementation libs.intellij.platform.plugin
+  implementation libs.develocity
+  implementation libs.foojay.plugin
+  implementation libs.build.health.plugin
+  implementation libs.moshix.plugin
+  implementation libs.autoservice.plugin
+}
+
+gradlePlugin {
+  plugins {
+    [
+      'settings': 'Settings',
+      'root': 'Root',
+      'kotlin': 'Kotlin',
+      'checks': 'Checks',
+      'library': 'Library',
+      'lint': 'Lint',
+      'publishing': 'Publishing',
+      'gradle-plugin': 'GradlePlugin',
+      'ij-plugin': 'IjPlugin',
+      'moshi': 'Moshi',
+      'autoservice': 'Autoservice',
+    ].each { pluginId, className ->
+      register(pluginId) {
+        id = "conventions.$pluginId"
+        implementationClass = "com.fueledbycaffeine.buildlogic.${className}ConventionPlugin"
+      }
+    }
+  }
+}
