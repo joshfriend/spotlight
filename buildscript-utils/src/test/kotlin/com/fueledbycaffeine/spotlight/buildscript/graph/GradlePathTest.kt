@@ -29,7 +29,7 @@ class GradlePathTest {
   @Test fun `can convert gradle paths to filesystem paths`() {
     val gradlePath = GradlePath(buildRoot, ":foo:bar")
     val projectDir = buildRoot.resolve("foo/bar")
-    assertThat(gradlePath.projectDir).equals(projectDir)
+    assertThat(gradlePath.projectDir).isEqualTo(projectDir)
   }
 
   @ParameterizedTest
@@ -38,7 +38,7 @@ class GradlePathTest {
     val gradlePath = GradlePath(buildRoot, ":foo:bar")
     val projectDir = buildRoot.resolve("foo/bar")
     val buildScriptPath = projectDir.createBuildFile(extension)
-    assertThat(gradlePath.buildFilePath).equals(buildScriptPath)
+    assertThat(gradlePath.buildFilePath).isEqualTo(buildScriptPath)
   }
 
   @ParameterizedTest
@@ -57,7 +57,7 @@ class GradlePathTest {
       val buildScriptPath = projectDir.resolve("build$extension")
       buildScriptPath.createFile()
     }
-    assertThat(gradlePath.buildFilePath).equals(buildscripts.first())
+    assertThat(gradlePath.buildFilePath).isEqualTo(buildscripts.first())
   }
 
   @Test fun `throws error if no buildscript is found`() {
@@ -95,13 +95,13 @@ class GradlePathTest {
       ":snake_case" to "snakeCase",
       ":UpperCase" to "UpperCase",
       ":ALL_CAPS" to "ALLCAPS",
-      ":a-b_c-d_e:f-g_h-i_j" to "aBCDE:fGHIJ",
+      ":a-b_c-d_e:f-g_h-i_j" to "aBCDE.fGHIJ",
     )
     val convertedPaths = projectPaths.keys.map { path ->
       GradlePath(buildRoot, path).typeSafeAccessorName
     }
-    projectPaths.values.zip(convertedPaths).forEach { (actual, expected) ->
-      assertThat(actual).equals(expected)
+    projectPaths.values.zip(convertedPaths).forEach { (expected, actual) ->
+      assertThat(actual).isEqualTo(expected)
     }
   }
 

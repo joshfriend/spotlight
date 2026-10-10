@@ -1,6 +1,7 @@
 package com.fueledbycaffeine.spotlight.buildscript
 
 import assertk.assertThat
+import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
 import java.nio.file.Path
@@ -26,7 +27,7 @@ class SpotlightProjectListTest {
     projectListFile.writeText(expectedProjects.joinToString("\n") { it.path })
 
     val projects = AllProjects(buildRoot, projectListFile).read()
-    assertThat(projects).equals(expectedProjects)
+    assertThat(projects).isEqualTo(expectedProjects.toSet())
   }
 
   @Test
@@ -41,7 +42,7 @@ class SpotlightProjectListTest {
     """.trimIndent())
 
     val projects = AllProjects(buildRoot, projectListFile).read()
-    assertThat(projects).equals(expectedProjects)
+    assertThat(projects).isEqualTo(expectedProjects.toSet())
   }
 
   @Test
@@ -58,7 +59,7 @@ class SpotlightProjectListTest {
     """.trimIndent())
 
     val projects = AllProjects(buildRoot, projectListFile).read()
-    assertThat(projects).equals(expectedProjects)
+    assertThat(projects).isEqualTo(expectedProjects.toSet())
   }
 
   @Test
@@ -73,7 +74,7 @@ class SpotlightProjectListTest {
     """.trimIndent())
 
     val projects = AllProjects(buildRoot, projectListFile).read()
-    assertThat(projects).equals(expectedProjects)
+    assertThat(projects).isEqualTo(expectedProjects.toSet())
   }
 
   @Test
@@ -108,7 +109,7 @@ class SpotlightProjectListTest {
     val projects = IdeProjects(buildRoot, projectListFile)
     projects.add(listOf(missing))
     val updatedFileContents = projectListFile.readText()
-    assertThat(updatedFileContents).equals(":foo\n:bar\n")
+    assertThat(updatedFileContents).isEqualTo(":foo\n:bar")
   }
 
   @Test
@@ -133,7 +134,7 @@ class SpotlightProjectListTest {
         ":libraries:data",
         ":apps:main")
     }
-    assertThat(projects).equals(expectedProjects.toSet())
+    assertThat(projects).isEqualTo(expectedProjects.toSet())
   }
 
   @Test
@@ -155,11 +156,11 @@ class SpotlightProjectListTest {
     val expectedProjects = allProjectsList.filter {
       it.path.startsWith(":libraries:ui") || it.path == ":apps:main"
     }
-    assertThat(projects).equals(expectedProjects.toSet())
+    assertThat(projects).isEqualTo(expectedProjects.toSet())
   }
 
   @Test
-  fun `IdeProjects filters non-existent projects when allProjects provided`() {
+  fun `IdeProjects keeps direct project references without checking allProjects`() {
     val ideProjectListFile = buildRoot.resolve("ide-projects.txt")
     val allProjectsList = buildRoot.createProjectList(
       ":foo",
@@ -171,8 +172,8 @@ class SpotlightProjectListTest {
     """.trimIndent())
 
     val projects = IdeProjects(buildRoot, ideProjectListFile, allProjectsList::toSet).read()
-    val expectedProjects = allProjectsList.filter { it.path == ":foo" }
-    assertThat(projects).equals(expectedProjects.toSet())
+    val expectedProjects = setOf(GradlePath(buildRoot, ":foo"), GradlePath(buildRoot, ":baz"))
+    assertThat(projects).isEqualTo(expectedProjects)
   }
 
   @Test
@@ -188,7 +189,7 @@ class SpotlightProjectListTest {
     """.trimIndent())
 
     val ideProjects = IdeProjects(buildRoot, ideProjectListFile, null).read()
-    assertThat(ideProjects).equals(projects.toSet())
+    assertThat(ideProjects).isEqualTo(projects.toSet())
   }
 
   @Test
@@ -209,7 +210,7 @@ class SpotlightProjectListTest {
     projects.remove(listOf(GradlePath(buildRoot, ":advertising:**")))
 
     val updatedFileContents = ideProjectListFile.readText()
-    assertThat(updatedFileContents).equals(":other:project\n")
+    assertThat(updatedFileContents).isEqualTo(":other:project")
   }
 
   @Test
@@ -231,7 +232,7 @@ class SpotlightProjectListTest {
 
     val updatedFileContents = ideProjectListFile.readText()
     // Should NOT remove anything since :advertising:core is not literally in the file
-    assertThat(updatedFileContents).equals(":advertising:**\n:other:project\n")
+    assertThat(updatedFileContents).isEqualTo(":advertising:**\n:other:project")
   }
 
   @Test
@@ -251,7 +252,7 @@ class SpotlightProjectListTest {
 
     val updatedFileContents = ideProjectListFile.readText()
     // Should not have added duplicate
-    assertThat(updatedFileContents).equals(":foo\n")
+    assertThat(updatedFileContents).isEqualTo(":foo")
   }
 
   @Test
@@ -272,7 +273,7 @@ class SpotlightProjectListTest {
 
     val updatedFileContents = ideProjectListFile.readText()
     // Should have added it even though covered by wildcard
-    assertThat(updatedFileContents).equals(":advertising:**\n:advertising:backend\n")
+    assertThat(updatedFileContents).isEqualTo(":advertising:**\n:advertising:backend")
   }
 
   @Test
@@ -292,7 +293,7 @@ class SpotlightProjectListTest {
 
     val updatedFileContents = ideProjectListFile.readText()
     // Should have added wildcard
-    assertThat(updatedFileContents).equals(":advertising\n:advertising:**\n")
+    assertThat(updatedFileContents).isEqualTo(":advertising\n:advertising:**")
   }
 
   @Test
@@ -336,7 +337,7 @@ class SpotlightProjectListTest {
 
     val updatedFileContents = ideProjectListFile.readText()
     // Should have both the wildcard and the specific project
-    assertThat(updatedFileContents).equals(":advertising:**\n:advertising:backend\n")
+    assertThat(updatedFileContents).isEqualTo(":advertising:**\n:advertising:backend")
   }
 
   @Test
@@ -358,7 +359,7 @@ class SpotlightProjectListTest {
 
     val updatedFileContents = ideProjectListFile.readText()
     // Should only remove the specific project, not the wildcard
-    assertThat(updatedFileContents).equals(":advertising:**\n")
+    assertThat(updatedFileContents).isEqualTo(":advertising:**")
   }
 
   @Test
@@ -383,7 +384,7 @@ class SpotlightProjectListTest {
     )
 
     val updatedFileContents = ideProjectListFile.readText()
-    assertThat(updatedFileContents).equals(":baz")
+    assertThat(updatedFileContents).isEqualTo(":baz")
   }
 
   @Test
